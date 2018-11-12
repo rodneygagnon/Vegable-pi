@@ -1,0 +1,6 @@
+// Port for Express to listen
+PORT=3001
+HTTPS_PORT=3005
+
+// Vegable Environment Settings
+VEGABLE_STATIONS=8
