@@ -4,3 +4,8 @@
 # Ignore OSX FS Junk
 .DS_Store
 */.DS_Store
+
+# Ignore files with private data (for now)
+settings.js
+ssl/server.cert
+ssl/server.key
