@@ -6,6 +6,6 @@
 */.DS_Store
 
 # Ignore files with private data (for now)
-./settings.js
+settings.js
 ssl/server.cert
 ssl/server.key
