@@ -8,6 +8,7 @@ var redis = require('redis');
 const dbKeys = {
   dbConfigKey: 'config',
   dbStationsKey: 'stations',
+  dbSchedulesKey: 'schedules',
   dbProgramsKey: 'programs'
 };
 

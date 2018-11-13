@@ -29,6 +29,7 @@ var app = express();
 // Application Routes
 const IndexRouter = require('./routes/index');
 const SettingsRouter = require('./routes/settings');
+const SchedulesRouter = require('./routes/schedules');
 const ProgramsRouter = require('./routes/programs');
 
 app.set('view engine', 'ejs');
@@ -44,6 +45,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', IndexRouter);
 app.use('/settings', SettingsRouter);
+app.use('/schedules', SchedulesRouter);
 app.use('/programs', ProgramsRouter);
 
 // TODO: Shutdown or redirect HTTP traffic

@@ -51,13 +51,13 @@
 	                        <p>Stations</p>
 	                    </a>
 	                </li>
-									<li>
+									<li class="active">
 	                    <a href="/schedules">
 	                        <i class="ti-calendar"></i>
 	                        <p>Schedules</p>
 	                    </a>
 	                </li>
-	                <li class="active">
+	                <li>
 	                    <a href="/programs">
 	                        <i class="ti-layout-column2"></i>
 	                        <p>Programs</p>
@@ -80,7 +80,7 @@
 	                        <span class="icon-bar bar2"></span>
 	                        <span class="icon-bar bar3"></span>
 	                    </button>
-	                    <a class="navbar-brand" href="#calendar">Programs</a>
+	                    <a class="navbar-brand" href="#calendar">Schedules</a>
 	                </div>
 	                <div class="collapse navbar-collapse">
 	                    <ul class="nav navbar-nav navbar-right">
@@ -124,16 +124,16 @@
 	</div>
 
 	<!--Modals-->
-	<div class="modal fade" id="editProgramModal" tabindex="-1" role="dialog" aria-labelledby="editProgramModalLabel" aria-hidden="true">
+	<div class="modal fade" id="editScheduleModal" tabindex="-1" role="dialog" aria-labelledby="editScheduleModalLabel" aria-hidden="true">
 	  <div class="modal-dialog" role="document">
 		  <div class="modal-content">
 			<div class="modal-header">
-	        	<h4 class="modal-title"id="editPogramLabel">Create/Update Program</h5>
+	        	<h4 class="modal-title"id="editPogramLabel">Create/Update Schedule</h5>
 	        	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 	          		<span aria-hidden="true">&times;</span>
 	        	</button>
 	      	</div>
-			<form method="post" action="/programs/update">
+			<form method="post" action="/schedules/update">
 				<div class="modal-body">
 					<!--  HIDDEN FIELDS -->
 					<input type="hidden" id="id" name="id"/>
@@ -287,32 +287,32 @@
 					},
 					select: function(start, end) {
 							// on select we show the Sweet Alert modal with an input
-							$('#editProgramModal #editProgramLabel').text('Create a new program');
-							$('#editProgramModal #title').val("");
-							$('#editProgramModal #start').val(moment(start).format('MM/DD/YYYY hh:mm A'));
-							$('#editProgramModal #end').val(moment(end).format('MM/DD/YYYY hh:mm A'));
+							$('#editScheduleModal #editScheduleLabel').text('Create a new Schedule');
+							$('#editScheduleModal #title').val("");
+							$('#editScheduleModal #start').val(moment(start).format('MM/DD/YYYY hh:mm A'));
+							$('#editScheduleModal #end').val(moment(end).format('MM/DD/YYYY hh:mm A'));
 
-							$('#editProgramModal').modal('show');
-							$('#editProgramModal #delete_action').toggleClass("hidden");
+							$('#editScheduleModal').modal('show');
+							$('#editScheduleModal #delete_action').toggleClass("hidden");
 
 					},
 					eventClick: function(event, jsEvent, view) {
-						$('#editProgramModal #editProgramLabel').text('Update a program');
-						$('#editProgramModal #title').val(event.title);
-						$('#editProgramModal #id').val(event.id);
-						$('#editProgramModal #sid').val(event.sid);
-						$('#editProgramModal #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
-						$('#editProgramModal #end').val(moment(event.end).format('MM/DD/YYYY hh:mm A'));
+						$('#editScheduleModal #editScheduleLabel').text('Update a Schedule');
+						$('#editScheduleModal #title').val(event.title);
+						$('#editScheduleModal #id').val(event.id);
+						$('#editScheduleModal #sid').val(event.sid);
+						$('#editScheduleModal #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
+						$('#editScheduleModal #end').val(moment(event.end).format('MM/DD/YYYY hh:mm A'));
 
-						$('#editProgramModal').modal('show');
-						$('#editProgramModal #delete_action').toggleClass("hidden");
+						$('#editScheduleModal').modal('show');
+						$('#editScheduleModal #delete_action').toggleClass("hidden");
 					},
 					editable: true,
 					eventLimit: true, // allow "more" link when too many events
 
 					// color classes: [ event-blue | event-azure | event-green | event-orange | event-red ]
 					events: {
-					    url: '/programs/getPrograms',
+					    url: '/schedules/getSchedules',
 					    type: 'GET',
 					}
 				});
