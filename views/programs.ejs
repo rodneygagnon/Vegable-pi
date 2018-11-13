@@ -103,7 +103,6 @@
 	                    <div class="col-md-10 col-md-offset-1">
 	                        <div class="card card-calendar">
 	                            <div class="card-content">
-	                                <div id="fullCalendar"></div>
 	                            </div>
 	                        </div>
 	                    </div>
@@ -121,69 +120,6 @@
 	            </div>
 	        </footer>
 	    </div>
-	</div>
-
-	<!--Modals-->
-	<div class="modal fade" id="editProgramModal" tabindex="-1" role="dialog" aria-labelledby="editProgramModalLabel" aria-hidden="true">
-	  <div class="modal-dialog" role="document">
-		  <div class="modal-content">
-			<div class="modal-header">
-	        	<h4 class="modal-title"id="editPogramLabel">Create/Update Program</h5>
-	        	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-	          		<span aria-hidden="true">&times;</span>
-	        	</button>
-	      	</div>
-			<form method="post" action="/programs/update">
-				<div class="modal-body">
-					<!--  HIDDEN FIELDS -->
-					<input type="hidden" id="id" name="id"/>
-
-					<div class="form-group">
-						<label for="sid" class="col-form-label">Station</label>
-						<select class="selectpicker form-control" data-style="btn btn-block" id="sid" name="sid" >
-	            <% for(var i=0; i < stations.length; i++) { %>
-	              <option value="<%= stations[i].id %>"><%= stations[i].name %></option>
-	            <% } %>
-						</select>
-					</div>
-
-					<div class="form-group">
-						<label for="name" class="col-form-label">Title</label>
-						<input type="text" class="form-control" id="title" name="title">
-					</div>
-
-				   <div class="form-group">
-						<label for="start" class="col-form-label">Start</label>
-						<input id="start" name="start" type="text" class="form-control datetimepicker" placeholder="Start Day & Time ..."/>
-					</div>
-
-					<div class="form-group">
-						<label for="end" class="col-form-label">End</label>
-						<input id="end" name="end" type="text" class="form-control datetimepicker" placeholder="End Day & Time ..."/>
-					</div>
-
-					<div class="form-group">
-						<label for="repeat" class="col-form-label">Repeat</label>
-						<select class="form-control" id="repeat" name="repeat">
-							<%
-								var repeats = [ "None", "Every Day", "Every Week", "Every Month", "Every Year", "Custom" ];
-								for ( var i = 0; i < repeats.length; i++ ) { %>
-	              	<option value="<%= repeats[i] %>"><%= repeats[i] %></option>
-							<% } %>
-						</select>
-					</div>
-
-					</div> <!-- modal-body -->
-				<div class="modal-footer">
-					<p class="pull-left" id="delete_action" >
-						<button name="action" type="submit" class="btn btn-fill btn-danger" value="delete">Delete</button>
-					</p>
-					<button name="action" type="submit" class="btn btn-fill btn-primary"  value="update">Save</button>
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-				</div> <!-- modal-footer -->
-			</form>
-		</div>
-	  </div>
 	</div>
 </body>
 
@@ -250,94 +186,5 @@
 	<script src="assets/js/demo.js"></script>
 
 	<script type="text/javascript">
-	function initCalendar() {
-			$calendar = $('#fullCalendar');
-
-			today = new Date();
-			y = today.getFullYear();
-			m = today.getMonth();
-			d = today.getDate();
-
-			$calendar.fullCalendar({
-					viewRender: function(view, element) {
-							// We make sure that we activate the perfect scrollbar when the view isn't on Month
-							if (view.name != 'month'){
-									$(element).find('.fc-scroller').perfectScrollbar();
-							}
-					},
-					header: {
-						left: 'title',
-						center: 'month,agendaWeek,agendaDay',
-						right: 'prev,next,today'
-					},
-					defaultDate: today,
-					selectable: true,
-					selectHelper: true,
-					views: {
-							month: { // name of view
-									titleFormat: 'MMMM YYYY'
-									// other view-specific options here
-							},
-							week: {
-									titleFormat: " MMMM D YYYY"
-							},
-							day: {
-									titleFormat: 'D MMM, YYYY'
-							}
-					},
-					select: function(start, end) {
-							// on select we show the Sweet Alert modal with an input
-							$('#editProgramModal #editProgramLabel').text('Create a new program');
-							$('#editProgramModal #title').val("");
-							$('#editProgramModal #start').val(moment(start).format('MM/DD/YYYY hh:mm A'));
-							$('#editProgramModal #end').val(moment(end).format('MM/DD/YYYY hh:mm A'));
-
-							$('#editProgramModal').modal('show');
-							$('#editProgramModal #delete_action').toggleClass("hidden");
-
-					},
-					eventClick: function(event, jsEvent, view) {
-						$('#editProgramModal #editProgramLabel').text('Update a program');
-						$('#editProgramModal #title').val(event.title);
-						$('#editProgramModal #id').val(event.id);
-						$('#editProgramModal #sid').val(event.sid);
-						$('#editProgramModal #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
-						$('#editProgramModal #end').val(moment(event.end).format('MM/DD/YYYY hh:mm A'));
-
-						$('#editProgramModal').modal('show');
-						$('#editProgramModal #delete_action').toggleClass("hidden");
-					},
-					editable: true,
-					eventLimit: true, // allow "more" link when too many events
-
-					// color classes: [ event-blue | event-azure | event-green | event-orange | event-red ]
-					events: {
-					    url: '/programs/getPrograms',
-					    type: 'GET',
-					}
-				});
-	}
 	</script>
-
-	<script type="text/javascript">
-    	$(document).ready(function(){
-           initCalendar();
-
-					 $('.datetimepicker').datetimepicker({
-						 	 format: 'MM/DD/YYYY hh:mm A',
-							 icons: {
-									 time: "fa fa-clock-o",
-									 date: "fa fa-calendar",
-									 up: "fa fa-chevron-up",
-									 down: "fa fa-chevron-down",
-									 previous: 'fa fa-chevron-left',
-									 next: 'fa fa-chevron-right',
-									 today: 'fa fa-screenshot',
-									 clear: 'fa fa-trash',
-									 close: 'fa fa-remove'
-							 }
-						});
-    	});
-	</script>
-
 </html>
