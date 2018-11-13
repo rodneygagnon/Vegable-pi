@@ -7,7 +7,7 @@
 
 Vegable-pi is an OpenSprinklerPi implementation using a Bootstrap-Node-Express-Redis Stack.
 
-<a href="http://vegable.co/images/software-stack.png"><img src="http://vegable.co/images/software-stack.png.png" width="100"/></a>
+<a href="http://vegable.co/images/software-stack.png"><img src="http://vegable.co/images/software-stack.png" width="100"/></a>
 
 ### Note
 
