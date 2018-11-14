@@ -164,16 +164,21 @@
 
 					<div class="form-group">
 						<label for="repeat" class="col-form-label">Repeat</label>
-						<select class="form-control" id="repeat" name="repeat">
+						<select multiple class="selectpicker form-control" id="repeat" name="repeat">
 							<%
-								var repeats = [ "None", "Every Day", "Every Week", "Every Month", "Every Year", "Custom" ];
+								var repeats = [ "None", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" ];
 								for ( var i = 0; i < repeats.length; i++ ) { %>
-	              	<option value="<%= repeats[i] %>"><%= repeats[i] %></option>
+	              					<option value="<%= i %>"><%= repeats[i] %></option>
 							<% } %>
 						</select>
 					</div>
 
-					</div> <!-- modal-body -->
+					<div class="form-group">
+						<label for="repeatEnd" class="col-form-label">Repeat End</label>
+						<input id="repeatEnd" name="repeatEnd" type="text" class="form-control datepicker" placeholder="Repeat End Day & Time ..."/>
+					</div>
+
+				</div> <!-- modal-body -->
 				<div class="modal-footer">
 					<p class="pull-left" id="delete_action" >
 						<button name="action" type="submit" class="btn btn-fill btn-danger" value="delete">Delete</button>
@@ -303,6 +308,8 @@
 						$('#editScheduleModal #sid').val(event.sid);
 						$('#editScheduleModal #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
 						$('#editScheduleModal #end').val(moment(event.end).format('MM/DD/YYYY hh:mm A'));
+						$('#editScheduleModal #repeat').val(event.repeat);
+						$('#editScheduleModal #repeatEnd').val(moment(event.repeatEnd).format('MM/DD/YYYY'));
 
 						$('#editScheduleModal').modal('show');
 						$('#editScheduleModal #delete_action').toggleClass("hidden");
@@ -337,6 +344,21 @@
 									 close: 'fa fa-remove'
 							 }
 						});
+
+						$('.datepicker').datetimepicker({
+ 						 	 format: 'MM/DD/YYYY',
+ 							 icons: {
+ 									 time: "fa fa-clock-o",
+ 									 date: "fa fa-calendar",
+ 									 up: "fa fa-chevron-up",
+ 									 down: "fa fa-chevron-down",
+ 									 previous: 'fa fa-chevron-left',
+ 									 next: 'fa fa-chevron-right',
+ 									 today: 'fa fa-screenshot',
+ 									 clear: 'fa fa-trash',
+ 									 close: 'fa fa-remove'
+ 							 }
+ 						});
     	});
 	</script>
 

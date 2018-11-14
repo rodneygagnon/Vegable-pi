@@ -19,6 +19,8 @@ const scheduleSchema = schema({
   title: String,
   start: String, // ISO8601
   end: String, // ISO8601
+  repeat: Array,
+  repeatEnd: String, // ISO8601
   operations: Array     // List of things to do
 });
 
@@ -70,15 +72,25 @@ class Schedules {
     });
   }
 
-  async getSchedules(callback) {
+  async getSchedules(start, end, callback) {
     var schedules = [];
+    var startRange = (new Date(start)).getTime() / 1000;
+    var endRange = (new Date(end)).getTime() / 1000;
 
-    var redisSchedules = await db.hvalsAsync(dbKeys.dbSchedulesKey);
+    console.log(`getSchedules: from ${startRange} to ${endRange}`);
 
-    console.log(`getSchedules: (${redisSchedules.length})`);
+    var redisSchedules
+    try {
+      redisSchedules = await db.zrangebyscoreAsync(dbKeys.dbSchedulesKey, startRange, endRange);
 
-    for (var i = 0; i < redisSchedules.length; i++)
-      schedules[i] = await scheduleSchema.validate(JSON.parse(redisSchedules[i]));
+      console.log(`getSchedules: (${redisSchedules.length})`);
+
+      for (var i = 0; i < redisSchedules.length; i++)
+        schedules[i] = await scheduleSchema.validate(JSON.parse(redisSchedules[i]));
+
+    } catch (err) {
+      console.log("getSchedules Failed: " + err);
+    }
 
     callback(schedules);
   }
@@ -87,12 +99,24 @@ class Schedules {
   async updateSchedule(schedule, action, callback) {
     try {
       var validSchedule = await scheduleSchema.validate(schedule);
-      var savedSchedule = JSON.parse(await db.hgetAsync(dbKeys.dbSchedulesKey, validSchedule.id));
+      let validStart = (new Date(validSchedule.start)).getTime() / 1000;
+
+      var schedules = await db.zrangebyscoreAsync(dbKeys.dbSchedulesKey, validStart, validStart)
+
+      let savedSchedule;
+      for (var i = 0; i < schedules.length; i++) {
+        var schedule = JSON.parse(schedules[i]);
+        if (schedule.id === validSchedule.id) {
+          savedSchedule = schedule;
+          break;
+        }
+      }
 
       if (savedSchedule) {
         if (action === 'delete') {
-          console.log(`updateSchedule(delete): savedSchedule(${JSON.stringify(savedSchedule)})`);
-          await db.hdelAsync(dbKeys.dbSchedulesKey, savedSchedule.id);
+          var removeSchedule = JSON.stringify(savedSchedule);
+          console.log(`updateSchedule(delete): savedSchedule(${removeSchedule})`);
+          await db.zremAsync(dbKeys.dbSchedulesKey, removeSchedule);
 
           // TODO: Remove job from bull queue
         } else {
@@ -101,8 +125,10 @@ class Schedules {
           savedSchedule.title = validSchedule.title;
           savedSchedule.start = validSchedule.start;
           savedSchedule.end = validSchedule.end;
+          savedSchedule.repeat = validSchedule.repeat;
+          savedSchedule.repeatEnd = validSchedule.repeatEnd;
 
-          await db.hsetAsync(dbKeys.dbSchedulesKey, savedSchedule.id, JSON.stringify(savedSchedule));
+          await db.zaddAsync(dbKeys.dbSchedulesKey, validStart, JSON.stringify(savedSchedule));
         }
       } else {
         console.log(`updateSchedule(create): validSchedule(${JSON.stringify(validSchedule)})`);
@@ -110,7 +136,7 @@ class Schedules {
         // Assign a uuidv
         validSchedule.id = uuidv4();
 
-        await db.hsetAsync(dbKeys.dbSchedulesKey, validSchedule.id, JSON.stringify(validSchedule));
+        await db.zaddAsync(dbKeys.dbSchedulesKey, validStart, JSON.stringify(validSchedule));
 
         // Add event to the SchedulesQueue
         const job = await SchedulesQueue.add(validSchedule, { jobId: validSchedule.id, removeOnComplete: true });

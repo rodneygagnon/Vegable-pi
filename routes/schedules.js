@@ -1,6 +1,9 @@
 var express = require('express');
 var router = express.Router();
 
+const url = require('url');
+const querystring = require('querystring');
+
 const Config = require('../model/config');
 const Schedules = require('../model/schedules');
 
@@ -15,9 +18,12 @@ router.get('/', function(req, res, next) {
 });
 
 router.route('/getSchedules').get(function (req, res) {
+  let parsedUrl = url.parse(req.url);
+  let parsedQs = querystring.parse(parsedUrl.query);
+
   Schedules.getSchedulesInstance((SchedulesInstance) => {
     var schedules = [];
-    SchedulesInstance.getSchedules((schedules) => {
+    SchedulesInstance.getSchedules(parsedQs.start, parsedQs.end, (schedules) => {
       res.statusCode = 200;
       return res.json(schedules);
     });
