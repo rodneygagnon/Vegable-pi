@@ -19,7 +19,7 @@ const scheduleSchema = schema({
   title: String,
   start: String, // ISO8601
   end: String, // ISO8601
-  repeat: Array,
+  repeatDow: Array,
   repeatEnd: String, // ISO8601
   operations: Array     // List of things to do
 });
@@ -125,7 +125,7 @@ class Schedules {
           savedSchedule.title = validSchedule.title;
           savedSchedule.start = validSchedule.start;
           savedSchedule.end = validSchedule.end;
-          savedSchedule.repeat = validSchedule.repeat;
+          savedSchedule.repeatDow = validSchedule.repeatDow;
           savedSchedule.repeatEnd = validSchedule.repeatEnd;
 
           await db.zaddAsync(dbKeys.dbSchedulesKey, validStart, JSON.stringify(savedSchedule));

@@ -163,13 +163,16 @@
 					</div>
 
 					<div class="form-group">
-						<label for="repeat" class="col-form-label">Repeat</label>
-						<select multiple class="selectpicker form-control" id="repeat" name="repeat">
+						<label for="repeatDow" class="col-form-label">Repeat</label>
+						<select multiple class="selectpicker form-control" id="repeatDow" name="repeatDow">
 							<%
-								var repeats = [ "None", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" ];
-								for ( var i = 0; i < repeats.length; i++ ) { %>
-	              					<option value="<%= i %>"><%= repeats[i] %></option>
-							<% } %>
+								var repeats = [ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "None" ];
+								for ( var i = 0; i < repeats.length; i++ ) {
+									var selected = ( i === repeats.length ) ? "selected" : "";
+
+									%><option value="<%= i %>" <%=selected %>><%= repeats[i] %></option><%
+								}
+							%>
 						</select>
 					</div>
 
@@ -308,7 +311,7 @@
 						$('#editScheduleModal #sid').val(event.sid);
 						$('#editScheduleModal #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
 						$('#editScheduleModal #end').val(moment(event.end).format('MM/DD/YYYY hh:mm A'));
-						$('#editScheduleModal #repeat').val(event.repeat);
+						$('#editScheduleModal #repeatDow').selectpicker('val', event.repeatDow);
 						$('#editScheduleModal #repeatEnd').val(moment(event.repeatEnd).format('MM/DD/YYYY'));
 
 						$('#editScheduleModal').modal('show');
