@@ -299,6 +299,8 @@
 							$('#editScheduleModal #title').val("");
 							$('#editScheduleModal #start').val(moment(start).format('MM/DD/YYYY hh:mm A'));
 							$('#editScheduleModal #end').val(moment(end).format('MM/DD/YYYY hh:mm A'));
+							$('#editScheduleModal #repeatDow').selectpicker('val', ['8']); // None
+							$('#editScheduleModal #repeatEnd').val("");
 
 							$('#editScheduleModal').modal('show');
 							$('#editScheduleModal #delete_action').toggleClass("hidden");
@@ -311,8 +313,8 @@
 						$('#editScheduleModal #sid').val(event.sid);
 						$('#editScheduleModal #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
 						$('#editScheduleModal #end').val(moment(event.end).format('MM/DD/YYYY hh:mm A'));
-						$('#editScheduleModal #repeatDow').selectpicker('val', event.repeatDow);
-						$('#editScheduleModal #repeatEnd').val(moment(event.repeatEnd).format('MM/DD/YYYY'));
+						$('#editScheduleModal #repeatDow').selectpicker('val', (typeof event.repeatDow == 'undefined') ? "" : event.repeatDow);
+						$('#editScheduleModal #repeatEnd').val((typeof event.repeatEnd == 'undefined') ? "" : moment(event.repeatEnd).format('MM/DD/YYYY'));
 
 						$('#editScheduleModal').modal('show');
 						$('#editScheduleModal #delete_action').toggleClass("hidden");

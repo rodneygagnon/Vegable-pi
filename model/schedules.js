@@ -85,9 +85,59 @@ class Schedules {
 
       console.log(`getSchedules: (${redisSchedules.length})`);
 
-      for (var i = 0; i < redisSchedules.length; i++)
-        schedules[i] = await scheduleSchema.validate(JSON.parse(redisSchedules[i]));
+      for (var i = 0; i < redisSchedules.length; i++) {
+        // If this is a repeating schedule, we have to create the appropriate number of individual
+        // individual schedules within the range requested (end-start)
+        var masterSchedule = await scheduleSchema.validate(JSON.parse(redisSchedules[i]));
 
+        // Add the masterSchedule. If it is repeating, create and add the children for display during the date range given
+        console.log(`getSchedules: Master Schedule (${masterSchedule.start})`);
+        schedules.push(masterSchedule);
+
+        if (typeof masterSchedule.repeatDow != 'undefined' || masterSchedule.repeatDow != '7' /* none */) {
+          // Repeating schedule
+          var masterRepeatEnd;
+          if (typeof masterSchedule.repeatEnd == 'undefined')
+            masterRepeatEnd = new Date(masterSchedule.end);
+          else
+            masterRepeatEnd = new Date(masterSchedule.repeatEnd);
+
+          // Find the follow on dates
+          for (var j = 0; j < masterSchedule.repeatDow.length; j++) {
+            var repeatDow = masterSchedule.repeatDow[j];
+
+            // Clone th object and calculate the next day increment
+            var nextSchedule = JSON.parse(JSON.stringify(masterSchedule));
+            var nextStart = new Date(masterSchedule.start);
+            var nextEnd = new Date(masterSchedule.end);
+            var nextDay = (7 + repeatDow - nextStart.getDay()) % 7;
+
+            console.log(`getSchedules: Next Day: (${nextDay})`);
+
+            nextStart.setDate(nextStart.getDate() + (nextDay != 0 ? nextDay : 7));
+            nextEnd.setDate(nextEnd.getDate() + (nextDay != 0 ? nextDay : 7));
+
+            while (nextStart <= masterRepeatEnd) {
+              nextSchedule.start = nextStart;
+              nextSchedule.end = nextEnd;
+
+              console.log(`getSchedules: Next Schedule: (${nextSchedule.start})`);
+              schedules.push(nextSchedule);
+
+              // Clone the object
+              nextSchedule = JSON.parse(JSON.stringify(nextSchedule));
+              nextStart = new Date(nextSchedule.start);
+              nextEnd = new Date(nextSchedule.end);
+              nextDay = (7 + repeatDow - nextStart.getDay()) % 7;
+
+              console.log(`getSchedules: Next Day: (${nextDay})`);
+
+              nextStart.setDate(nextStart.getDate() + (nextDay != 0 ? nextDay : 7));
+              nextEnd.setDate(nextEnd.getDate() + (nextDay != 0 ? nextDay : 7));
+            }
+          }
+        }
+      }
     } catch (err) {
       console.log("getSchedules Failed: " + err);
     }
