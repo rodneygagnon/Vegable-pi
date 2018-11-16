@@ -4,6 +4,7 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+const {log} = require('../controllers/logger');
 
 const settings = require("../settings");
 
@@ -43,9 +44,9 @@ const getConfigInstance = async (callback) => {
   }
 
   ConfigInstance = await new Config();
-  console.log("Config Constructed! ");
+  log.debug("Config Constructed! ");
   await ConfigInstance.init(() => {
-    console.log("Config Initialized! ");
+    log.debug("Config Initialized! ");
     callback(ConfigInstance);
   })
 }
@@ -59,9 +60,9 @@ class Config {
     if (hlen === 0) { // key does not exist, store the default options
       try {
         var result = await db.hmsetAsync(dbKeys.dbConfigKey, defaultConfig);
-        console.log("Initialized Config: " + result);
+        log.debug("Initialized Config: " + result);
       } catch (error) {
-        console.error(error);
+        log.error(error);
       }
     }
     callback();
@@ -140,7 +141,7 @@ class Config {
       }
       return value;
     } catch (error) {
-        console.error(error);
+        log.error(error);
     }
   }
 
@@ -149,12 +150,11 @@ class Config {
         if (value)
           await db.hsetAsync(dbKeys.dbConfigKey, hashKey, value);
         else
-          console.log(`setHashKey: Undefined value for ${hashKey}`);
+          log.debug(`setHashKey: Undefined value for ${hashKey}`);
     } catch (error) {
-        console.error(error);
+        log.error(error);
     }
   }
-
 }
 
 module.exports = {

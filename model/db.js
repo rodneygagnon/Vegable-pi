@@ -1,6 +1,10 @@
-
-// var level = require('level')
-// var db = level('./vdb', { valueEncoding: 'json' })
+/**
+ * Database (redis)
+ *
+ * @author: rgagnon
+ * @copyright 2018 vegable.io
+ */
+const {log} = require('../controllers/logger');
 
 var bluebird = require("bluebird");
 var redis = require('redis');
@@ -17,7 +21,7 @@ bluebird.promisifyAll(redis);
 var db = redis.createClient()
 
 db.on('error', function (err) {
-  console.log('DB Error ' + err)
+  log.error('DB Error ' + err)
 })
 
 module.exports = {

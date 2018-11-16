@@ -1,4 +1,13 @@
+/*
+ * Vegable Singleton
+ *
+ * @author: rgagnon
+ * @copyright 2018 vegable.io
+ */
+const {log} = require('./controllers/logger');
+
 // Load Env Settings
+
 const Settings = require("./settings");
 
 var fs = require('fs');
@@ -30,9 +39,9 @@ const getVegableInstance = async (callback) => {
   }
 
   VegableInstance = await new Vegable();
-  console.log("Vegable Constructed! ");
+  log.debug("Vegable Constructed!");
   await VegableInstance.init(() => {
-    console.log("Vegable Initialized! ");
+    log.debug("Vegable Initialized!");
     callback(VegableInstance);
   })
 }
@@ -55,9 +64,9 @@ class Vegable {
         var temperature;
         gWeather.getTemperature((error, temperature) => {
           if (error)
-            console.error(error);
+            log.error(error);
           else
-            console.log(`Current Temperature: ${temperature}`);
+            log.debug(`Current Temperature: ${temperature}`);
         });
       });
 
@@ -85,7 +94,7 @@ class Vegable {
       if (line.startsWith('Serial'))
           this.rpiSerial = line.split(':')[1].trim();
     }
-    console.log("RPI Info: Revision(", this.rpiRevision, ") Serial(", this.rpiSerial, ")");
+    log.debug("RPI Info: Revision(", this.rpiRevision, ") Serial(", this.rpiSerial, ")");
   }
 
 }

@@ -9,7 +9,10 @@ const fs = require('fs')
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+
 const logger = require('morgan');
+
+const {log} = require('./controllers/logger');
 
 // Load Env Settings
 const Settings = require("./settings");
@@ -35,7 +38,9 @@ const ProgramsRouter = require('./routes/programs');
 app.set('view engine', 'ejs');
 
 app.use(helmet());
+
 app.use(logger('dev'));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -55,7 +60,7 @@ https.createServer({
   cert: fs.readFileSync('./ssl/server.cert')
 }, app)
 .listen(Settings.https_port, function () {
-  console.log('HTTPS listening on port ' + Settings.https_port)
+  log.info('HTTPS listening on port ' + Settings.https_port)
 })
 
 module.exports = app;

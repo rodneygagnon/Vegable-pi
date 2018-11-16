@@ -4,6 +4,7 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+const {log} = require('./logger');
 
 const gpio = require('pigpio').Gpio;
 
@@ -35,9 +36,9 @@ const getOSPiInstance = async (callback) => {
   }
 
   OSPiInstance = await new OSPi();
-  console.log("OSPi Constructed! ");
+  log.debug("OSPi Constructed! ");
   await OSPiInstance.init(() => {
-    console.log("OSPi Initialized! ");
+    log.debug("OSPi Initialized! ");
     callback(OSPiInstance);
   })
 }
@@ -81,14 +82,14 @@ class OSPi {
   }
 
   async switchStation(stationId, value) {
-    console.log(`switchStation: Starting Bitmask: ${OSPiStationsBitMask}  Value: ${value}`)
+    log.debug(`switchStation: Starting Bitmask: ${OSPiStationsBitMask}  Value: ${value}`)
 
     if (value)
       OSPiStationsBitMask |= value << (stationId - 1);
     else
       OSPiStationsBitMask &= ~(!value << (stationId - 1));
 
-    console.log(`switchStation: Ending Bitmask: ${OSPiStationsBitMask}`)
+    log.debug(`switchStation: Ending Bitmask: ${OSPiStationsBitMask}`)
 
     this.applyStationBitmask();
   }
@@ -101,7 +102,7 @@ class OSPi {
     for (var i = 0; i < numStations; i++) {
       var value = (OSPiStationsBitMask & (0x01 << ((numStations-1) - i))) ? OSPiConfig.Status.ON : OSPiConfig.Status.OFF;
 
-      console.log(`--> applyStationBitmask(${i}): ${value}`);
+      log.debug(`--> applyStationBitmask(${i}): ${value}`);
 
       this.OSPiSRClock.digitalWrite(OSPiConfig.Status.OFF);
       this.OSPiSRData.digitalWrite(value);

@@ -4,6 +4,7 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+const {log} = require('../controllers/logger');
 
 const Config = require('./config');
 
@@ -32,9 +33,9 @@ const getStationsInstance = async (callback) => {
   }
 
   StationsInstance = await new Stations();
-  console.log("Stations Constructed! ");
+  log.debug("Stations Constructed! ");
   await StationsInstance.init(() => {
-    console.log("Stations Initialized! ");
+    log.debug("Stations Initialized! ");
     callback(StationsInstance);
   })
 }
@@ -54,7 +55,7 @@ class Stations {
 
         var stationCount = await db.hlenAsync(dbKeys.dbStationsKey);
 
-        console.log(`Station Count(${dbKeys.dbStationsKey}): ` + stationCount);
+        log.debug(`Station Count(${dbKeys.dbStationsKey}): ` + stationCount);
 
         if (stationCount === 0) {
           var multi = db.multi();
@@ -66,16 +67,16 @@ class Stations {
 
               await stationsSchema.validate(station);
 
-              console.log(`Adding Station(${i}): ` + JSON.stringify(station));
+              log.debug(`Adding Station(${i}): ` + JSON.stringify(station));
 
               multi.hset(dbKeys.dbStationsKey, station.id, JSON.stringify(station));
           }
 
           await multi.execAsync((error, results) => {
             if (error)
-              console.error(error);
+              log.error(error);
             else
-              console.log("multi.execAsync(): " + results)
+              log.debug("multi.execAsync(): " + results)
           });
         }
 
@@ -99,7 +100,7 @@ class Stations {
       var inputStation = await stationsSchema.validate(station);
       var saveStation = JSON.parse(await db.hgetAsync(dbKeys.dbStationsKey, inputStation.id));
 
-      console.log(`setStation: inputStation(${JSON.stringify(inputStation)})`);
+      log.debug(`setStation: inputStation(${JSON.stringify(inputStation)})`);
 
       saveStation.name = inputStation.name;
       saveStation.description = inputStation.description;
@@ -112,7 +113,7 @@ class Stations {
       // Switch station on/off if status changed
       if (saveStation.status != status) {
         var start = new Date(Date.now());
-        console.log(`Station status: ${status} ${start.toString()}`);
+        log.debug(`Station status: ${status} ${start.toString()}`);
 
         await this.ospi.switchStation(saveStation.id, status);
       }
@@ -123,12 +124,12 @@ class Stations {
       saveStation.status = status;
       saveStation.started = started;
 
-      console.log(`setStation: saveStation(${JSON.stringify(saveStation)})`);
+      log.debug(`setStation: saveStation(${JSON.stringify(saveStation)})`);
 
       await db.hsetAsync(dbKeys.dbStationsKey, saveStation.id, JSON.stringify(saveStation));
 
     } catch (err) {
-      console.log("setStation Failed to save station: " + err);
+      log.error("setStation Failed to save station: " + err);
     }
 
     callback();
@@ -152,11 +153,10 @@ class Stations {
       // Save the status
       await db.hsetAsync(dbKeys.dbStationsKey, station.id, JSON.stringify(station));
 
-      console.log(`switchStation: station(${JSON.stringify(station)})`);
+      log.debug(`switchStation: station(${JSON.stringify(station)})`);
     } catch (err) {
-      console.log("setStation Failed to switch station: " + err);
+      log.error("setStation Failed to switch station: " + err);
     }
-
     callback();
   }
 }

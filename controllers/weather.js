@@ -1,4 +1,11 @@
+/**
+ * Weather Singleton
+ *
+ * @author: rgagnon
+ * @copyright 2018 vegable.io
+ */
 'use strict';
+const {log} = require('./logger');
 
 const request = require('request');
 const Config = require('../model/config');
@@ -15,9 +22,9 @@ const getWeatherInstance = async (callback) => {
   }
 
   WeatherInstance = await new Weather();
-  console.log("Weather Constructed! ");
+  log.debug("Weather Constructed! ");
   WeatherInstance.init(() => {
-    console.log("Weather Initialized! ");
+    log.debug("Weather Initialized! ");
     callback(WeatherInstance);
   });
 }
@@ -48,12 +55,12 @@ class Weather {
 
     this.geolocation.getLatLong((error, latitude, longitude) => {
       if (error) {
-        console.log('Unable to get location');
+        log.error('Unable to get location');
         callback(error);
       } else {
         var url =  urlPrefix + longitude + ',' + latitude;
 
-        console.log('getTemperature url: ' + url);
+        log.debug('getTemperature url: ' + url);
 
         request({
           url: url,
@@ -62,7 +69,7 @@ class Weather {
           // TODO: Fleshout error handling
           var temp;
           if (error)
-            console.log('Unable to connect to Dark Sky');
+            log.error('Unable to connect to Dark Sky');
           else
             temp = body.currently.temperature;
 

@@ -1,4 +1,11 @@
+/**
+ * Weather Singleton
+ *
+ * @author: rgagnon
+ * @copyright 2018 vegable.io
+ */
 'use strict';
+const {log} = require('./logger');
 
 const request = require('request');
 const Config = require('../model/config');
@@ -15,9 +22,9 @@ const getGeoLocationInstance = async (callback) => {
   }
 
   GeoLocationInstance = await new GeoLocation();
-  console.log("GeoLocation Constructed! ");
+  log.debug("GeoLocation Constructed! ");
   GeoLocationInstance.init(() => {
-    console.log("GeoLocation Initialized! ");
+    log.debug("GeoLocation Initialized! ");
     callback(GeoLocationInstance);
   })
 }
@@ -47,7 +54,7 @@ class GeoLocation {
     var url = mapboxGeocodeURL + encodeURIComponent(address) +
               mapboxAccessKeyURL + await this.config.getMapBoxKey();
 
-    console.log('getLatLong url: ' + url);
+    log.debug('getLatLong url: ' + url);
 
     request({
       url: url,
@@ -55,16 +62,13 @@ class GeoLocation {
     }, (error, response, body) => {
       // TODO: Fleshout error handling
       if (error) {
-        console.log('Unable to connect to GeoLocation Service');
+        log.error('Unable to connect to GeoLocation Service');
       } else {
         this.place = body.features[0].place_name;
         this.latitude = body.features[0].geometry.coordinates[0];
         this.longitude = body.features[0].geometry.coordinates[1];
 
-        console.log(`Place: ${this.place}`);
-        console.log(`Latitude: ${this.latitude}`);
-        console.log(`Longitude: ${this.longitude}`);
-
+        log.debug(`Place: ${this.place} Latitude: ${this.latitude} Longitude: ${this.longitude}`);
       }
       callback(error, this.latitude, this.longitude);
     });

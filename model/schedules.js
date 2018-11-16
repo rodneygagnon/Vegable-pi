@@ -4,6 +4,8 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+const {log} = require('../controllers/logger');
+
 const uuidv4 = require('uuid/v4');
 const Queue = require("bull");
 
@@ -46,9 +48,9 @@ const getSchedulesInstance = async (callback) => {
   }
 
   SchedulesInstance = await new Schedules();
-  console.log("Schedules Constructed! ");
+  log.debug("Schedules Constructed! ");
   await SchedulesInstance.init(() => {
-   console.log("Schedules Initialized! ");
+   log.debug("Schedules Initialized! ");
    callback(SchedulesInstance);
   })
 }
@@ -64,7 +66,7 @@ class Schedules {
 
       // Set Queue processor
       SchedulesQueue.process(async (job, done) => {
-        console.log(`ProcessQueue.process: (job):${JSON.stringify(job)}`);
+        log.debug(`ProcessQueue.process: (job):${JSON.stringify(job)}`);
         done();
       });
 
@@ -77,13 +79,13 @@ class Schedules {
     var startRange = (new Date(start)).getTime() / 1000;
     var endRange = (new Date(end)).getTime() / 1000;
 
-    console.log(`getSchedules: from ${startRange} to ${endRange}`);
+    log.debug(`getSchedules: from ${startRange} to ${endRange}`);
 
     var redisSchedules
     try {
       redisSchedules = await db.zrangebyscoreAsync(dbKeys.dbSchedulesKey, startRange, endRange);
 
-      console.log(`getSchedules: (${redisSchedules.length})`);
+      log.debug(`getSchedules: (${redisSchedules.length})`);
 
       for (var i = 0; i < redisSchedules.length; i++) {
         // If this is a repeating schedule, we have to create the appropriate number of individual
@@ -91,7 +93,7 @@ class Schedules {
         var masterSchedule = await scheduleSchema.validate(JSON.parse(redisSchedules[i]));
 
         // Add the masterSchedule. If it is repeating, create and add the children for display during the date range given
-        console.log(`getSchedules: Master Schedule (${masterSchedule.start})`);
+        log.debug(`getSchedules: Master Schedule (${masterSchedule.start})`);
         schedules.push(masterSchedule);
 
         if (typeof masterSchedule.repeatDow != 'undefined' || masterSchedule.repeatDow != '7' /* none */) {
@@ -112,7 +114,7 @@ class Schedules {
             var nextEnd = new Date(masterSchedule.end);
             var nextDay = (7 + repeatDow - nextStart.getDay()) % 7;
 
-            console.log(`getSchedules: Next Day: (${nextDay})`);
+            log.debug(`getSchedules: Next Day: (${nextDay})`);
 
             nextStart.setDate(nextStart.getDate() + (nextDay != 0 ? nextDay : 7));
             nextEnd.setDate(nextEnd.getDate() + (nextDay != 0 ? nextDay : 7));
@@ -121,7 +123,7 @@ class Schedules {
               nextSchedule.start = nextStart;
               nextSchedule.end = nextEnd;
 
-              console.log(`getSchedules: Next Schedule: (${nextSchedule.start})`);
+              log.debug(`getSchedules: Next Schedule: (${nextSchedule.start})`);
               schedules.push(nextSchedule);
 
               // Clone the object
@@ -130,7 +132,7 @@ class Schedules {
               nextEnd = new Date(nextSchedule.end);
               nextDay = (7 + repeatDow - nextStart.getDay()) % 7;
 
-              console.log(`getSchedules: Next Day: (${nextDay})`);
+              log.debug(`getSchedules: Next Day: (${nextDay})`);
 
               nextStart.setDate(nextStart.getDate() + (nextDay != 0 ? nextDay : 7));
               nextEnd.setDate(nextEnd.getDate() + (nextDay != 0 ? nextDay : 7));
@@ -139,7 +141,7 @@ class Schedules {
         }
       }
     } catch (err) {
-      console.log("getSchedules Failed: " + err);
+      log.error("getSchedules Failed: " + err);
     }
 
     callback(schedules);
@@ -165,12 +167,12 @@ class Schedules {
       if (savedSchedule) {
         if (action === 'delete') {
           var removeSchedule = JSON.stringify(savedSchedule);
-          console.log(`updateSchedule(delete): savedSchedule(${removeSchedule})`);
+          log.debug(`updateSchedule(delete): savedSchedule(${removeSchedule})`);
           await db.zremAsync(dbKeys.dbSchedulesKey, removeSchedule);
 
           // TODO: Remove job from bull queue
         } else {
-          console.log(`updateSchedule(update): savedSchedule(${JSON.stringify(savedSchedule)})`);
+          log.debug(`updateSchedule(update): savedSchedule(${JSON.stringify(savedSchedule)})`);
           savedSchedule.sid = validSchedule.sid;
           savedSchedule.title = validSchedule.title;
           savedSchedule.start = validSchedule.start;
@@ -181,7 +183,7 @@ class Schedules {
           await db.zaddAsync(dbKeys.dbSchedulesKey, validStart, JSON.stringify(savedSchedule));
         }
       } else {
-        console.log(`updateSchedule(create): validSchedule(${JSON.stringify(validSchedule)})`);
+        log.debug(`updateSchedule(create): validSchedule(${JSON.stringify(validSchedule)})`);
 
         // Assign a uuidv
         validSchedule.id = uuidv4();
@@ -190,10 +192,10 @@ class Schedules {
 
         // Add event to the SchedulesQueue
         const job = await SchedulesQueue.add(validSchedule, { jobId: validSchedule.id, removeOnComplete: true });
-        console.log(`ProcessQueue.add: (job):${JSON.stringify(job)}`);
+        log.debug(`ProcessQueue.add: (job):${JSON.stringify(job)}`);
       }
     } catch (err) {
-      console.log("updateSchedule Failed to save schedule: " + err);
+      log.error("updateSchedule Failed to save schedule: " + err);
     }
 
     callback();
