@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 module.exports = {
-  stations: process.env.VEGABLE_STATIONS || 8,
+  zones: process.env.VEGABLE_STATIONS || 8,
   https_port: process.env.HTTPS_PORT || 3005,
 
   // md5 of 'opendoor'

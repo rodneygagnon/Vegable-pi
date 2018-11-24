@@ -6,13 +6,13 @@ const querystring = require('querystring');
 
 const Config = require('../model/config');
 const Schedules = require('../model/schedules');
+const Zones = require('../model/zones');
 
-/* GET home page. */
 router.get('/', function(req, res, next) {
-  let stations = [];
-  Stations.getStationsInstance((StationsInstance) => {
-    StationsInstance.getStations((stations) => {
-      res.render('schedules', {title: 'Vegable', stations: stations});
+  let zones = [];
+  Zones.getZonesInstance((ZonesInstance) => {
+    ZonesInstance.getZones((zones) => {
+      res.render('schedules', {title: 'Vegable', zones: zones});
     });
   });
 });

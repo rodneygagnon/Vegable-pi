@@ -1,41 +1,41 @@
 const express = require('express');
 const router = express.Router();
 
-const Stations = require('../model/stations');
+const Zones = require('../model/zones');
 
-var StationsInstance;
+var ZonesInstance;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  Stations.getStationsInstance((StationsInstance) => {
-    var stations = [];
-    StationsInstance.getStations((stations) => {
-      res.render('index', {title: 'Vegable', stations: stations});
+  Zones.getZonesInstance((ZonesInstance) => {
+    var zones = [];
+    ZonesInstance.getZones((zones) => {
+      res.render('index', {title: 'Vegable', zones: zones});
     });
   });
 });
 
-router.route('/getStations').get(function (req, res) {
-  Stations.getStationsInstance((StationsInstance) => {
-    var stations = [];
-    StationsInstance.getStations((stations) => {
+router.route('/getZones').get(function (req, res) {
+  Zones.getZonesInstance((ZonesInstance) => {
+    var zones = [];
+    ZonesInstance.getZones((zones) => {
       res.statusCode = 200;
-      return res.json(stations);
+      return res.json(zones);
     });
   });
 });
 
 router.route('/post').post(function (req, res) {
-  Stations.getStationsInstance((StationsInstance) => {
-    StationsInstance.setStation(req.body, () => {
+  Zones.getZonesInstance((ZonesInstance) => {
+    ZonesInstance.setZone(req.body, () => {
       res.redirect('/');
     });
   });
 });
 
 router.route('/enable/:id').post(function (req, res) {
-  Stations.getStationsInstance((StationsInstance) => {
-    StationsInstance.switchStation(req.params.id, () => {
+  Zones.getZonesInstance((ZonesInstance) => {
+    ZonesInstance.switchZone(req.params.id, () => {
       res.redirect('/');
     });
   });

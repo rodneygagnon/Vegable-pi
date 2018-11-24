@@ -11,9 +11,9 @@ var redis = require('redis');
 
 const dbKeys = {
   dbConfigKey: 'config',
-  dbStationsKey: 'stations',
+  dbZonesKey: 'zones',
   dbSchedulesKey: 'schedules',
-  dbProgramsKey: 'programs'
+  dbPlantingsKey: 'plantings'
 };
 
 bluebird.promisifyAll(redis);

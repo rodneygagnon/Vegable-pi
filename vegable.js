@@ -14,8 +14,8 @@ var fs = require('fs');
 
 // Data Model
 Config = require("./model/config");
-Stations = require("./model/stations");
-Programs = require("./model/programs");
+Zones = require("./model/zones");
+Plantings = require("./model/plantings");
 
 // Web Services Controllers
 const GeoLocation = require("./controllers/geolocation");
@@ -27,8 +27,8 @@ const OSPi = require("./controllers/ospi");
 let VegableInstance;
 
 var gConfig;
-var gStations;
-var gPrograms;
+var gZones;
+var gPlantings;
 var gWeather;
 var gOSPi;
 
@@ -70,9 +70,9 @@ class Vegable {
         });
       });
 
-      // Get stations
-      Stations.getStationsInstance((gStations) => {
-        Programs.getProgramsInstance((gPrograms) => {
+      // Get zones
+      Zones.getZonesInstance((gZones) => {
+        Plantings.getPlantingsInstance((gPlantings) => {
         });
       });
 

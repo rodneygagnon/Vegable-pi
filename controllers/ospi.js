@@ -98,7 +98,7 @@ class OSPi {
     // turn off the latch pin
     this.OSPiSRLatch.digitalWrite(OSPiConfig.Status.OFF);
 
-    var numStations = await this.config.getStations();
+    var numStations = await this.config.getZones();
     for (var i = 0; i < numStations; i++) {
       var value = (OSPiStationsBitMask & (0x01 << ((numStations-1) - i))) ? OSPiConfig.Status.ON : OSPiConfig.Status.OFF;
 

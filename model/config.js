@@ -21,7 +21,7 @@ const configSchema = schema({
   mapboxKey: String,
   darkskyKey: String,
   iftttUrl: String,
-  stations: { type: Number, min: 0 }
+  zones: { type: Number, min: 0 }
 });
 
 let ConfigInstance;
@@ -34,7 +34,7 @@ var defaultConfig = { password : settings.default_password,
                       mapboxKey : settings.default_mapbox_key,
                       darkskyKey : settings.default_darksky_key,
                       iftttUrl : settings.default_ifttt_url,
-                      stations : settings.stations
+                      zones : settings.zones
                     };
 
 const getConfigInstance = async (callback) => {
@@ -126,8 +126,8 @@ class Config {
     return this.getSetHashKey('iftttUrl', defaultConfig.iftttUrl);
   }
 
-  getStations() {
-    return this.getSetHashKey('stations', defaultConfig.stations);
+  getZones() {
+    return this.getSetHashKey('zones', defaultConfig.zones);
   }
 
   // get value at hashKey, or set and return default

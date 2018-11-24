@@ -10,3 +10,6 @@ settings.js
 settings(private).js
 ssl/server.cert
 ssl/server.key
+
+// Ignore backups
+public/(v0.3-paper)

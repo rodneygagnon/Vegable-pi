@@ -33,7 +33,7 @@ var app = express();
 const IndexRouter = require('./routes/index');
 const SettingsRouter = require('./routes/settings');
 const SchedulesRouter = require('./routes/schedules');
-const ProgramsRouter = require('./routes/programs');
+const PlantingsRouter = require('./routes/plantings');
 
 app.set('view engine', 'ejs');
 
@@ -51,7 +51,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', IndexRouter);
 app.use('/settings', SettingsRouter);
 app.use('/schedules', SchedulesRouter);
-app.use('/programs', ProgramsRouter);
+app.use('/plantings', PlantingsRouter);
 
 // TODO: Shutdown or redirect HTTP traffic
 // app.get('/', indexRouter); //Not Necessary??
