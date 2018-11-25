@@ -33,6 +33,7 @@
     <link href="assets/lib/remodal/remodal.css" rel="stylesheet">
     <link href="assets/lib/remodal/remodal-default-theme.css" rel="stylesheet">
     <link href="assets/css/bootstrap-table.css" rel="stylesheet">
+    <link href="assets/css/bootstrap-select.css" rel="stylesheet">
     <link href="assets/css/theme.css" rel="stylesheet">
 
   </head>
@@ -146,8 +147,8 @@
         <div class="container">
           <div class="row">
             <div class="col-lg-6 col-xl-5">
-              <h1 class="fs-3 fs-sm-4">Stations</h1>
-              <p class="lead">Curent Status of Vegable Stations</p>
+              <h1 class="fs-3 fs-sm-4">Zones</h1>
+              <p class="lead">Curent Status of Vegable Zones</p>
             </div>
           </div>
         </div>
@@ -165,7 +166,7 @@
           <div class="row justify-content-between">
             <div class="col-lg-12 py-6">
               <div class="table-responsive mt-3">
-                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-url="/getStations" data-sort-name="id" data-sort-order="asc">
+                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-url="/getZones" data-sort-name="id" data-sort-order="asc">
                   <thead>
                     <tr>
                       <th data-field="id" data-sortable="true" class="text-center">#</th>
@@ -216,34 +217,13 @@
     </footer>
 
 
-    <!--===============================================-->
-    <!--    Modal for language selection-->
-    <!--===============================================-->
-    <div class="remodal bg-black remodal-select-language" data-remodal-id="language">
-      <div class="remodal-close" data-remodal-action="close"></div>
-      <ul class="list-unstyled pl-0 my-0 py-4 text-sans-serif">
-        <li>
-          <a class="pt-1 d-block text-white font-weight-semi-bold" href="#">English</a>
-        </li>
-        <li>
-          <a class="pt-1 d-block text-500" href="#">Français</a>
-        </li>
-        <li>
-          <a class="pt-1 d-block text-500" href="../pages/page-rtl.html">عربى</a>
-        </li>
-        <li>
-          <a class="pt-1 d-block text-500" href="#">Deutsche</a>
-        </li>
-      </ul>
-    </div>
-
     <!-- ===============================================-->
     <!--    Modals-->
     <!-- ===============================================-->
-    <div class="remodal" data-remodal-id="editStationModal" align="left" >
+    <div class="remodal" data-remodal-id="editZoneModal" align="left" >
       <button class="remodal-close" data-remodal-action="close"></button>
-      <h4 id="remodalTitle">Edit Station</h4>
-      <p>Change the station name, description and flow rate.</p><br>
+      <h4 id="remodalTitle">Edit Zone</h4>
+      <p>Change the zone name, description and flow rate.</p><br>
 
       <form method="post" action="/post">
         <!--  HIDDEN FIELDS -->
@@ -262,8 +242,15 @@
         </div>
 
         <div class="form-group">
-          <label for="flowrate" class="col-form-label">Flow Rate</label>
-          <input type="text" class="form-control" id="flowrate" name="flowrate">
+          <label for="flowrate" class="col-form-label">Flow Rate (lpm)</label>
+          <select class="selectpicker form-control" id="flowrate" name="flowrate" data-size="7" required="">
+            <%
+              var rates = [ "2", "4", "8"];
+              for ( var i = 0; i < rates.length; i++ ) {
+                %><option value="<%=rates[ i ] %>"><%=rates[ i ] %></option><%
+              }
+            %>
+          </select>
         </div>
         <button type="submit" class="btn btn-sm btn-primary mr-3">Save</button>
         <button type="button" class="btn btn-sm btn-outline-danger" data-remodal-action="cancel">Cancel</button>
@@ -272,7 +259,7 @@
       
      <div class="remodal" data-remodal-id="switchModal">
       <button class="remodal-close" data-remodal-action="close"></button>
-      <h4 id="remodalTitle">Switch Station</h4>
+      <h4 id="remodalTitle">Switch Zone</h4>
       <p></p>
       <button class="btn btn-sm btn-primary mr-3" data-remodal-action="confirm">Awesome</button>
     </div> 
@@ -289,6 +276,7 @@
     <script src="assets/js/stickyfill.min.js"></script>
     <script src="assets/lib/remodal/remodal.js"></script>
     <script src="assets/js/rellax.min.js"></script>
+    <script src="assets/js/bootstrap-select.js"></script>
     <script src="assets/js/theme.js"></script>
     <script src="assets/js/bootstrap-table.js"></script>
       
@@ -344,13 +332,13 @@
 
               },
               'click .edit': function (e, value, row, index) {
-                var inst = $('[data-remodal-id=editStationModal]').remodal();
+                var inst = $('[data-remodal-id=editZoneModal]').remodal();
                 
-                $('[data-remodal-id=editStationModal] #remodalTitle').text('Edit: ' + row.name);
-                $('[data-remodal-id=editStationModal] #id').val(row.id);
-                $('[data-remodal-id=editStationModal] #name').val(row.name);
-                $('[data-remodal-id=editStationModal] #description').val(row.description);
-                $('[data-remodal-id=editStationModal] #flowrate').val(row.flowrate);
+                $('[data-remodal-id=editZoneModal] #remodalTitle').text('Edit: ' + row.name);
+                $('[data-remodal-id=editZoneModal] #id').val(row.id);
+                $('[data-remodal-id=editZoneModal] #name').val(row.name);
+                $('[data-remodal-id=editZoneModal] #description').val(row.description);
+                $('[data-remodal-id=editZoneModal] #flowrate').selectpicker('val', row.flowrate);
 
                 inst.open();
               }

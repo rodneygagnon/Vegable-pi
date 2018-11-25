@@ -19,12 +19,19 @@ const zonesSchema = schema({
   id: Number,
   name: String,
   description: String,
-  flowrate: { type: Number, min: 0 }, // litres per minute
+  flowrate: { type: Number, min: 2 }, // litres per hour
   status: Boolean,
   color: String, // Used for schedules display
   textColor: String,
-  started: { type: Number, min: 0 } // Date/Time zone swtiched on.
+  started: { type: Number, min: 0 } // Date/Time zone switched on.
 });
+
+const FlowRates = { // litres per hour
+  two_lph: 2,   // 1/2 gph
+  four_lph: 4,  // 1 gph
+  eight_lph: 8  // 2 gph
+}
+Object.freeze(FlowRates);
 
 let zoneEventColors = ['#538D9E', '#408093', '#2D7489', '#296A7D', '#255F71', '#215564', '#1D4A58', '#19404B'];
 let zoneTextColor = '#EBF2F4';
@@ -67,8 +74,8 @@ class Zones {
 
           var numZones = await this.config.getZones();
           for (var i = 1; i <= numZones; i++) {
-              var zone = {id: i, name:'S0' + i, description: 'This is zone S0' + i,
-                             status: false, color: zoneEventColors[i], textColor: zoneTextColor, started: 0, flowrate: 0};
+              var zone = {id: i, name:'Z0' + i, description: 'This is zone Z0' + i,
+                             status: false, color: zoneEventColors[i-1], textColor: zoneTextColor, started: 0, flowrate: FlowRates.two_lph};
 
               await zonesSchema.validate(zone);
 

@@ -33,6 +33,7 @@
     <link href="assets/lib/remodal/remodal.css" rel="stylesheet">
     <link href="assets/lib/remodal/remodal-default-theme.css" rel="stylesheet">
     <link href="assets/css/bootstrap-table.css" rel="stylesheet">
+    <link href="assets/css/bootstrap-select.css" rel="stylesheet">
     <link href="assets/css/theme.css" rel="stylesheet">
 
   </head>
@@ -262,8 +263,15 @@
         </div>
 
         <div class="form-group">
-          <label for="flowrate" class="col-form-label">Flow Rate</label>
-          <input type="text" class="form-control" id="flowrate" name="flowrate">
+          <label for="flowrate" class="col-form-label">Flow Rate (lpm)</label>
+          <select class="selectpicker form-control" id="flowrate" name="flowrate" data-size="7" required="">
+            <%
+              var rates = [ "2", "4", "8"];
+              for ( var i = 0; i < rates.length; i++ ) {
+                %><option value="<%=rates[ i ] %>"><%=rates[ i ] %></option><%
+              }
+            %>
+          </select>
         </div>
         <button type="submit" class="btn btn-sm btn-primary mr-3">Save</button>
         <button type="button" class="btn btn-sm btn-outline-danger" data-remodal-action="cancel">Cancel</button>
@@ -289,6 +297,7 @@
     <script src="assets/js/stickyfill.min.js"></script>
     <script src="assets/lib/remodal/remodal.js"></script>
     <script src="assets/js/rellax.min.js"></script>
+    <script src="assets/js/bootstrap-select.js"></script>
     <script src="assets/js/theme.js"></script>
     <script src="assets/js/bootstrap-table.js"></script>
       
@@ -350,7 +359,7 @@
                 $('[data-remodal-id=editZoneModal] #id').val(row.id);
                 $('[data-remodal-id=editZoneModal] #name').val(row.name);
                 $('[data-remodal-id=editZoneModal] #description').val(row.description);
-                $('[data-remodal-id=editZoneModal] #flowrate').val(row.flowrate);
+                $('[data-remodal-id=editZoneModal] #flowrate').selectpicker('val', row.flowrate);
 
                 inst.open();
               }

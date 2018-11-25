@@ -16,11 +16,11 @@
     <!-- ===============================================-->
     <!--    Favicons-->
     <!-- ===============================================-->
-    <link rel="apple-touch-icon" sizes="180x180" href="./assets/img/favicons/favicon-180x180.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="./assets/img/favicons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./assets/img/favicons/favicon-16x16.png">
-    <link rel="shortcut icon" type="image/x-icon" href="./assets/img/favicons/favicon.ico">
-    <link rel="manifest" href="./assets/img/favicons/manifest.json">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicons/favicon-180x180.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicons/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicons/favicon.ico">
+    <link rel="manifest" href="assets/img/favicons/manifest.json">
     <meta name="msapplication-TileImage" content="assets/img/favicons/favicon-150x150.png">
     <meta name="theme-color" content="#ffffff">
 
@@ -32,11 +32,7 @@
     <link href="https://fonts.googleapis.com/css?family=PT+Mono%7cPT+Serif:400,400i%7cLato:100,300,400,700,800,900" rel="stylesheet">
     <link href="assets/lib/remodal/remodal.css" rel="stylesheet">
     <link href="assets/lib/remodal/remodal-default-theme.css" rel="stylesheet">
-    <link href="assets/css/bootstrap-table.css" rel="stylesheet">
-    <link href="assets/css/tempusdominus-bootstrap-4.css" rel="stylesheet">
     <link href="assets/css/bootstrap-select.css" rel="stylesheet">
-    <link href="assets/css/fullcalendar.min.css" rel="stylesheet">
-    <link href="assets/css/fullcalendar.print.min.css" media="print" rel="stylesheet">
     <link href="assets/css/theme.css" rel="stylesheet">
 
   </head>
@@ -143,27 +139,69 @@
       <!-- ============================================-->
       <!-- End of Preloader ===========================-->
 
+
       <!-- ============================================-->
       <!-- <section> begin ============================-->
-      <section class="bg-light pt-8 pb-7 pt-lg-6 pb-lg-5 pt-xl-8 pb-xl-7">
+      <section class="py-0" id="page-signup">
 
-        <div class="container">
-          
-<!--
-            <div class="table-icons">
-                <a rel="tooltip" title="Edit" class="edit table-actions text-warning" href="javascript:void(0)">
-                    <i class="fas fa-edit"></i>
-                </a>
-                <a rel="tooltip" title="Power" class="power table-actions text-secondary" href="javascript:void(0)">
-                  <i class="fas fa-power-off"></i>
-                </a>
-            </div>
-          
--->
+        <div class="container-fluid">
           <div class="row">
-            <div class="col-lg-6 col-xl-5">
-              <h1 class="fs-3 fs-sm-4">Schedules</h1>
-              <p class="lead">Days and times when zones will be running</p>
+            <div class="col-lg-6 px-0">
+              <div class="sticky-top h-lg-100vh py-9">
+                <div class="bg-holder" style="background-image:url(assets/img/settings.jpg);" data-zanim-trigger="scroll" data-zanim-lg='{"animation":"zoom-out-slide-right","delay":0.4}'>
+                </div>
+                <!--/.bg-holder-->
+
+              </div>
+            </div>
+            <div class="col-lg-6 bg-white py-6">
+              <div class="row h-100 align-items-center justify-content-center">
+                <div class="col-sm-8 col-md-6 col-lg-10 col-xl-8" data-zanim-xs='{"delay":0.5,"animation":"slide-right"}' data-zanim-trigger="scroll">
+                  <h1 class="display-4 fs-2">Settings</h1>
+                  <h3 class="text-danger mt-3">Location</h3>
+                  <form class="needs-validation mt-5" method="post" action="/settings/post" novalidate>
+                    <div class="row mb-4">
+					            <div class="col">
+						            <input class="form-control border-300 bg-light" type="text" placeholder="Your Address" id="address" name="address"  value="<%= config.address %>" required=""/>
+					            </div>
+                    </div>
+                    <div class="row mb-4">
+                      <div class="col">
+	                      <input class="form-control border-300 bg-light" type="text" placeholder="Your City" id="city" name="city" value="<%= config.city %>" required=""/>
+                      </div>
+                    </div>
+                    <div class="row mb-4">
+                      <div class="col">
+ 						            <select class="selectpicker form-control" id="state" name="state" data-size="7" required="">
+							            <%
+                            var states = [ "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+                                    "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "MA",
+                                    "ME", "MD", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE",
+                                    "NH", "NJ", "NM", "NY", "OH", "OK", "OR", "PA", "RI", "SC",
+                                    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+                                  ];
+                            for ( var i = 0; i < states.length; i++ ) {
+                              var selected = ( config.state === states[i] ) ? "selected" : "";
+
+                              %><option value="<%=states[ i ] %>" <%=selected %>><%=states[ i ] %></option><%
+                            }
+                          %>
+          						  </select>
+                      </div>
+                      <div class="col">
+                        <input class="form-control border-300 bg-light" type="text" placeholder="Your Zipcode" id="zip" name="zip" value="<%= config.zip %>" required=""/>
+                      </div>
+                    </div>
+                    <div class="row mb-4 align-items-center">
+                      <div class="col-auto">
+                        <input class="btn btn-dark btn-block" type="submit" name="submit" value="Save" />
+                      </div>
+                      <div class="col-sm">
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -173,28 +211,13 @@
       <!-- <section> close ============================-->
       <!-- ============================================-->
 
-      <!-- ============================================-->
-      <!-- <section> begin ============================-->
-      <section class="py-0">
-
-        <div class="container">
-          <div class="row justify-content-between">
-            <div class="col-lg-12 py-6">
-              <div id="fullCalendar"></div>
-           </div>
-          </div>
-        </div>
-        <!-- end of .container-->
-
-      </section>
-      <!-- <section> close ============================-->
-      <!-- ============================================-->
-		
 
     </main>
     <!-- ===============================================-->
     <!--    End of Main Content-->
     <!-- ===============================================-->
+
+
 
 
     <!--===============================================-->
@@ -208,11 +231,11 @@
           </div>
           <div class="col-lg-4 text-lg-left mt-4 mt-lg-0">
             <p class="fs--1 text-uppercase ls font-weight-bold mb-0">
-              Copyright &copy; 2018 Vegable</p>
+              Copyright &copy; 2018 Sparrow&trade; inc.</p>
           </div>
           <div class="col-lg-4 text-lg-right order-lg-2 mt-2 mt-lg-0">
             <p class="fs--1 text-uppercase ls font-weight-bold mb-0">Made with<span class="text-danger fas fa-heart mx-1"></span>by
-              <a class="text-600" href="https://vegable.co/">Vegable</a>
+              <a class="text-600" href="https://themewagon.com/">Themewagon</a>
             </p>
           </div>
         </div>
@@ -220,86 +243,28 @@
     </footer>
 
 
-    <!-- ===============================================-->
-    <!--    Modals-->
-    <!-- ===============================================-->
-    <div class="remodal" data-remodal-id="editScheduleModal" align="left" >
-      <button class="remodal-close" data-remodal-action="close"></button>
-      <h4 id="remodalTitle">Create/Update Schedule</h4>
-      <p>Set a Vegable Schedule.</p><br>
+    <!--===============================================-->
+    <!--    Modal for language selection-->
+    <!--===============================================-->
+    <div class="remodal bg-black remodal-select-language" data-remodal-id="language">
+      <div class="remodal-close" data-remodal-action="close"></div>
+      <ul class="list-unstyled pl-0 my-0 py-4 text-sans-serif">
+        <li>
+          <a class="pt-1 d-block text-white font-weight-semi-bold" href="#">English</a>
+        </li>
+        <li>
+          <a class="pt-1 d-block text-500" href="#">Français</a>
+        </li>
+        <li>
+          <a class="pt-1 d-block text-500" href="../pages/page-rtl.html">عربى</a>
+        </li>
+        <li>
+          <a class="pt-1 d-block text-500" href="#">Deutsche</a>
+        </li>
+      </ul>
+    </div>
 
-      <form method="post" action="/schedules/update">
-        <!--  HIDDEN FIELDS -->
-        <input type="hidden" id="id" name="id"/>
 
-        <div class="form-group">
-          <label for="sid" class="col-form-label">Zone</label>
-          <select class="selectpicker form-control" id="sid" name="sid" required="" placeholder="Zone">
-            <% for(var i=0; i < zones.length; i++) { %>
-              <option value="<%= zones[i].id %>"><%= zones[i].name %></option>
-            <% } %>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="name" class="col-form-label">Title</label>
-          <input type="text" class="form-control" id="title" name="title">
-        </div>
-
-         <div class="form-group">
-          <label for="start" class="col-form-label">Start</label>
-           <div class="input-group date" id="starttimepicker" data-target-input="nearest">
-              <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
-              <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
-                  <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-              </div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="end" class="col-form-label">End</label>
-          <div class="input-group date" id="endtimepicker" data-target-input="nearest">
-              <input id="end" name="end" type="text" class="form-control datetimepicker-input" data-target="#endtimepicker"/>
-              <div class="input-group-append" data-target="#endtimepicker" data-toggle="datetimepicker">
-                  <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-              </div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="repeatDow" class="col-form-label">Repeat</label>
-          <select multiple class="selectpicker form-control" id="repeatDow" name="repeatDow">
-							<%
-								var repeats = [ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "None" ];
-								for ( var i = 0; i < repeats.length; i++ ) {
-									var selected = ( i === repeats.length ) ? "selected" : "";
-
-									%><option value="<%= i %>" <%=selected %>><%= repeats[i] %></option><%
-								}
-							%>
-          </select>
-        </div>
- 
-         <div class="form-group">
-          <label for="repeatEnd" class="col-form-label">Repeat End</label>
-          <div class="input-group date" id="repeatendpicker" data-target-input="nearest">
-              <input id="repeatEnd" name="repeatEnd" type="text" class="form-control datetimepicker-input" data-target="#repeatendpicker"/>
-              <div class="input-group-append" data-target="#repeatendpicker" data-toggle="datetimepicker">
-                  <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-              </div>
-          </div>
-        </div>
- 
-        <div class="d-flex">
-          <div class="p-2"><button type="submit" class="btn btn-sm btn-primary">Save</button></div>
-          <div class="p-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-remodal-action="cancel">Cancel</button></div>
-          <div class="ml-auto p-2" id="delete_action"><button name="action" type="submit" class="btn btn-sm btn-outline-danger" value="delete">Delete</button></div>
-        </div>
-          
-     </form>
-     </div>
-      
-       
     <!-- ===============================================-->
     <!--    JavaScripts-->
     <!-- ===============================================-->
@@ -311,116 +276,8 @@
     <script src="assets/js/stickyfill.min.js"></script>
     <script src="assets/lib/remodal/remodal.js"></script>
     <script src="assets/js/rellax.min.js"></script>
-	  <script src="assets/js/moment.min.js"></script>
-    <script src="assets/js/tempusdominus-bootstrap-4.js"></script>
-    <script src="assets/js/fullcalendar.min.js"></script>
     <script src="assets/js/bootstrap-select.js"></script>
     <script src="assets/js/theme.js"></script>
-    <script src="assets/js/bootstrap-table.js"></script>
-      
-    
-    <script type="text/javascript">
-	   function initCalendar() {
-			 $calendar = $('#fullCalendar');
-
-        today = new Date();
-        y = today.getFullYear();
-        m = today.getMonth();
-        d = today.getDate();
-
-			 $calendar.fullCalendar({
-					header: {
-						left: 'title',
-						center: 'month,agendaWeek,agendaDay',
-						right: 'prev,next,today'
-					},
-          eventColor: '#666666',
-          eventTextColor: '#FFF',
-					defaultDate: today,
-					selectable: true,
-					selectHelper: true,
-					views: {
-							month: { // name of view
-									titleFormat: 'MMMM YYYY'
-									// other view-specific options here
-							},
-							week: {
-									titleFormat: " MMMM D YYYY"
-							},
-							day: {
-									titleFormat: 'D MMM, YYYY'
-							}
-					},
-					select: function(start, end) {
-            var inst = $('[data-remodal-id=editScheduleModal]').remodal();
-
-            $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Create a new Schedule');
-            $('[data-remodal-id=editScheduleModal] #title').val("");
-            $('[data-remodal-id=editScheduleModal] #id').val("");
-            $('[data-remodal-id=editScheduleModal] #sid').selectpicker('val', ['0']); // None
-            $('[data-remodal-id=editScheduleModal] #start').val(moment(start).format('MM/DD/YYYY hh:mm A'));
-            $('[data-remodal-id=editScheduleModal] #end').val(moment(end).format('MM/DD/YYYY hh:mm A'));
-            $('[data-remodal-id=editScheduleModal] #repeatDow').selectpicker('val', ['7']); // None
-            $('[data-remodal-id=editScheduleModal] #repeatEnd').val(moment(end).format('MM/DD/YYYY hh:mm A'));
-
-            inst.open();
-						$('[data-remodal-id=editScheduleModal] #delete_action').addClass("hide-form-button");
-					},
-					eventClick: function(event, jsEvent, view) {
-            var inst = $('[data-remodal-id=editScheduleModal]').remodal();
-
-            $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Update a Schedule');
-            $('[data-remodal-id=editScheduleModal] #title').val(event.title);
-            $('[data-remodal-id=editScheduleModal] #id').val(event.id);
-            $('[data-remodal-id=editScheduleModal] #sid').selectpicker('val', event.sid);
-            $('[data-remodal-id=editScheduleModal] #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
-            $('[data-remodal-id=editScheduleModal] #end').val(moment(event.end).format('MM/DD/YYYY hh:mm A'));
-            $('[data-remodal-id=editScheduleModal] #repeatDow').selectpicker('val', (typeof event.repeatDow == 'undefined') ? "" : event.repeatDow);
-            $('[data-remodal-id=editScheduleModal] #repeatEnd').val((typeof event.repeatEnd === 'undefined') ? moment(event.end).format('MM/DD/YYYY hh:mm A') :                   
-                                                                                                               moment(event.repeatEnd).format('MM/DD/YYYY'));
-
-            inst.open();
-						$('[data-remodal-id=editScheduleModal] #delete_action').removeClass("hide-form-button");
-					},
-         	eventDrop: function(event, delta, revertFunc) {
-            var schedule = { id: event.id, sid: event.sid, title: event.title, start: event.start, end: event.end, repeatDow: event.repeatDow, repeatEnd: repeatEnd };
-            
-            $.ajax({
-              url: `/schedules/update`,
-              type: 'POST',
-              data: JSON.stringify(schedule),
-              contentType: "application/json",
-              success: function (result) {
-              }
-            });
-          },
-					editable: true,
-					eventLimit: true, // allow "more" link when too many events
-
-					//color classes: [ event-blue | event-azure | event-green | event-orange | event-red ],
-					events: {
-					    url: '/schedules/getSchedules',
-					    type: 'GET',
-					}
-				});
-	   }
-
-      $(document).ready(function(){
-           initCalendar();
-
-					 $('#starttimepicker').datetimepicker({
-						 	 format: 'MM/DD/YYYY hh:mm A'
-						});
-					 $('#endtimepicker').datetimepicker({
-						 	 format: 'MM/DD/YYYY hh:mm A'
-						});
-					 $('#repeatendpicker').datetimepicker({
-						 	 format: 'MM/DD/YYYY'
-						});        
-      });
-      
-
-	</script>
 
   </body>
 

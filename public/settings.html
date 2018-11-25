@@ -32,6 +32,7 @@
     <link href="https://fonts.googleapis.com/css?family=PT+Mono%7cPT+Serif:400,400i%7cLato:100,300,400,700,800,900" rel="stylesheet">
     <link href="assets/lib/remodal/remodal.css" rel="stylesheet">
     <link href="assets/lib/remodal/remodal-default-theme.css" rel="stylesheet">
+    <link href="assets/css/bootstrap-select.css" rel="stylesheet">
     <link href="assets/css/theme.css" rel="stylesheet">
 
   </head>
@@ -160,9 +161,9 @@
                   <h3 class="text-danger mt-3">Location</h3>
                   <form class="needs-validation mt-5" method="post" action="/settings/post" novalidate>
                     <div class="row mb-4">
-					  <div class="col">
-						  <input class="form-control border-300 bg-light" type="text" placeholder="Your Address" id="address" name="address"  value="<%= config.address %>" required=""/>
-					  </div>
+					            <div class="col">
+						            <input class="form-control border-300 bg-light" type="text" placeholder="Your Address" id="address" name="address"  value="<%= config.address %>" required=""/>
+					            </div>
                     </div>
                     <div class="row mb-4">
                       <div class="col">
@@ -171,21 +172,21 @@
                     </div>
                     <div class="row mb-4">
                       <div class="col">
- 						  <select class="form-control border-300 bg-light" id="state" name="state" data-size="7" required="">
-							<%
-								var states = [ "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
-												"GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "MA",
-												"ME", "MD", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE",
-												"NH", "NJ", "NM", "NY", "OH", "OK", "OR", "PA", "RI", "SC",
-												"SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
-											];
-								for ( var i = 0; i < states.length; i++ ) {
-									var selected = ( config.state === states[i] ) ? "selected" : "";
+ 						            <select class="selectpicker form-control" id="state" name="state" data-size="7" required="">
+							            <%
+                            var states = [ "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+                                    "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "MA",
+                                    "ME", "MD", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE",
+                                    "NH", "NJ", "NM", "NY", "OH", "OK", "OR", "PA", "RI", "SC",
+                                    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+                                  ];
+                            for ( var i = 0; i < states.length; i++ ) {
+                              var selected = ( config.state === states[i] ) ? "selected" : "";
 
-									%><option value="<%=states[ i ] %>" <%=selected %>><%=states[ i ] %></option><%
-								}
-							%>
-						  </select>
+                              %><option value="<%=states[ i ] %>" <%=selected %>><%=states[ i ] %></option><%
+                            }
+                          %>
+          						  </select>
                       </div>
                       <div class="col">
                         <input class="form-control border-300 bg-light" type="text" placeholder="Your Zipcode" id="zip" name="zip" value="<%= config.zip %>" required=""/>
@@ -218,7 +219,6 @@
 
 
 
-
     <!--===============================================-->
     <!--    Footer-->
     <!--===============================================-->
@@ -242,28 +242,6 @@
     </footer>
 
 
-    <!--===============================================-->
-    <!--    Modal for language selection-->
-    <!--===============================================-->
-    <div class="remodal bg-black remodal-select-language" data-remodal-id="language">
-      <div class="remodal-close" data-remodal-action="close"></div>
-      <ul class="list-unstyled pl-0 my-0 py-4 text-sans-serif">
-        <li>
-          <a class="pt-1 d-block text-white font-weight-semi-bold" href="#">English</a>
-        </li>
-        <li>
-          <a class="pt-1 d-block text-500" href="#">Français</a>
-        </li>
-        <li>
-          <a class="pt-1 d-block text-500" href="../pages/page-rtl.html">عربى</a>
-        </li>
-        <li>
-          <a class="pt-1 d-block text-500" href="#">Deutsche</a>
-        </li>
-      </ul>
-    </div>
-
-
     <!-- ===============================================-->
     <!--    JavaScripts-->
     <!-- ===============================================-->
@@ -275,6 +253,7 @@
     <script src="assets/js/stickyfill.min.js"></script>
     <script src="assets/lib/remodal/remodal.js"></script>
     <script src="assets/js/rellax.min.js"></script>
+    <script src="assets/js/bootstrap-select.js"></script>
     <script src="assets/js/theme.js"></script>
 
   </body>

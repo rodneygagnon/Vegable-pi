@@ -21,7 +21,8 @@ const scheduleSchema = schema({
   sid: Number,         // Zone ID
   title: String,
   start: String, // ISO8601
-  end: String, // ISO8601
+  amt: { type: Number, min: 1 }, // amount of water to apply: min 1 litre (0.26 gallons)
+  fertilize: Boolean,
   color: String,
   textColor: String,
   repeatDow: Array,
@@ -110,7 +111,7 @@ class Schedules {
         // ... otherwise, create repeating schedules for the given timeframe
         var masterRepeatEnd;
         if (typeof masterSchedule.repeatEnd == 'undefined')
-          masterRepeatEnd = new Date(masterSchedule.end);
+          masterRepeatEnd = new Date(masterSchedule.start);
         else
           masterRepeatEnd = new Date(masterSchedule.repeatEnd);
 
@@ -123,7 +124,7 @@ class Schedules {
           // Clone th object and calculate the next day increment
           var nextSchedule = JSON.parse(JSON.stringify(masterSchedule));
           var nextStart = new Date(masterSchedule.start);
-          var nextEnd = new Date(masterSchedule.end);
+          var nextAmt = new Date(masterSchedule.amt);
           var nextDay = (7 + repeatDow - nextStart.getDay()) % 7;
 
           log.debug(`getSchedules: Next Day: (${nextDay})`);
@@ -133,7 +134,7 @@ class Schedules {
 
           while (nextStart <= masterRepeatEnd) {
             nextSchedule.start = nextStart;
-            nextSchedule.end = nextEnd;
+            nextSchedule.amt = nextAmt;
 
             log.debug(`getSchedules: Next Schedule: (${nextSchedule.start})`);
             schedules.push(nextSchedule);
@@ -141,7 +142,7 @@ class Schedules {
             // Clone the object
             nextSchedule = JSON.parse(JSON.stringify(nextSchedule));
             nextStart = new Date(nextSchedule.start);
-            nextEnd = new Date(nextSchedule.end);
+            nextAmt = new Date(nextSchedule.amt);
             nextDay = (7 + repeatDow - nextStart.getDay()) % 7;
 
             log.debug(`getSchedules: Next Day: (${nextDay})`);
@@ -178,7 +179,8 @@ class Schedules {
         var scheduleCnt = await db.zcount(dbKeys.dbSchedulesKey, '-inf', '+inf');
         log.debug(`updateSchedule(count): ${scheduleCnt}`);
 
-        var cnt = 0, start = 0, end = 5;
+        var cnt = 0, start = 0;
+        var end = 20; // get 'end' per page
         while (cnt < scheduleCnt && !savedSchedule) {
           var schedules = await db.zrangeAsync(dbKeys.dbSchedulesKey, start, end);
 
@@ -215,7 +217,8 @@ class Schedules {
           savedSchedule.textColor = validSchedule.textColor;
           savedSchedule.title = validSchedule.title;
           savedSchedule.start = validSchedule.start;
-          savedSchedule.end = validSchedule.end;
+          savedSchedule.amt = validSchedule.amt;
+          savedSchedule.fertilize = validSchedule.fertilize;
           savedSchedule.repeatDow = validSchedule.repeatDow;
           savedSchedule.repeatEnd = validSchedule.repeatEnd;
 
@@ -255,7 +258,7 @@ class Schedules {
     var repeatEnd, repeatOpts;
     if (typeof schedule.repeatDow === 'undefined' || schedule.repeatDow === '7' /* none */) {
       repeatOpts = {};
-      repeatEnd = new Date(schedule.end);
+      repeatEnd = new Date(schedule.start);
     } else {
       var start = new Date(schedule.start);
       var dow = (Array.isArray(schedule.repeatDow) ? schedule.repeatDow.join(", ") : schedule.repeatDow);
@@ -269,6 +272,8 @@ class Schedules {
     if (delay < 0) {
       log.debug(`scheduleJob: nothing to do, job has expired(${repeatEnd.toLocaleString()})`);
       return;
+    } else {
+      log.debug(`scheduleJob: delay (${delay}ms) process in ${delay/6000}min`);
     }
 
     log.debug(`ProcessQueue.add: (repeatOpts):${JSON.stringify(repeatOpts)}`);
