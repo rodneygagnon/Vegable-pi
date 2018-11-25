@@ -15,7 +15,8 @@ THIS IS A ROUGH WIP IMPLEMENTATION. PROVIDED HERE FOR REFERENCE ONLY. MORE DETAI
 
 ---
 <a href="http://vegable.co/images/Stations.png"><img src="http://vegable.co/images/Stations.png" width="240"/></a>
-<a href="http://vegable.co/images/Schedules.png"><img src="http://vegable.co/images/Schedules.png" width="240"/></a>
+<a href="http://vegable.co/images/Plantings.png"><img src="http://vegable.co/images/Plantings.png" width="240"/></a>
+<a href="http://vegable.co/images/Schedules2.png"><img src="http://vegable.co/images/Schedules2.png" width="240"/></a>
 ---
 
 # Questions and issues
