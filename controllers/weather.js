@@ -49,6 +49,33 @@ class Weather {
   }
 
   // Get Temperature
+  async getConditions(callback)
+  {
+    let urlPrefix = darkskyWeatherURL + await this.config.getDarkSkyKey() + '/';
+
+    this.geolocation.getLatLong((error, latitude, longitude) => {
+      if (error) {
+        log.error('Unable to get location');
+        callback(error);
+      } else {
+        var url =  urlPrefix + longitude + ',' + latitude;
+
+        log.debug('getConditions url: ' + url);
+
+        request({
+          url: url,
+          json: true
+        }, (error, response, body) => {
+          // TODO: Fleshout error handling
+          if (error)
+            log.error('Unable to connect to Dark Sky');
+
+          callback(error, body.currently);
+         });
+      }
+    });
+  }
+  // Get Temperature
   async getTemperature(callback)
   {
     let urlPrefix = darkskyWeatherURL + await this.config.getDarkSkyKey() + '/';
@@ -78,6 +105,7 @@ class Weather {
       }
     });
   }
+
 }
 
 module.exports = {

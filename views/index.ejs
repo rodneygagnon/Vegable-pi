@@ -41,7 +41,6 @@
 
   <body class="has-sidemenu overflow-hidden-x">
 
-
     <!--===============================================-->
     <!--    Fancynav-->
     <!--===============================================-->
@@ -150,6 +149,10 @@
               <h1 class="fs-3 fs-sm-4">Zones</h1>
               <p class="lead">Curent Status of Vegable Zones</p>
             </div>
+            <div class="col-lg-6 col-xl-5 text-lg-right">
+              <canvas id="weatherIcon" width="64" height="64"></canvas>
+              <p id="weatherString" class="lead"></p>
+            </div>
           </div>
         </div>
         <!-- end of .container-->
@@ -217,27 +220,6 @@
     </footer>
 
 
-    <!--===============================================-->
-    <!--    Modal for language selection-->
-    <!--===============================================-->
-    <div class="remodal bg-black remodal-select-language" data-remodal-id="language">
-      <div class="remodal-close" data-remodal-action="close"></div>
-      <ul class="list-unstyled pl-0 my-0 py-4 text-sans-serif">
-        <li>
-          <a class="pt-1 d-block text-white font-weight-semi-bold" href="#">English</a>
-        </li>
-        <li>
-          <a class="pt-1 d-block text-500" href="#">Français</a>
-        </li>
-        <li>
-          <a class="pt-1 d-block text-500" href="../pages/page-rtl.html">عربى</a>
-        </li>
-        <li>
-          <a class="pt-1 d-block text-500" href="#">Deutsche</a>
-        </li>
-      </ul>
-    </div>
-
     <!-- ===============================================-->
     <!--    Modals-->
     <!-- ===============================================-->
@@ -298,6 +280,7 @@
     <script src="assets/lib/remodal/remodal.js"></script>
     <script src="assets/js/rellax.min.js"></script>
     <script src="assets/js/bootstrap-select.js"></script>
+    <script src="assets/js/skycons.js"></script>
     <script src="assets/js/theme.js"></script>
     <script src="assets/js/bootstrap-table.js"></script>
       
@@ -336,7 +319,7 @@
               'click .power': function (e, value, row, index) {
                   var t = $(event.target);
 
-                  $.ajax({
+                 $.ajax({
                       url: `/enable/${row.id}`,
                       type: 'POST',
                       data: {'submit':true}, // An object with the key 'submit' and value 'true;
@@ -399,7 +382,23 @@
           $(window).resize(function () {
               $table.bootstrapTable('resetView');
           });
-    });
+      
+          var skycons = new Skycons();
+  
+          // Only for testing
+//          skycons.add("weatherIcon", "rain");
+//          skycons.play();               
+        
+          $.getJSON('/getConditions', (conditions) => {
+
+            $('#weatherString').replaceWith(`<p id="weatherString" class="lead">${conditions.summary}, ${conditions.temperature.toFixed(1)}˚F</p>`);
+            
+            skycons.add("weatherIcon", conditions.icon);
+            skycons.play();               
+          });
+        
+     });
+     
 	</script>
 
   </body>

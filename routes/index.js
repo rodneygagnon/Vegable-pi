@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Zones = require('../model/zones');
+const Weather = require('../controllers/weather');
 
 var ZonesInstance;
 
@@ -21,6 +22,16 @@ router.route('/getZones').get(function (req, res) {
     ZonesInstance.getZones((zones) => {
       res.statusCode = 200;
       return res.json(zones);
+    });
+  });
+});
+
+router.route('/getConditions').get(function (req, res) {
+  Weather.getWeatherInstance((WeatherInstance) => {
+    var error, conditions;
+    WeatherInstance.getConditions((error, conditions) => {
+      res.statusCode = 200;
+      return res.json(conditions);
     });
   });
 });

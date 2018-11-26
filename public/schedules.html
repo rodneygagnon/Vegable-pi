@@ -33,13 +33,17 @@
     <link href="assets/lib/remodal/remodal.css" rel="stylesheet">
     <link href="assets/lib/remodal/remodal-default-theme.css" rel="stylesheet">
     <link href="assets/css/bootstrap-table.css" rel="stylesheet">
+    <link href="assets/css/tempusdominus-bootstrap-4.css" rel="stylesheet">
     <link href="assets/css/bootstrap-select.css" rel="stylesheet">
+    <link href="assets/css/fullcalendar.min.css" rel="stylesheet">
+    <link href="assets/css/fullcalendar.print.min.css" media="print" rel="stylesheet">
     <link href="assets/css/theme.css" rel="stylesheet">
 
   </head>
 
 
   <body class="has-sidemenu overflow-hidden-x">
+
 
     <!--===============================================-->
     <!--    Fancynav-->
@@ -144,14 +148,22 @@
       <section class="bg-light pt-8 pb-7 pt-lg-6 pb-lg-5 pt-xl-8 pb-xl-7">
 
         <div class="container">
+          
+<!--
+            <div class="table-icons">
+                <a rel="tooltip" title="Edit" class="edit table-actions text-warning" href="javascript:void(0)">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a rel="tooltip" title="Power" class="power table-actions text-secondary" href="javascript:void(0)">
+                  <i class="fas fa-power-off"></i>
+                </a>
+            </div>
+          
+-->
           <div class="row">
             <div class="col-lg-6 col-xl-5">
-              <h1 class="fs-3 fs-sm-4">Zones</h1>
-              <p class="lead">Curent Status of Vegable Zones</p>
-            </div>
-            <div class="col-lg-6 col-xl-5 text-lg-right">
-              <canvas id="weatherIcon" width="64" height="64"></canvas>
-              <p id="weatherString" class="lead"></p>
+              <h1 class="fs-3 fs-sm-4">Schedules</h1>
+              <p class="lead">Days and times when stations will be running</p>
             </div>
           </div>
         </div>
@@ -168,19 +180,7 @@
         <div class="container">
           <div class="row justify-content-between">
             <div class="col-lg-12 py-6">
-              <div class="table-responsive mt-3">
-                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-url="/getZones" data-sort-name="id" data-sort-order="asc">
-                  <thead>
-                    <tr>
-                      <th data-field="id" data-sortable="true" class="text-center">#</th>
-                      <th data-field="name" data-sortable="true">Name</th>
-                      <th data-field="description" data-sortable="true">Description</th>
-                      <th data-field="started" data-sortable="true" data-formatter="startedFormatter">Start Time</th>
-                      <th data-field="actions" ata-sortable="false" class="td-actions text-right" data-events="operateEvents" data-formatter="operateFormatter">Actions</th
-                    </tr>
-                  </thead>
-                </table>
-              </div>
+              <div id="fullCalendar"></div>
            </div>
           </div>
         </div>
@@ -223,51 +223,94 @@
     <!-- ===============================================-->
     <!--    Modals-->
     <!-- ===============================================-->
-    <div class="remodal" data-remodal-id="editZoneModal" align="left" >
+    <div class="remodal" data-remodal-id="editScheduleModal" align="left" >
       <button class="remodal-close" data-remodal-action="close"></button>
-      <h4 id="remodalTitle">Edit Zone</h4>
-      <p>Change the zone name, description and flow rate.</p><br>
+      <h4 id="remodalTitle">Create/Update Schedule</h4>
+      <p>Set a Vegable Schedule.</p><br>
 
-      <form method="post" action="/post">
+      <form method="post" action="/schedules/update">
         <!--  HIDDEN FIELDS -->
         <input type="hidden" id="id" name="id"/>
-        <input type="hidden" id="color" name="color"/>
-        <input type="hidden" id="textColor" name="textColor"/>
 
         <div class="form-group">
-          <label for="name" class="col-form-label">Name</label>
-          <input type="text" class="form-control" id="name" name="name">
+          <label for="name" class="col-form-label">Title</label>
+          <input type="text" class="form-control" id="title" name="title">
         </div>
 
         <div class="form-group">
-          <label for="description" class="col-form-label">Description</label>
-          <input type="text" class="form-control" id="description" name="description">
-        </div>
-
-        <div class="form-group">
-          <label for="flowrate" class="col-form-label">Flow Rate (lpm)</label>
-          <select class="selectpicker form-control" id="flowrate" name="flowrate" data-size="7" required="">
-            <%
-              var rates = [ "2", "4", "8"];
-              for ( var i = 0; i < rates.length; i++ ) {
-                %><option value="<%=rates[ i ] %>"><%=rates[ i ] %></option><%
-              }
-            %>
+          <label for="sid" class="col-form-label">Zone</label>
+          <select class="selectpicker form-control" id="sid" name="sid" required="" placeholder="Zone">
+            <% for(var i=0; i < zones.length; i++) { %>
+              <option value="<%= zones[i].id %>"><%= zones[i].name %></option>
+            <% } %>
           </select>
         </div>
-        <button type="submit" class="btn btn-sm btn-primary mr-3">Save</button>
-        <button type="button" class="btn btn-sm btn-outline-danger" data-remodal-action="cancel">Cancel</button>
-      </form>
+
+        <div class="form-row">
+          <div class="col-md-6 mb-3">
+            <label for="amt" class="col-form-label">Amount (litres)</label>
+            <select class="selectpicker form-control" id="amt" name="amt" data-size="7" required="">
+              <%
+                var amts = [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+                for ( var i = 0; i < amts.length; i++ ) {
+                  %><option value="<%=amts[ i ] %>"><%=amts[ i ] %></option><%
+                }
+              %>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="fertilize" class="col-form-label">Fertilize</label>
+            <div class="zinput zcheckbox">
+              <input id="fertilize" name="fertilize" type="checkbox" value=true>
+              <label for="fertilize">Apply fertilizer while irrigating</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="start" class="col-form-label">Start</label>
+           <div class="input-group date" id="starttimepicker" data-target-input="nearest">
+              <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
+              <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
+                  <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+              </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="repeatDow" class="col-form-label">Repeat</label>
+          <select multiple class="selectpicker form-control" id="repeatDow" name="repeatDow">
+							<%
+								var repeats = [ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "None" ];
+								for ( var i = 0; i < repeats.length; i++ ) {
+									var selected = ( i === repeats.length ) ? "selected" : "";
+
+									%><option value="<%= i %>" <%=selected %>><%= repeats[i] %></option><%
+								}
+							%>
+          </select>
+        </div>
+ 
+         <div class="form-group">
+          <label for="repeatEnd" class="col-form-label">Repeat End</label>
+          <div class="input-group date" id="repeatendpicker" data-target-input="nearest">
+              <input id="repeatEnd" name="repeatEnd" type="text" class="form-control datetimepicker-input" data-target="#repeatendpicker"/>
+              <div class="input-group-append" data-target="#repeatendpicker" data-toggle="datetimepicker">
+                  <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+              </div>
+          </div>
+        </div>
+ 
+        <div class="d-flex">
+          <div class="p-2"><button type="submit" class="btn btn-sm btn-primary">Save</button></div>
+          <div class="p-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-remodal-action="cancel">Cancel</button></div>
+          <div class="ml-auto p-2" id="delete_action"><button name="action" type="submit" class="btn btn-sm btn-outline-danger" value="delete">Delete</button></div>
+        </div>
+          
+     </form>
      </div>
       
-     <div class="remodal" data-remodal-id="switchModal">
-      <button class="remodal-close" data-remodal-action="close"></button>
-      <h4 id="remodalTitle">Switch Zone</h4>
-      <p></p>
-      <button class="btn btn-sm btn-primary mr-3" data-remodal-action="confirm">Awesome</button>
-    </div> 
-      
-      
+       
     <!-- ===============================================-->
     <!--    JavaScripts-->
     <!-- ===============================================-->
@@ -279,126 +322,114 @@
     <script src="assets/js/stickyfill.min.js"></script>
     <script src="assets/lib/remodal/remodal.js"></script>
     <script src="assets/js/rellax.min.js"></script>
+	  <script src="assets/js/moment.min.js"></script>
+    <script src="assets/js/tempusdominus-bootstrap-4.js"></script>
+    <script src="assets/js/fullcalendar.min.js"></script>
     <script src="assets/js/bootstrap-select.js"></script>
-    <script src="assets/js/skycons.js"></script>
     <script src="assets/js/theme.js"></script>
     <script src="assets/js/bootstrap-table.js"></script>
       
+    
     <script type="text/javascript">
-      var $table = $('#bootstrap-table');
+	   function initCalendar() {
+			 $calendar = $('#fullCalendar');
 
-      function startedFormatter(value) {
-        var started = (value == 0 ? "" : new Date(value).toLocaleString());
-        return `<span>${started}</span>`;
-      }
+        today = new Date();
+        y = today.getFullYear();
+        m = today.getMonth();
+        d = today.getDate();
 
-      function operateFormatter(value, row, index) {
-          var switchStyle = (row.status ? "svg-success" : "svg-secondary");
-          return [
-             '<div class="table-icons">',
-                '<a rel="tooltip" title="Edit" class="edit table-actions" href="javascript:void(0)">',
-                  '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 299.3 299.3" style="enable-background:new 0 0 299.3 299.3;" xml:space="preserve">',
-                    '<g transform="translate(0,-952.36218)">',
-                      '<path class="svg-warning" d="M252.2,952.4c-1.6,0.2-3,0.9-4.1,2L90.6,1111.8c-1.2,1.1-1.9,2.6-2.1,4.2l-4.9,44.3c-0.4,3.8,2.3,7.3,6.1,7.7 c0.5,0.1,1.1,0.1,1.6,0l44.3-5c1.6-0.2,3-0.9,4.1-2l157.5-157.5c2.7-2.7,2.8-7.1,0.1-9.8c0,0,0,0-0.1-0.1l-39.4-39.4 C256.4,952.9,254.3,952.2,252.2,952.4z M253,969.2l29.6,29.6l-150.7,150.7l-33.4,3.7l3.7-33.2L253,969.2z M7,987.2 c-4.1,0.1-6.9,3.8-7,7v250.6c0,3.6,3.3,7,7,7h250.6c3.6,0,7-3.3,7-7v-149.6c0.1-3.7-3.3-7.1-7-7.1c-3.7,0-7,3.4-7,7.1v142.7H13.9 v-236.6h142.7c3.7,0.1,7.1-3.3,7.1-7c0-3.7-3.4-7-7.1-7H7z"/>',
-                    '</g>',
-                  '</svg>',
-                '</a>',
-                `<a rel="tooltip" title="Power" class="power table-actions" href="javascript:void(0)">`,
-                  '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 300 300" style="enable-background:new 0 0 300 300;" xml:space="preserve">',
-                    '<g>',
-                      `<path class="${switchStyle}" d="M150,0L150,0C67.5,0,0,67.5,0,150l0,0c0,82.5,67.5,150,150,150l0,0c82.5,0,150-67.5,150-150l0,0 C300,67.5,232.5,0,150,0z M138.1,74c0-6.6,5.3-11.9,11.9-11.9c6.6,0,11.9,5.3,11.9,11.9c0,0,0,0,0,0v83.2c0,6.6-5.3,11.9-11.9,11.9 c-6.6,0-11.9-5.3-11.9-11.9C138.1,157.2,138.1,74,138.1,74z M211,212.6c-33.7,33.7-88.3,33.6-122-0.1s-33.6-88.3,0.1-122 c1.4-1.4,2.9-2.8,4.4-4.1c5-4.3,12.5-3.7,16.8,1.2c4.3,4.9,3.7,12.4-1.2,16.7c-26.1,22.6-28.9,62.1-6.2,88.2s62.1,28.9,88.2,6.2 c26.1-22.6,28.9-62.1,6.2-88.2c-2-2.4-4.3-4.6-6.6-6.6c-5-4.3-5.6-11.8-1.3-16.7S201,81.8,206,86c36.2,30.9,40.5,85.4,9.6,121.6 C214.1,209.4,212.6,211,211,212.6z"/>`,
-                    '</g>',
-                  '</svg>',
-                '</a>',
-            '</div>',
-          ].join('');
-      }
+			 $calendar.fullCalendar({
+					header: {
+						left: 'title',
+						center: 'month,agendaWeek,agendaDay',
+						right: 'prev,next,today'
+					},
+          eventColor: '#666666',
+          eventTextColor: '#FFF',
+					defaultDate: today,
+					selectable: true,
+					selectHelper: true,
+					views: {
+							month: { // name of view
+									titleFormat: 'MMMM YYYY'
+									// other view-specific options here
+							},
+							week: {
+									titleFormat: " MMMM D YYYY"
+							},
+							day: {
+									titleFormat: 'D MMM, YYYY'
+							}
+					},
+					select: function(start, end) {
+            var inst = $('[data-remodal-id=editScheduleModal]').remodal();
 
-      $().ready(function(){
-          window.operateEvents = {
-              'click .power': function (e, value, row, index) {
-                  var t = $(event.target);
+            $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Create a new Schedule');
+            $('[data-remodal-id=editScheduleModal] #title').val("");
+            $('[data-remodal-id=editScheduleModal] #id').val("");
+            $('[data-remodal-id=editScheduleModal] #sid').selectpicker('val', ['0']); // None
+            $('[data-remodal-id=editScheduleModal] #amt').selectpicker('val', ['1']); // Min
+            $('[data-remodal-id=editScheduleModal] #fertilize').prop("checked", false);
+            $('[data-remodal-id=editScheduleModal] #start').val(moment(start).format('MM/DD/YYYY hh:mm A'));
+            $('[data-remodal-id=editScheduleModal] #repeatDow').selectpicker('val', ['7']); // None
+            $('[data-remodal-id=editScheduleModal] #repeatEnd').val(moment(end).format('MM/DD/YYYY hh:mm A'));
 
-                 $.ajax({
-                      url: `/enable/${row.id}`,
-                      type: 'POST',
-                      data: {'submit':true}, // An object with the key 'submit' and value 'true;
-                      success: function (result) {
-                        var inst = $('[data-remodal-id=switchModal]').remodal();
-                        
-                        $('[data-remodal-id=switchModal] #remodalTitle').text(`${row.name} is ${row.status ? "OFF" : "ON"}!`);
-                        
-                        inst.open();
+            inst.open();
+						$('[data-remodal-id=editScheduleModal] #delete_action').addClass("hide-form-button");
+					},
+					eventClick: function(event, jsEvent, view) {
+            var inst = $('[data-remodal-id=editScheduleModal]').remodal();
 
-                        $table.bootstrapTable('refresh');
-                      }
-                  });
+            $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Update a Schedule');
+            $('[data-remodal-id=editScheduleModal] #title').val(event.title);
+            $('[data-remodal-id=editScheduleModal] #id').val(event.id);
+            $('[data-remodal-id=editScheduleModal] #sid').selectpicker('val', event.sid);
+            $('[data-remodal-id=editScheduleModal] #amt').selectpicker('val', event.amt);
+            $('[data-remodal-id=editScheduleModal] #fertilize').prop("checked", event.fertilize);
+            $('[data-remodal-id=editScheduleModal] #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
+            $('[data-remodal-id=editScheduleModal] #repeatDow').selectpicker('val', (typeof event.repeatDow == 'undefined') ? "" : event.repeatDow);
+            $('[data-remodal-id=editScheduleModal] #repeatEnd').val((typeof event.repeatEnd === 'undefined') ? moment(event.end).format('MM/DD/YYYY hh:mm A') :                   
+                                                                                                               moment(event.repeatEnd).format('MM/DD/YYYY'));
 
-              },
-              'click .edit': function (e, value, row, index) {
-                var inst = $('[data-remodal-id=editZoneModal]').remodal();
-                
-                $('[data-remodal-id=editZoneModal] #remodalTitle').text('Edit: ' + row.name);
-                $('[data-remodal-id=editZoneModal] #id').val(row.id);
-                $('[data-remodal-id=editZoneModal] #name').val(row.name);
-                $('[data-remodal-id=editZoneModal] #description').val(row.description);
-                $('[data-remodal-id=editZoneModal] #flowrate').selectpicker('val', row.flowrate);
-
-                inst.open();
-              }
-          };
-
-          $table.bootstrapTable({
-              toolbar: ".toolbar",
-              clickToSelect: true,
-              showRefresh: false,
-              search: false,
-              showToggle: false,
-              showColumns: false,
-              pagination: false,
-              searchAlign: 'left',
-              pageSize: 8,
-              clickToSelect: false,
-              pageList: [8,10,25,50,100],
-
-              formatShowingRows: function(pageFrom, pageTo, totalRows){
-                  //do nothing here, we don't want to show the text "showing x of y from..."
-              },
-              formatRecordsPerPage: function(pageNumber){
-                  return pageNumber + " rows visible";
-              },
-              icons: {
-                  refresh: 'fa fa-refresh',
-                  toggle: 'fa fa-th-list',
-                  columns: 'fa fa-columns',
-                  detailOpen: 'fa fa-plus-circle',
-                  detailClose: 'ti-close'
-              }
-          });
-
-          //activate the tooltips after the data table is initialized
-          $('[rel="tooltip"]').tooltip();
-
-          $(window).resize(function () {
-              $table.bootstrapTable('resetView');
-          });
-      
-          var skycons = new Skycons();
-  
-          // Only for testing
-//          skycons.add("weatherIcon", "rain");
-//          skycons.play();               
-        
-          $.getJSON('/getConditions', (conditions) => {
-
-            $('#weatherString').replaceWith(`<p id="weatherString" class="lead">${conditions.summary}, ${conditions.temperature.toFixed(1)}˚F</p>`);
+            inst.open();
+						$('[data-remodal-id=editScheduleModal] #delete_action').removeClass("hide-form-button");
+					},
+         	eventDrop: function(event, delta, revertFunc) {
+            var schedule = { id: event.id, sid: event.sid, title: event.title, start: event.start, end: event.end, repeatDow: event.repeatDow, repeatEnd: repeatEnd };
             
-            skycons.add("weatherIcon", conditions.icon);
-            skycons.play();               
-          });
-        
-     });
-     
+            $.ajax({
+              url: `/schedules/update`,
+              type: 'POST',
+              data: JSON.stringify(schedule),
+              contentType: "application/json",
+              success: function (result) {
+              }
+            });
+          },
+					editable: true,
+					eventLimit: true, // allow "more" link when too many events
+
+					//color classes: [ event-blue | event-azure | event-green | event-orange | event-red ],
+					events: {
+					    url: '/schedules/getSchedules',
+					    type: 'GET',
+					}
+				});
+	   }
+
+      $(document).ready(function(){
+           initCalendar();
+
+					 $('#starttimepicker').datetimepicker({
+						 	 format: 'MM/DD/YYYY hh:mm A'
+						});
+					 $('#repeatendpicker').datetimepicker({
+						 	 format: 'MM/DD/YYYY'
+						});        
+      });
+      
+
 	</script>
 
   </body>
