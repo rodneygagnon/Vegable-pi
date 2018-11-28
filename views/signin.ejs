@@ -32,7 +32,6 @@
     <link href="https://fonts.googleapis.com/css?family=PT+Mono%7cPT+Serif:400,400i%7cLato:100,300,400,700,800,900" rel="stylesheet">
     <link href="assets/lib/remodal/remodal.css" rel="stylesheet">
     <link href="assets/lib/remodal/remodal-default-theme.css" rel="stylesheet">
-    <link href="assets/css/bootstrap-select.css" rel="stylesheet">
     <link href="assets/css/theme.css" rel="stylesheet">
 
   </head>
@@ -46,22 +45,16 @@
     <!--===============================================-->
     <nav class="fancynavbar" data-zanim-lg='{"from":{"opacity":1,"x":70},"to":{"opacity":1,"x":0},"ease":"CubicBezier","duration":0.8,"delay":0.3}' data-zanim-xs='{"from":{"opacity":1,"y":-48},"to":{"opacity":1,"y":0},"ease":"CubicBezier","duration":0.8,"delay":0.3}'
       data-zanim-trigger="scroll" data-exclusive="true">
-      <div class="fancynavbar-togglerbar bg-black">
-        <a class="fancynavbar-brand" href="/">
-          <img class="fancynavbar-brand-img" src="./assets/img/logos/icon-white.svg" alt="" width="30" height="30" data-zanim-lg='{"from":{"opacity":0,"x":45},"to":{"opacity":1,"x":0},"ease":"CubicBezier","duration":0.8,"delay":0.4}' data-zanim-trigger="scroll"
+      <div class="fancynavbar-togglerbar" data-onscroll-fade-in="true">
+        <a class="fancynavbar-brand" href="index.html">
+          <img class="fancynavbar-brand-img" src="assets/img/logos/icon-white.svg" alt="" width="30" height="30" data-zanim-lg='{"from":{"opacity":0,"x":45},"to":{"opacity":1,"x":0},"ease":"CubicBezier","duration":0.8,"delay":0.4}' data-zanim-trigger="scroll"
           />
 
           <!--You can use icon or text logo as well-->
           <!--<span class='fab fa-superpowers fs-3'></span>-->
           <!--<span class='logo-sparrow'>S</span>--></a>
-        <div class="fancynavbar-toggler">
-          <svg class="fancynavbar-toggler-icon" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" data-zanim-lg='{"from":{"opacity":0,"x":45},"to":{"opacity":1,"x":0},"ease":"CubicBezier","duration":0.8,"delay":0.5}' data-zanim-trigger="scroll">
-            <path id="path-top" d="M20,25c0,0,22,0,30,0c16,0,18.89,40.71-.15,21.75C38.7,35.65,19.9,16.8,19.9,16.8"></path>
-            <path id="path-middle" d="M20,32h30"></path>
-            <path id="path-bottom" d="M19.9,46.98c0,0,18.8-18.85,29.95-29.95C68.89-1.92,66,38.78,50,38.78c-8,0-30,0-30,0"></path>
-          </svg>
-        </div>
-        <div class="fancynavbar-addon" data-zanim-lg='{"from":{"opacity":0,"x":45},"to":{"opacity":1,"x":0},"ease":"CubicBezier","duration":0.8,"delay":0.4}' data-zanim-trigger="scroll">
+      </div>
+      <div class="fancynavbar-addon" data-zanim-lg='{"from":{"opacity":0,"x":45},"to":{"opacity":1,"x":0},"ease":"CubicBezier","duration":0.8,"delay":0.4}' data-zanim-trigger="scroll">
           <a class="fancynavbar-addon-item" href="/settings">
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="30px" height="30px" viewBox="0 0 299.7 299.7" style="enable-background:new 0 0 299.7 299.7;" xml:space="preserve">
               <g>
@@ -99,15 +92,8 @@
             </svg>
           </a>
         </div>
-      </div>
       <div class="fancynavbar-collapse">
         <ul class="fancynavbar-nav">
-          <li class="fancynav-item">
-            <a class="fancynav-link" href="/schedules"><span class="fancynav-link-content">schedules</span></a>
-          </li>
-          <li class="fancynav-item">
-            <a class="fancynav-link" href="/plantings"><span class="fancynav-link-content">plantings</span></a>
-          </li>
         </ul>
       </div>
     </nav>
@@ -142,7 +128,7 @@
 
       <!-- ============================================-->
       <!-- <section> begin ============================-->
-      <section class="py-0" id="page-signup">
+      <section class="py-0" id="signin">
 
         <div class="container-fluid">
           <div class="row">
@@ -155,49 +141,19 @@
               </div>
             </div>
             <div class="col-lg-6 bg-white py-6">
-              <div class="row h-100 align-items-center justify-content-center">
+              <div class="row h-100 align-items-center justify-content-center text-center">
                 <div class="col-sm-8 col-md-6 col-lg-10 col-xl-8" data-zanim-xs='{"delay":0.5,"animation":"slide-right"}' data-zanim-trigger="scroll">
-                  <h1 class="display-4 fs-2">Settings</h1>
-                  <h3 class="text-danger mt-3">Location</h3>
-                  <form class="needs-validation mt-5" method="post" action="/settings/post" novalidate>
-                    <div class="row mb-4">
-					            <div class="col">
-						            <input class="form-control border-300 bg-light" type="text" placeholder="Your Address" id="address" name="address"  value="<%= config.address %>" required=""/>
-					            </div>
+                  <img src="assets/img/logos/logo-red-black.svg" alt="" width="300" data-zanim-xs='{"delay":0.1,"animation":"zoom-in"}' />
+                  <p class="lead" data-zanim-xs='{"delay":0.3}'><em>Garden like you know what you are doing</em></p>
+                 <form class="mt-5" action="/signin" method="post">
+                    <div class="form-group">
+                      <input class="form-control border-300 bg-light" type="email" name="username" placeholder="Email" />
                     </div>
-                    <div class="row mb-4">
-                      <div class="col">
-	                      <input class="form-control border-300 bg-light" type="text" placeholder="Your City" id="city" name="city" value="<%= config.city %>" required=""/>
-                      </div>
+                    <div class="form-group">
+                      <input class="form-control border-300 bg-light" type="password" name="password" placeholder="Password" />
                     </div>
-                    <div class="row mb-4">
-                      <div class="col">
- 						            <select class="selectpicker form-control" id="state" name="state" data-size="7" required="">
-							            <%
-                            var states = [ "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
-                                    "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "MA",
-                                    "ME", "MD", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE",
-                                    "NH", "NJ", "NM", "NY", "OH", "OK", "OR", "PA", "RI", "SC",
-                                    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
-                                  ];
-                            for ( var i = 0; i < states.length; i++ ) {
-                              var selected = ( config.state === states[i] ) ? "selected" : "";
-
-                              %><option value="<%=states[ i ] %>" <%=selected %>><%=states[ i ] %></option><%
-                            }
-                          %>
-          						  </select>
-                      </div>
-                      <div class="col">
-                        <input class="form-control border-300 bg-light" type="text" placeholder="Your Zipcode" id="zip" name="zip" value="<%= config.zip %>" required=""/>
-                      </div>
-                    </div>
-                    <div class="row mb-4 align-items-center">
-                      <div class="col-auto">
-                        <input class="btn btn-dark btn-block" type="submit" name="submit" value="Save" />
-                      </div>
-                      <div class="col-sm">
-                      </div>
+                    <div class="form-group">
+                      <button class="btn btn-dark btn-block mt-3" type="submit" name="submit">sign in</button>
                     </div>
                   </form>
                 </div>
@@ -219,6 +175,7 @@
 
 
 
+
     <!--===============================================-->
     <!--    Footer-->
     <!--===============================================-->
@@ -230,7 +187,7 @@
           </div>
           <div class="col-lg-4 text-lg-left mt-4 mt-lg-0">
             <p class="fs--1 text-uppercase ls font-weight-bold mb-0">
-              Copyright &copy; 2018 Vegable</p>
+              Copyright &copy; 2018 Vegable&trade; inc.</p>
           </div>
           <div class="col-lg-4 text-lg-right order-lg-2 mt-2 mt-lg-0">
             <p class="fs--1 text-uppercase ls font-weight-bold mb-0">Made with<span class="text-danger fas fa-heart mx-1"></span>by
@@ -253,7 +210,6 @@
     <script src="assets/js/stickyfill.min.js"></script>
     <script src="assets/lib/remodal/remodal.js"></script>
     <script src="assets/js/rellax.min.js"></script>
-    <script src="assets/js/bootstrap-select.js"></script>
     <script src="assets/js/theme.js"></script>
 
   </body>

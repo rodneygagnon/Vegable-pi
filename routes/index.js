@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+const Config = require('../model/config');
 const Zones = require('../model/zones');
 const Weather = require('../controllers/weather');
 
@@ -8,12 +9,22 @@ var ZonesInstance;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  Zones.getZonesInstance((ZonesInstance) => {
-    var zones = [];
-    ZonesInstance.getZones((zones) => {
-      res.render('index', {title: 'Vegable', zones: zones});
+  // Make sure the user is logged in
+  if (typeof req.user === 'undefined')
+    res.redirect('/signin');
+  else {
+    Zones.getZonesInstance((ZonesInstance) => {
+      var zones = [];
+      ZonesInstance.getZones((zones) => {
+        res.render('index', {title: 'Vegable', zones: zones, user: req.user });
+      });
     });
-  });
+  }
+});
+
+/* GET signin page. */
+router.get('/signin', function(req, res, next) {
+  res.render('signin');
 });
 
 router.route('/getZones').get(function (req, res) {

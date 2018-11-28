@@ -58,26 +58,30 @@ class Vegable {
 
     // Initialize Options
     Config.getConfigInstance((gConfig) => {
-
-      //Get weather
-      Weather.getWeatherInstance((gWeather) => {
-        var temperature;
-        gWeather.getTemperature((error, temperature) => {
-          if (error)
-            log.error(error);
-          else
-            log.debug(`Current Temperature: ${temperature}`);
-        });
-      });
+      this.config = gConfig;
 
       // Get zones
       Zones.getZonesInstance((gZones) => {
+        this.zones = gZones;
         Plantings.getPlantingsInstance((gPlantings) => {
+          this.plantings = gPlantings;
         });
       });
 
       callback();
     });
+  }
+
+  async validateUser(user, callback) {
+    if (user.username === await this.config.getUsername() && this.config.testPassword(user.password))
+      callback(null, user);
+    else
+      callback(null, null);
+  }
+
+  async getUserByName(username, callback) {
+    // TODO: This is not finished yet. Just the plumbing
+    callback(null, { username: await this.config.getUsername(), password: await this.config.getPassword() });
   }
 
   getRPiInformation() {
