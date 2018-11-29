@@ -22,9 +22,14 @@ router.get('/', function(req, res, next) {
   }
 });
 
-/* GET signin page. */
+/* GET sign in, up, out pages. */
 router.get('/signin', function(req, res, next) {
   res.render('signin');
+});
+
+router.get('/signout', function(req, res, next) {
+  req.logout();
+  res.redirect('/signin');
 });
 
 router.route('/getZones').get(function (req, res) {
