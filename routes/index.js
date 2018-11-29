@@ -22,7 +22,10 @@ router.get('/', function(req, res, next) {
   }
 });
 
-/* GET sign in, up, out pages. */
+/* GET sign in & up pages. */
+router.get('/signup', function(req, res, next) {
+  res.render('signup');
+});
 router.get('/signin', function(req, res, next) {
   res.render('signin');
 });
