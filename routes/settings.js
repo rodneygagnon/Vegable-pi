@@ -13,12 +13,17 @@ var ConfigInstance;
 
 // GET home page - send current config
 router.get('/', function(req, res, next) {
-  Config.getConfigInstance((ConfigInstance) => {
-    var config;
-    ConfigInstance.getConfig((config) => {
-      res.render('settings', {title: 'Vegable', config: config});
+  // Make sure the user is logged in
+  if (typeof req.user === 'undefined')
+    res.redirect('/signin');
+  else {
+    Config.getConfigInstance((ConfigInstance) => {
+      var config;
+      ConfigInstance.getConfig((config) => {
+        res.render('settings', {title: 'Vegable', config: config});
+      });
     });
-  });
+  }
 });
 
 // set new config info

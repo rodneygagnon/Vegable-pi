@@ -160,8 +160,9 @@ class Zones {
   }
 
   async switchZone(sid, callback) {
+    var zone;
     try {
-      var zone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, sid));
+      zone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, sid));
 
       // Switch the status
       zone.status = !zone.status;
@@ -177,11 +178,11 @@ class Zones {
       // Save the status
       await db.hsetAsync(dbKeys.dbZonesKey, zone.id, JSON.stringify(zone));
 
-      log.debug(`switchZone: zone(${JSON.stringify(zone)})`);
+      log.debug(`switchZone: ${zone.status ? "on" : "off"} zone(${zone.id})`);
     } catch (err) {
       log.error("setZone Failed to switch zone: " + err);
     }
-    callback();
+    callback(zone.status);
   }
 }
 

@@ -16,12 +16,17 @@ const Zones = require('../model/zones');
 
 // GET home page - send zones
 router.get('/', function(req, res, next) {
-  let zones = [];
-  Zones.getZonesInstance((ZonesInstance) => {
-    ZonesInstance.getZones((zones) => {
-      res.render('schedules', {title: 'Vegable', zones: zones});
+  // Make sure the user is logged in
+  if (typeof req.user === 'undefined')
+    res.redirect('/signin');
+  else {
+    let zones = [];
+    Zones.getZonesInstance((ZonesInstance) => {
+      ZonesInstance.getZones((zones) => {
+        res.render('schedules', {title: 'Vegable', zones: zones});
+      });
     });
-  });
+  }
 });
 
 // service fullcalendar's events url

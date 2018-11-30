@@ -13,12 +13,17 @@ const Plantings = require('../model/plantings');
 
 // GET home page
 router.get('/', function(req, res, next) {
-  let zones = [];
-  Zones.getZonesInstance((ZonesInstance) => {
-    ZonesInstance.getZones((zones) => {
-      res.render('plantings', {title: 'Vegable', zones: zones});
+  // Make sure the user is logged in
+  if (typeof req.user === 'undefined')
+    res.redirect('/signin');
+  else {
+    let zones = [];
+    Zones.getZonesInstance((ZonesInstance) => {
+      ZonesInstance.getZones((zones) => {
+        res.render('plantings', {title: 'Vegable', zones: zones});
+      });
     });
-  });
+  }
 });
 
 router.route('/getPlantings').get(function (req, res) {

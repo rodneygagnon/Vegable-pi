@@ -66,11 +66,7 @@ class Schedules {
 
       // Set Queue processor
       SchedulesQueue.process(async (job, done) => {
-        // TODO: process scheduled job
-        //       - turn on or off stations and schedule next occurence
-        //       - calculate when to toggle zone based on start time, amt, flowrate
-        log.debug(`ProcessQueue.process: (job):${JSON.stringify(job)}`);
-        done();
+        this.processJob(job, done);
       });
 
       callback();
@@ -182,7 +178,7 @@ class Schedules {
             var schedule = JSON.parse(schedules[i]);
             if (schedule.id === validSchedule.id) {
               savedSchedule = schedule;
-              log.debug(`updateSchedule(found): del old schedule(${JSON.stringify(savedSchedule)})`);
+              log.debug(`updateSchedule(found): schedule(${JSON.stringify(savedSchedule)})`);
               break;
             }
           }
@@ -264,17 +260,39 @@ class Schedules {
     // Calculate when to process this job
     var delay = repeatEnd.getTime() - now.getTime();
     if (delay < 0) {
-      log.debug(`scheduleJob: nothing to do, job has expired(${repeatEnd.toLocaleString()})`);
+      log.debug(`scheduleJob(skip): nothing to do, job has expired(${repeatEnd.toLocaleString()})`);
       return;
     } else {
-      log.debug(`scheduleJob: delay (${delay}ms) process in ${delay/6000}min`);
+      log.debug(`scheduleJob(delay): (${delay}ms) process in ${delay/6000}min`);
     }
 
-    log.debug(`ProcessQueue.add: (repeatOpts):${JSON.stringify(repeatOpts)}`);
+    log.debug(`scheduleJob(repeatOpts):${JSON.stringify(repeatOpts)}`);
 
     const job = await SchedulesQueue.add(schedule, { jobId: schedule.id, delay: delay, repeatOpts: repeatOpts, removeOnComplete: true });
 
-    log.debug(`ProcessQueue.add: (job):${JSON.stringify(job)}`);
+    log.debug(`scheduleJob(add): ${JSON.stringify(job)}`);
+  }
+
+  async processJob(job, done) {
+    var status;
+
+    // Switch ON/OFF the station
+    this.zones.switchZone(job.data.sid, async (status) => {
+      log.debug(`processJob(switched ${status ? "on" : "off"}): Zone ID ${job.data.sid}`);
+
+      // If the zone is running, calculate its runtime and push a job back
+      // on the queue with the a delay (ms) to turn it off
+      if (status) {
+        //var runtime = job.data.amt * zone.flowrate * 3600000;
+        var runtime = 60000; // test for 1 minute
+
+        var nextJob = await SchedulesQueue.add(job.data, { delay: runtime, removeOnComplete: true });
+
+        log.debug(`processJob(add): ${JSON.stringify(nextJob)} delay (${runtime})`);
+      }
+
+      done();
+    });
   }
 }
 
