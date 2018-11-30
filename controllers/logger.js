@@ -4,8 +4,11 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+'use strict';
+
 const log4js = require('log4js');
 log4js.configure({
+   // TODO: persist the log in redis
    // appenders: {
    //    redis: { type: '@log4js-node/redis', channel: 'logs' }
    // },

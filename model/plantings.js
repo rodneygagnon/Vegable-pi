@@ -4,6 +4,8 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+'use strict';
+
 const {log} = require('../controllers/logger');
 
 const uuidv4 = require('uuid/v4');

@@ -4,6 +4,8 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+'use strict';
+
 const {log} = require('../controllers/logger');
 
 var bluebird = require("bluebird");
@@ -12,6 +14,7 @@ var redis = require('redis');
 const dbKeys = {
   dbConfigKey: 'config',
   dbZonesKey: 'zones',
+  dbUsersKey: 'users',
   dbSchedulesKey: 'schedules',
   dbPlantingsKey: 'plantings'
 };

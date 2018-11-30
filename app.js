@@ -1,3 +1,10 @@
+/*
+ * Vegable-pi
+ *
+ * @author: rgagnon
+ * @copyright 2018 vegable.io
+ */
+
 // Main Express Application
 const express = require('express');
 const session = require('express-session');
@@ -19,20 +26,20 @@ const bodyParser = require('body-parser');
 const logger = require('morgan');
 const {log} = require('./controllers/logger');
 
-// Load Env Settings
+// Application Settings and main Singleton
 const Settings = require("./settings");
-
 const Vegable = require("./vegable");
 
 var VegableInstance;
 
 // Initialize Vegable
 Vegable.getVegableInstance((VegableInstance) => {
-  // Before we start listening for requests, we need to ensure
-  // we are fully up and running
+
+  // Initialize a local authentication strategy for now.
+  // TODO: Add strategies for Facebook, Twitter, ... and/or OpenId, www.okta.com
   passport.use(new LocalStrategy(
     function(username, password, callback) {
-      VegableInstance.validateUser({ username: username, password: password }, function(err, user) {
+      VegableInstance.validateUser(username, password, function(err, user) {
         if (err) { return callback(err); }
         if (!user) { return callback(null, false, { message: 'Incorrect username or password.' }); }
         return callback(null, user);
@@ -41,11 +48,11 @@ Vegable.getVegableInstance((VegableInstance) => {
   ));
 
   passport.serializeUser(function(user, callback) {
-    callback(null, user.username);
+    callback(null, user);
   });
 
-  passport.deserializeUser(function(username, callback) {
-    VegableInstance.getUserByName(username, function (err, user) {
+  passport.deserializeUser(function(user, callback) {
+    VegableInstance.getUser(user.email, function (err, user) {
       if (err) { return callback(err); }
       callback(null, user);
     });
@@ -63,7 +70,6 @@ const PlantingsRouter = require('./routes/plantings');
 app.set('view engine', 'ejs');
 
 app.use(helmet());
-
 app.use(logger('dev'));
 
 app.use(express.json());
@@ -90,8 +96,7 @@ app.use('/settings', SettingsRouter);
 app.use('/schedules', SchedulesRouter);
 app.use('/plantings', PlantingsRouter);
 
-// TODO: Shutdown or redirect HTTP traffic
-// app.get('/', indexRouter); //Not Necessary??
+// TODO: Shutdown or redirect HTTP traffic ??
 https.createServer({
   key: fs.readFileSync('./ssl/server.key'),
   cert: fs.readFileSync('./ssl/server.cert')

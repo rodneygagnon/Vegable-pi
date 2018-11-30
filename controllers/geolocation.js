@@ -1,10 +1,11 @@
 /**
- * Weather Singleton
+ * Geolocation Singleton
  *
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
 'use strict';
+
 const {log} = require('./logger');
 
 const request = require('request');
@@ -54,8 +55,6 @@ class GeoLocation {
     var url = mapboxGeocodeURL + encodeURIComponent(address) +
               mapboxAccessKeyURL + await this.config.getMapBoxKey();
 
-    log.debug('getLatLong url: ' + url);
-
     request({
       url: url,
       json: true
@@ -67,8 +66,6 @@ class GeoLocation {
         this.place = body.features[0].place_name;
         this.latitude = body.features[0].geometry.coordinates[0];
         this.longitude = body.features[0].geometry.coordinates[1];
-
-        log.debug(`Place: ${this.place} Latitude: ${this.latitude} Longitude: ${this.longitude}`);
       }
       callback(error, this.latitude, this.longitude);
     });

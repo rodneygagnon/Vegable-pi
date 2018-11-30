@@ -1,13 +1,22 @@
+/*
+ * Index Router
+ *
+ * @author: rgagnon
+ * @copyright 2018 vegable.io
+ */
 const express = require('express');
 const router = express.Router();
 
 const Config = require('../model/config');
+const Users = require('../model/users');
 const Zones = require('../model/zones');
+
 const Weather = require('../controllers/weather');
 
 var ZonesInstance;
+var UsersInstance;
 
-/* GET home page. */
+// GET home page
 router.get('/', function(req, res, next) {
   // Make sure the user is logged in
   if (typeof req.user === 'undefined')
@@ -22,19 +31,29 @@ router.get('/', function(req, res, next) {
   }
 });
 
-/* GET sign in & up pages. */
-router.get('/signup', function(req, res, next) {
-  res.render('signup');
-});
+// GET sign in, up and out.
 router.get('/signin', function(req, res, next) {
   res.render('signin');
 });
-
+router.get('/signup', function(req, res, next) {
+  res.render('signup');
+});
 router.get('/signout', function(req, res, next) {
   req.logout();
   res.redirect('/signin');
 });
 
+// POST handle new user registration
+router.post('/signup', function(req, res, next) {
+  Users.getUsersInstance((UsersInstance) => {
+    UsersInstance.updateUser(req.body, "" /* action */, (result) => {
+      // TODO: check result of new user registration before redirecting
+      res.redirect('/signin');
+    });
+  });
+});
+
+// service bootstrap-table's data-url
 router.route('/getZones').get(function (req, res) {
   Zones.getZonesInstance((ZonesInstance) => {
     var zones = [];
@@ -45,6 +64,7 @@ router.route('/getZones').get(function (req, res) {
   });
 });
 
+// service data call for skycon
 router.route('/getConditions').get(function (req, res) {
   Weather.getWeatherInstance((WeatherInstance) => {
     var error, conditions;
@@ -55,6 +75,7 @@ router.route('/getConditions').get(function (req, res) {
   });
 });
 
+// update zone name, desc, flow info
 router.route('/post').post(function (req, res) {
   Zones.getZonesInstance((ZonesInstance) => {
     ZonesInstance.setZone(req.body, () => {
@@ -63,6 +84,7 @@ router.route('/post').post(function (req, res) {
   });
 });
 
+// ad hoc turning on/off zones
 router.route('/enable/:id').post(function (req, res) {
   Zones.getZonesInstance((ZonesInstance) => {
     ZonesInstance.switchZone(req.params.id, () => {
@@ -70,4 +92,5 @@ router.route('/enable/:id').post(function (req, res) {
     });
   });
 });
+
 module.exports = router;

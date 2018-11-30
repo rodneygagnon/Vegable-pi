@@ -4,6 +4,8 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+'use strict';
+
 const {log} = require('../controllers/logger');
 
 const uuidv4 = require('uuid/v4');
@@ -17,30 +19,19 @@ const {dbKeys} = require("./db");
 
 const schema = require("schm");
 const scheduleSchema = schema({
-  id: String,          // Schedule UUID
-  sid: Number,         // Zone ID
+  id: String,                     // Schedule UUID
+  sid: Number,                    // Zone ID
   title: String,
-  start: String, // ISO8601
-  amt: { type: Number, min: 1 }, // amount of water to apply: min 1 litre (0.26 gallons)
-  fertilize: Boolean,
+  start: String,                  // ISO8601
+  amt: { type: Number, min: 1 },  // amount of water to apply: min 1 litre (0.26 gallons)
+  fertilize: Boolean,             // fertigate?
   color: String,
   textColor: String,
   repeatDow: Array,
-  repeatEnd: String, // ISO8601
-  operations: Array     // List of things to do
+  repeatEnd: String               // ISO8601
 });
 
-const OPS = {
-  irrgation: 0,
-  fertigation: 1
-}
-Object.freeze(OPS);
-
-const operationSchema = schema({
-  type: Number,         // OPS
-  amount: Number        // Liters
-});
-
+// Bull/Redis Jobs Queue
 const SchedulesQueue = new Queue('SchedulesQueue');
 
 let SchedulesInstance;
@@ -75,6 +66,9 @@ class Schedules {
 
       // Set Queue processor
       SchedulesQueue.process(async (job, done) => {
+        // TODO: process scheduled job
+        //       - turn on or off stations and schedule next occurence
+        //       - calculate when to toggle zone based on start time, amt, flowrate
         log.debug(`ProcessQueue.process: (job):${JSON.stringify(job)}`);
         done();
       });
@@ -159,7 +153,7 @@ class Schedules {
     callback(schedules);
   }
 
-// Update a schedule. Create if it doesn't exist. Delete if action=='delete'
+  // Update a schedule. Create if it doesn't exist. Delete if action=='delete'
   async updateSchedule(schedule, action, callback) {
     log.debug(`updateSchedule: (${JSON.stringify(schedule)})`);
 

@@ -5,6 +5,7 @@
  * @copyright 2018 vegable.io
  */
 'use strict';
+
 const {log} = require('./logger');
 
 const request = require('request');
@@ -60,8 +61,6 @@ class Weather {
       } else {
         var url =  urlPrefix + longitude + ',' + latitude;
 
-        log.debug('getConditions url: ' + url);
-
         request({
           url: url,
           json: true
@@ -87,8 +86,6 @@ class Weather {
       } else {
         var url =  urlPrefix + longitude + ',' + latitude;
 
-        log.debug('getTemperature url: ' + url);
-
         request({
           url: url,
           json: true
@@ -105,7 +102,6 @@ class Weather {
       }
     });
   }
-
 }
 
 module.exports = {

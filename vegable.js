@@ -4,18 +4,16 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+const fs = require('fs');
+
+// Logging
 const {log} = require('./controllers/logger');
 
-// Load Env Settings
-
-const Settings = require("./settings");
-
-var fs = require('fs');
-
 // Data Model
-Config = require("./model/config");
-Zones = require("./model/zones");
-Plantings = require("./model/plantings");
+const Config = require("./model/config");
+const Users = require("./model/users");
+const Zones = require("./model/zones");
+const Plantings = require("./model/plantings");
 
 // Web Services Controllers
 const GeoLocation = require("./controllers/geolocation");
@@ -24,10 +22,11 @@ const Weather = require("./controllers/weather");
 // OpenSprinker Controller
 const OSPi = require("./controllers/ospi");
 
-let VegableInstance;
+var VegableInstance = null;
 
 var gConfig;
 var gZones;
+var gUsers;
 var gPlantings;
 var gWeather;
 var gOSPi;
@@ -60,6 +59,11 @@ class Vegable {
     Config.getConfigInstance((gConfig) => {
       this.config = gConfig;
 
+      // Get users
+      Users.getUsersInstance((gUsers) => {
+        this.users = gUsers;
+      });
+
       // Get zones
       Zones.getZonesInstance((gZones) => {
         this.zones = gZones;
@@ -72,16 +76,12 @@ class Vegable {
     });
   }
 
-  async validateUser(user, callback) {
-    if (user.username === await this.config.getUsername() && this.config.testPassword(user.password))
-      callback(null, user);
-    else
-      callback(null, null);
+  async validateUser(username, password, callback) {
+    callback (null, await this.users.validateUser(username, password));
   }
 
-  async getUserByName(username, callback) {
-    // TODO: This is not finished yet. Just the plumbing
-    callback(null, { username: await this.config.getUsername(), password: await this.config.getPassword() });
+  async getUser(email, callback) {
+    callback(null, await this.users.getUser(email));
   }
 
   getRPiInformation() {
@@ -100,7 +100,6 @@ class Vegable {
     }
     log.debug("RPI Info: Revision(", this.rpiRevision, ") Serial(", this.rpiSerial, ")");
   }
-
 }
 
 module.exports = {

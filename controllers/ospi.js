@@ -4,6 +4,8 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+'use strict';
+
 const {log} = require('./logger');
 
 const gpio = require('pigpio').Gpio;
@@ -26,7 +28,6 @@ var OSPiConfig = {
 }
 
 let OSPiInstance;
-
 let OSPiStationsBitMask = 0;
 
 const getOSPiInstance = async (callback) => {

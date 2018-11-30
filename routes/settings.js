@@ -1,3 +1,9 @@
+/*
+ * Settings Router
+ *
+ * @author: rgagnon
+ * @copyright 2018 vegable.io
+ */
 var express = require('express');
 var router = express.Router();
 
@@ -5,7 +11,7 @@ const Config = require('../model/config');
 
 var ConfigInstance;
 
-/* GET home page. */
+// GET home page - send current config
 router.get('/', function(req, res, next) {
   Config.getConfigInstance((ConfigInstance) => {
     var config;
@@ -15,6 +21,7 @@ router.get('/', function(req, res, next) {
   });
 });
 
+// set new config info
 router.route('/post').post(function (req, res) {
   Config.getConfigInstance((ConfigInstance) => {
     console.log(`Setting Location: `);

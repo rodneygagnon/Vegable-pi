@@ -4,7 +4,7 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
-const bcrypt = require('bcryptjs');
+'use strict';
 
 const {log} = require('../controllers/logger');
 
@@ -15,8 +15,6 @@ const {dbKeys} = require("./db");
 
 const schema = require("schm");
 const configSchema = schema({
-  username: String,
-  password: String,
   address: String,
   city: String,
   state: String,
@@ -28,11 +26,7 @@ const configSchema = schema({
 
 let ConfigInstance;
 
-var salt = bcrypt.genSaltSync(10);
-
-var defaultConfig = { username: settings.default_user,
-                      password : bcrypt.hashSync(settings.default_password, salt),
-                      address : settings.default_address,
+var defaultConfig = { address : settings.default_address,
                       city : settings.default_city,
                       state : settings.default_state,
                       zip : settings.default_zip,
@@ -76,30 +70,6 @@ class Config {
     var config = await configSchema.validate(await db.hgetallAsync(dbKeys.dbConfigKey));
 
     callback(config);
-  }
-
-  // Get/Set username
-  async getUsername() {
-    return await this.getSetHashKey('username', defaultConfig.username);
-  }
-  async setUsername(username) {
-    return await this.setHashKey('username', username);
-  }
-
-  // Get/Set password
-  async getPassword() {
-    return await this.getSetHashKey('password', defaultConfig.password);
-  }
-  async setPassword(password) {
-    return await this.setHashKey('password', password);
-  }
-  async testPassword(password) {
-    try {
-      return bcrypt.compareSync(password, await this.getPassword());
-    } catch (err) {
-      log.error("testPassword failed: " + err);
-      return false;
-    }
   }
 
   // Get/Set address

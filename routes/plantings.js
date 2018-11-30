@@ -1,10 +1,17 @@
+/*
+ * Plantings Router
+ *
+ * @author: rgagnon
+ * @copyright 2018 vegable.io
+ */
 var express = require('express');
 var router = express.Router();
 
 const Config = require('../model/config');
+const Zones = require('../model/zones');
 const Plantings = require('../model/plantings');
 
-/* GET home page. */
+// GET home page
 router.get('/', function(req, res, next) {
   let zones = [];
   Zones.getZonesInstance((ZonesInstance) => {
@@ -32,12 +39,6 @@ router.route('/update').post(function (req, res) {
       res.redirect('/plantings');
     });
   });
- });
-
-router.route('/delete/:id').post(function (req, res) {
-  const id = req.params.id;
-  console.log(`Delete Planting: ID ${id}`);
-  res.redirect('/plantings');
 });
 
 module.exports = router;

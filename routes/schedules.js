@@ -1,3 +1,9 @@
+/*
+ * Schedules Router
+ *
+ * @author: rgagnon
+ * @copyright 2018 vegable.io
+ */
 var express = require('express');
 var router = express.Router();
 
@@ -8,6 +14,7 @@ const Config = require('../model/config');
 const Schedules = require('../model/schedules');
 const Zones = require('../model/zones');
 
+// GET home page - send zones
 router.get('/', function(req, res, next) {
   let zones = [];
   Zones.getZonesInstance((ZonesInstance) => {
@@ -17,6 +24,7 @@ router.get('/', function(req, res, next) {
   });
 });
 
+// service fullcalendar's events url
 router.route('/getSchedules').get(function (req, res) {
   let parsedUrl = url.parse(req.url);
   let parsedQs = querystring.parse(parsedUrl.query);
@@ -30,6 +38,7 @@ router.route('/getSchedules').get(function (req, res) {
   });
 });
 
+// create, update or delete an event
 router.route('/update').post(function (req, res) {
   console.log(`Update Schedule: ${JSON.stringify(req.body)}`);
 
@@ -39,11 +48,5 @@ router.route('/update').post(function (req, res) {
     });
   });
  });
-
-router.route('/delete/:id').post(function (req, res) {
-  const id = req.params.id;
-  console.log(`Delete Schedule: ID ${id}`);
-  res.redirect('/schedules');
-});
 
 module.exports = router;
