@@ -9,20 +9,19 @@
 const {log} = require('./logger');
 
 const request = require('request');
-const Config = require('../model/config');
 
 const mapboxGeocodeURL = 'https://api.mapbox.com/geocoding/v5/mapbox.places/';
 const mapboxAccessKeyURL = '.json?access_token=';
 
 let GeoLocationInstance;
 
-const getGeoLocationInstance = async (callback) => {
+const getGeoLocationInstance = async (key, callback) => {
   if (GeoLocationInstance) {
     callback(GeoLocationInstance);
     return;
   }
 
-  GeoLocationInstance = await new GeoLocation();
+  GeoLocationInstance = await new GeoLocation(key);
   log.debug("GeoLocation Constructed! ");
   GeoLocationInstance.init(() => {
     log.debug("GeoLocation Initialized! ");
@@ -31,29 +30,22 @@ const getGeoLocationInstance = async (callback) => {
 }
 
 class GeoLocation {
-  constructor() {
-    this.config = null;
+  constructor(key) {
+    this.key = key;
   }
 
   async init(callback) {
-    var gConfig;
-
-    Config.getConfigInstance((gConfig) => {
-      this.config = gConfig;
-      callback();
-    });
+    callback();
   }
 
-  // Get lat/long of given or default address
-  async getLatLong(callback)
+  // Get lat/long of given location
+  async getLatLong(address, city, state, zip, callback)
   {
     this.latitude = 0;
     this.longitude = 0;
 
-    var address = await this.config.getAddress() + ',' + await this.config.getCity() + ',' +
-                  await this.config.getState() + ',' + await this.config.getZip();
-    var url = mapboxGeocodeURL + encodeURIComponent(address) +
-              mapboxAccessKeyURL + await this.config.getMapBoxKey();
+    var location = encodeURIComponent(address + ',' + city + ',' + state + ',' + zip);
+    var url = mapboxGeocodeURL + location + mapboxAccessKeyURL + await this.key;
 
     request({
       url: url,

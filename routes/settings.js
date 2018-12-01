@@ -32,10 +32,8 @@ router.route('/post').post(function (req, res) {
     console.log(`Setting Location: `);
     console.log(req.body);
 
-    ConfigInstance.setAddress(req.body.address);
-    ConfigInstance.setCity(req.body.city);
-    ConfigInstance.setState(req.body.state);
-    ConfigInstance.setZip(req.body.zip);
+    ConfigInstance.setLocation(req.body.address, req.body.city,
+                               req.body.state, req.body.zip);
 
     res.redirect('/settings');
   });

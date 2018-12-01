@@ -9,6 +9,7 @@
 const {log} = require('../controllers/logger');
 
 const settings = require("../settings");
+const GeoLocation = require('../controllers/geolocation')
 
 const {db} = require("./db");
 const {dbKeys} = require("./db");
@@ -19,6 +20,8 @@ const configSchema = schema({
   city: String,
   state: String,
   zip: String,
+  lat: Number,
+  long: Number,
   mapboxKey: String,
   darkskyKey: String,
   zones: { type: Number, min: 0 }
@@ -30,6 +33,8 @@ var defaultConfig = { address : settings.default_address,
                       city : settings.default_city,
                       state : settings.default_state,
                       zip : settings.default_zip,
+                      lat : settings.default_lat,
+                      long : settings.default_long,
                       mapboxKey : settings.default_mapbox_key,
                       darkskyKey : settings.default_darksky_key,
                       zones : settings.zones
@@ -51,6 +56,7 @@ const getConfigInstance = async (callback) => {
 
 class Config {
   constructor() {
+    this.geolocation = null;
   }
 
   async init(callback) {
@@ -70,6 +76,21 @@ class Config {
     var config = await configSchema.validate(await db.hgetallAsync(dbKeys.dbConfigKey));
 
     callback(config);
+  }
+
+  async setLocation(address, city, state, zip) {
+    await this.setAddress(address);
+    await this.setCity(city);
+    await this.setState(state);
+    await this.setZip(zip);
+
+    // Get/Set Lat/Long
+    GeoLocation.getGeoLocationInstance(await this.getMapBoxKey(), (gGeoLocation) => {
+      gGeoLocation.getLatLong(address, city, state, zip, (error, latitude, longitude) => {
+        this.setLat(latitude);
+        this.setLong(longitude);
+      });
+    });
   }
 
   // Get/Set address
@@ -102,6 +123,22 @@ class Config {
   }
   async setZip(zip) {
     return await this.setHashKey('zip', zip);
+  }
+
+  // Get/Set lat
+  async getLat() {
+    return await this.getSetHashKey('lat', defaultConfig.lat);
+  }
+  async setLat(lat) {
+    return await this.setHashKey('lat', lat);
+  }
+
+  // Get/Set long
+  async getLong() {
+    return await this.getSetHashKey('long', defaultConfig.long);
+  }
+  async setLong(long) {
+    return await this.setHashKey('long', long);
   }
 
   getMapBoxKey() {
