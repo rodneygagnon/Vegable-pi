@@ -11,7 +11,7 @@ const {log} = require('../controllers/logger');
 const uuidv4 = require('uuid/v4');
 const Queue = require("bull");
 
-const Config = require('./config');
+const Settings = require('./settings');
 const Zones = require('./zones');
 
 const {db} = require("./db");
@@ -56,8 +56,8 @@ class Schedules {
   }
 
   async init(callback) {
-    Config.getConfigInstance(async (gConfig) => {
-      this.config = gConfig;
+    Settings.getSettingsInstance(async (gSettings) => {
+      this.config = gSettings;
 
       // Get zones
       Zones.getZonesInstance((gZones) => {

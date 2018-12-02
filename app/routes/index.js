@@ -7,9 +7,8 @@
 const express = require('express');
 const router = express.Router();
 
-const Config = require('../model/config');
-const Users = require('../model/users');
-const Zones = require('../model/zones');
+const Users = require('../models/users');
+const Zones = require('../models/zones');
 
 const Weather = require('../controllers/weather');
 

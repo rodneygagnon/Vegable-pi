@@ -7,9 +7,8 @@
 var express = require('express');
 var router = express.Router();
 
-const Config = require('../model/config');
-const Zones = require('../model/zones');
-const Plantings = require('../model/plantings');
+const Zones = require('../models/zones');
+const Plantings = require('../models/plantings');
 
 // GET home page
 router.get('/', function(req, res, next) {

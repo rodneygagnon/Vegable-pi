@@ -11,7 +11,7 @@ const {log} = require('../controllers/logger');
 const uuidv4 = require('uuid/v4');
 const Queue = require("bull");
 
-const Config = require('./config');
+const Settings = require('./settings');
 
 const {db} = require("./db");
 const {dbKeys} = require("./db");
@@ -61,8 +61,8 @@ class Plantings {
   }
 
   async init(callback) {
-    Config.getConfigInstance(async (gConfig) => {
-      this.config = gConfig;
+    Settings.getSettingsInstance(async (gSettings) => {
+      this.config = gSettings;
 
       // Set Queue processor
       PlantingsQueue.process(async (job, done) => {

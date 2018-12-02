@@ -8,7 +8,7 @@
 
 const {log} = require('../controllers/logger');
 
-const Config = require('./config');
+const Settings = require('./settings');
 
 // OpenSprinker Controller
 const OSPi = require("../controllers/ospi");
@@ -61,8 +61,8 @@ class Zones {
 
   async init(callback) {
 
-    Config.getConfigInstance(async (gConfig) => {
-      this.config = gConfig;
+    Settings.getSettingsInstance(async (gSettings) => {
+      this.config = gSettings;
 
       OSPi.getOSPiInstance(async (gOSPi) => {
         this.ospi = gOSPi;

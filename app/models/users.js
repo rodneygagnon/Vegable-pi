@@ -11,8 +11,7 @@ const uuidv4 = require('uuid/v4');
 
 const {log} = require('../controllers/logger');
 
-const Config = require('./config');
-const settings = require("../settings");
+const Settings = require('./settings');
 
 const {db} = require("./db");
 const {dbKeys} = require("./db");
@@ -48,8 +47,8 @@ class Users {
 
   async init(callback) {
 
-    Config.getConfigInstance(async (gConfig) => {
-      this.config = gConfig;
+    Settings.getSettingsInstance(async (gSettings) => {
+      this.config = gSettings;
 
       this.salt = bcrypt.genSaltSync(10);
 
@@ -57,8 +56,9 @@ class Users {
 
       // Create default user if necessary
       if (userCount == 0) {
-        var user = {id: uuidv4(), name: settings.default_username, email: settings.default_email,
-                    password: bcrypt.hashSync(settings.default_password, this.salt)};
+        var user = {id: uuidv4(), name: await this.config.getDefaultUser(),
+                    email: await this.config.getDefaultEmail(),
+                    password: bcrypt.hashSync(await this.config.getDefaultPassword(), this.salt)};
 
         if (!await db.hsetAsync(dbKeys.dbUsersKey, user.email, JSON.stringify(user)))
           log.debug(`User Init: failed to add default user (${user})`);

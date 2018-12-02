@@ -10,7 +10,7 @@ const {log} = require('./logger');
 
 const gpio = require('pigpio').Gpio;
 
-const Config = require('../model/config');
+const Settings = require('../models/settings');
 
 var OSPiConfig = {
   Status: {
@@ -51,8 +51,8 @@ class OSPi {
 
   async init (callback) {
 
-    Config.getConfigInstance(async (gConfig) => {
-      this.config = gConfig;
+    Settings.getSettingsInstance(async (gSettings) => {
+      this.config = gSettings;
 
       this.OSPiSRClock = new gpio(OSPiConfig.Pins.SRClock, {mode: gpio.OUTPUT});
       this.OSPiSROutputDisable = new gpio(OSPiConfig.Pins.SROutputDisable, {mode: gpio.OUTPUT});

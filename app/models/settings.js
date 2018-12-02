@@ -8,14 +8,14 @@
 
 const {log} = require('../controllers/logger');
 
-const settings = require("../settings");
+const config = require("../../config/config");
 const GeoLocation = require('../controllers/geolocation')
 
 const {db} = require("./db");
 const {dbKeys} = require("./db");
 
 const schema = require("schm");
-const configSchema = schema({
+const settingsSchema = schema({
   address: String,
   city: String,
   state: String,
@@ -27,34 +27,34 @@ const configSchema = schema({
   zones: { type: Number, min: 0 }
 });
 
-let ConfigInstance;
+let SettingsInstance;
 
-var defaultConfig = { address : settings.default_address,
-                      city : settings.default_city,
-                      state : settings.default_state,
-                      zip : settings.default_zip,
-                      lat : settings.default_lat,
-                      long : settings.default_long,
-                      mapboxKey : settings.default_mapbox_key,
-                      darkskyKey : settings.default_darksky_key,
-                      zones : settings.zones
-                    };
+var defaultSettings = { address : config.default_address,
+                        city : config.default_city,
+                        state : config.default_state,
+                        zip : config.default_zip,
+                        lat : config.default_lat,
+                        long : config.default_long,
+                        mapboxKey : config.default_mapbox_key,
+                        darkskyKey : config.default_darksky_key,
+                        zones : config.zones
+                      };
 
-const getConfigInstance = async (callback) => {
-  if (ConfigInstance) {
-    callback(ConfigInstance);
+const getSettingsInstance = async (callback) => {
+  if (SettingsInstance) {
+    callback(SettingsInstance);
     return;
   }
 
-  ConfigInstance = await new Config();
-  log.debug("Config Constructed! ");
-  await ConfigInstance.init(() => {
-    log.debug("Config Initialized! ");
-    callback(ConfigInstance);
+  SettingsInstance = await new Settings();
+  log.debug("Settings Constructed! ");
+  await SettingsInstance.init(() => {
+    log.debug("Settings Initialized! ");
+    callback(SettingsInstance);
   })
 }
 
-class Config {
+class Settings {
   constructor() {
     this.geolocation = null;
   }
@@ -63,8 +63,8 @@ class Config {
     var hlen = await db.hlenAsync(dbKeys.dbConfigKey);
     if (hlen === 0) { // key does not exist, store the default options
       try {
-        var result = await db.hmsetAsync(dbKeys.dbConfigKey, defaultConfig);
-        log.debug("Initialized Config: " + result);
+        var result = await db.hmsetAsync(dbKeys.dbConfigKey, defaultSettings);
+        log.debug("Initialized Settings: " + result);
       } catch (error) {
         log.error(error);
       }
@@ -72,7 +72,7 @@ class Config {
     callback();
   }
 
-  async getConfig(callback) {
+  async getSettings(callback) {
     var config = await configSchema.validate(await db.hgetallAsync(dbKeys.dbConfigKey));
 
     callback(config);
@@ -93,9 +93,14 @@ class Config {
     });
   }
 
+  // Return default user data
+  getDefaultUser() { return config.default_username; }
+  getDefaultEmail() { return config.default_email; }
+  getDefaultPassword() { return config.default_password; }
+
   // Get/Set address
   async getAddress() {
-    return await this.getSetHashKey('address', defaultConfig.address);
+    return await this.getSetHashKey('address', defaultSettings.address);
   }
   async setAddress(address) {
     return await this.setHashKey('address', address);
@@ -103,7 +108,7 @@ class Config {
 
   // Get/Set city
   async getCity() {
-    return await this.getSetHashKey('city', defaultConfig.city);
+    return await this.getSetHashKey('city', defaultSettings.city);
   }
   async setCity(city) {
     return await this.setHashKey('city', city);
@@ -111,7 +116,7 @@ class Config {
 
   // Get/Set state
   async getState() {
-    return await this.getSetHashKey('state', defaultConfig.state);
+    return await this.getSetHashKey('state', defaultSettings.state);
   }
   async setState(state) {
     return await this.setHashKey('state', state);
@@ -119,7 +124,7 @@ class Config {
 
   // Get/Set zip
   async getZip() {
-    return await this.getSetHashKey('zip', defaultConfig.zip);
+    return await this.getSetHashKey('zip', defaultSettings.zip);
   }
   async setZip(zip) {
     return await this.setHashKey('zip', zip);
@@ -127,7 +132,7 @@ class Config {
 
   // Get/Set lat
   async getLat() {
-    return await this.getSetHashKey('lat', defaultConfig.lat);
+    return await this.getSetHashKey('lat', defaultSettings.lat);
   }
   async setLat(lat) {
     return await this.setHashKey('lat', lat);
@@ -135,26 +140,26 @@ class Config {
 
   // Get/Set long
   async getLong() {
-    return await this.getSetHashKey('long', defaultConfig.long);
+    return await this.getSetHashKey('long', defaultSettings.long);
   }
   async setLong(long) {
     return await this.setHashKey('long', long);
   }
 
   getMapBoxKey() {
-    return this.getSetHashKey('mapboxKey', defaultConfig.mapboxKey);
+    return this.getSetHashKey('mapboxKey', defaultSettings.mapboxKey);
   }
 
   getDarkSkyKey() {
-    return this.getSetHashKey('darkskyKey', defaultConfig.darkskyKey);
+    return this.getSetHashKey('darkskyKey', defaultSettings.darkskyKey);
   }
 
   getIftttUrl() {
-    return this.getSetHashKey('iftttUrl', defaultConfig.iftttUrl);
+    return this.getSetHashKey('iftttUrl', defaultSettings.iftttUrl);
   }
 
   getZones() {
-    return this.getSetHashKey('zones', defaultConfig.zones);
+    return this.getSetHashKey('zones', defaultSettings.zones);
   }
 
   // get value at hashKey, or set and return default
@@ -185,6 +190,6 @@ class Config {
 }
 
 module.exports = {
-  Config,
-  getConfigInstance
+  Settings,
+  getSettingsInstance
 };

@@ -65,6 +65,7 @@ const SchedulesRouter = require('./routes/schedules');
 const PlantingsRouter = require('./routes/plantings');
 
 app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '/views'));
 
 app.use(helmet());
 app.use(logger('dev'));

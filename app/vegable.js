@@ -10,10 +10,10 @@ const fs = require('fs');
 const {log} = require('./controllers/logger');
 
 // Data Model
-const Config = require("./model/config");
-const Users = require("./model/users");
-const Zones = require("./model/zones");
-const Plantings = require("./model/plantings");
+const Settings = require("./models/settings");
+const Users = require("./models/users");
+const Zones = require("./models/zones");
+const Plantings = require("./models/plantings");
 
 // Web Services Controllers
 const GeoLocation = require("./controllers/geolocation");
@@ -24,7 +24,7 @@ const OSPi = require("./controllers/ospi");
 
 var VegableInstance = null;
 
-var gConfig;
+var gSettings;
 var gZones;
 var gUsers;
 var gPlantings;
@@ -56,8 +56,8 @@ class Vegable {
     await this.getRPiInformation();
 
     // Initialize Options
-    Config.getConfigInstance((gConfig) => {
-      this.config = gConfig;
+    Settings.getSettingsInstance((gSettings) => {
+      this.config = gSettings;
 
       // Get users
       Users.getUsersInstance((gUsers) => {

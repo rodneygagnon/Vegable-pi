@@ -10,9 +10,8 @@ var router = express.Router();
 const url = require('url');
 const querystring = require('querystring');
 
-const Config = require('../model/config');
-const Schedules = require('../model/schedules');
-const Zones = require('../model/zones');
+const Schedules = require('../models/schedules');
+const Zones = require('../models/zones');
 
 // GET home page - send zones
 router.get('/', function(req, res, next) {

@@ -6,9 +6,9 @@
 */.DS_Store
 
 # Ignore files with private data (for now)
-settings(private).js
-ssl/server.cert
-ssl/server.key
+config.js
+server.cert
+server.key
 
 // Ignore backups
 public/(v0.3-paper)

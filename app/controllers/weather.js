@@ -10,7 +10,7 @@ const {log} = require('./logger');
 
 const request = require('request');
 
-const Config = require('../model/config');
+const Settings = require('../models/settings');
 
 const darkskyWeatherURL = 'https://api.darksky.net/forecast/';
 
@@ -36,11 +36,11 @@ class Weather {
   }
 
   async init(callback) {
-    var gConfig;
+    var gSettings;
     var gGeoLocation;
 
-    Config.getConfigInstance((gConfig) => {
-      this.config = gConfig;
+    Settings.getSettingsInstance((gSettings) => {
+      this.config = gSettings;
       callback();
     });
   }

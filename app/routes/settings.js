@@ -7,9 +7,9 @@
 var express = require('express');
 var router = express.Router();
 
-const Config = require('../model/config');
+const Settings = require('../models/settings');
 
-var ConfigInstance;
+var SettingsInstance;
 
 // GET home page - send current config
 router.get('/', function(req, res, next) {
@@ -17,9 +17,9 @@ router.get('/', function(req, res, next) {
   if (typeof req.user === 'undefined')
     res.redirect('/signin');
   else {
-    Config.getConfigInstance((ConfigInstance) => {
+    Settings.getSettingsInstance((SettingsInstance) => {
       var config;
-      ConfigInstance.getConfig((config) => {
+      SettingsInstance.getSettings((config) => {
         res.render('settings', {title: 'Vegable', config: config});
       });
     });
@@ -28,11 +28,11 @@ router.get('/', function(req, res, next) {
 
 // set new config info
 router.route('/post').post(function (req, res) {
-  Config.getConfigInstance((ConfigInstance) => {
+  Settings.getSettingsInstance((SettingsInstance) => {
     console.log(`Setting Location: `);
     console.log(req.body);
 
-    ConfigInstance.setLocation(req.body.address, req.body.city,
+    SettingsInstance.setLocation(req.body.address, req.body.city,
                                req.body.state, req.body.zip);
 
     res.redirect('/settings');
