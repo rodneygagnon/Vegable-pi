@@ -124,8 +124,6 @@ class Zones {
       var inputZone = await zonesSchema.validate(zone);
       var saveZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, inputZone.id));
 
-      log.debug(`setZone: inputZone(${JSON.stringify(inputZone)})`);
-
       saveZone.name = inputZone.name;
       saveZone.description = inputZone.description;
       saveZone.flowrate = inputZone.flowrate;
@@ -147,8 +145,6 @@ class Zones {
 
       saveZone.status = status;
       saveZone.started = started;
-
-      log.debug(`setZone: saveZone(${JSON.stringify(saveZone)})`);
 
       await db.hsetAsync(dbKeys.dbZonesKey, saveZone.id, JSON.stringify(saveZone));
 

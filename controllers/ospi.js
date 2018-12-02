@@ -83,14 +83,12 @@ class OSPi {
   }
 
   async switchStation(stationId, value) {
-    log.debug(`switchStation: Starting Bitmask: ${OSPiStationsBitMask}  Value: ${value}`)
-
     if (value)
       OSPiStationsBitMask |= value << (stationId - 1);
     else
       OSPiStationsBitMask &= ~(!value << (stationId - 1));
 
-    log.debug(`switchStation: Ending Bitmask: ${OSPiStationsBitMask}`)
+    log.debug(`switchStation: Station Bitmask: 0x${OSPiStationsBitMask.toString(16)}`)
 
     this.applyStationBitmask();
   }
@@ -99,11 +97,11 @@ class OSPi {
     // turn off the latch pin
     this.OSPiSRLatch.digitalWrite(OSPiConfig.Status.OFF);
 
+    log.debug(`  -- apply OSPI bitmask: 0x${OSPiStationsBitMask.toString(16)}`)
+
     var numStations = await this.config.getZones();
     for (var i = 0; i < numStations; i++) {
       var value = (OSPiStationsBitMask & (0x01 << ((numStations-1) - i))) ? OSPiConfig.Status.ON : OSPiConfig.Status.OFF;
-
-      log.debug(`--> applyStationBitmask(${i}): ${value}`);
 
       this.OSPiSRClock.digitalWrite(OSPiConfig.Status.OFF);
       this.OSPiSRData.digitalWrite(value);
