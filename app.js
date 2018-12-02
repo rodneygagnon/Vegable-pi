@@ -10,14 +10,12 @@ const express = require('express');
 const session = require('express-session');
 
 // Security
-const https = require('https')
 const helmet = require('helmet')
 
 // Sign in authentication
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
-const fs = require('fs')
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
@@ -95,14 +93,5 @@ app.use('/', IndexRouter);
 app.use('/settings', SettingsRouter);
 app.use('/schedules', SchedulesRouter);
 app.use('/plantings', PlantingsRouter);
-
-// TODO: Shutdown or redirect HTTP traffic ??
-https.createServer({
-  key: fs.readFileSync('./ssl/server.key'),
-  cert: fs.readFileSync('./ssl/server.cert')
-}, app)
-.listen(Settings.https_port, function () {
-  log.info('HTTPS listening on port ' + Settings.https_port)
-})
 
 module.exports = app;
