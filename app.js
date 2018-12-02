@@ -24,8 +24,7 @@ const bodyParser = require('body-parser');
 const logger = require('morgan');
 const {log} = require('./controllers/logger');
 
-// Application Settings and main Singleton
-const Settings = require("./settings");
+// Main Application Singleton
 const Vegable = require("./vegable");
 
 var VegableInstance;
@@ -93,5 +92,10 @@ app.use('/', IndexRouter);
 app.use('/settings', SettingsRouter);
 app.use('/schedules', SchedulesRouter);
 app.use('/plantings', PlantingsRouter);
+
+/* 404 */
+app.all('*', function(req, res) {
+    res.render('404');
+});
 
 module.exports = app;
