@@ -5,7 +5,7 @@
  */
 const fs = require('fs')
 
-var app = require('./app');
+var app = require('./server/app');
 var debug = require('debug')('vegable:server');
 var https = require('https')
 

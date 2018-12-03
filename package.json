@@ -1,9 +1,17 @@
 {
   "name": "vegable",
   "version": "0.0.1",
+  "description": "Auto-gardener",
+  "author": "Rodney Gagnon <rodney@vegable.co>",
   "private": true,
   "scripts": {
-    "start": "node ./app/www"
+    "start": "node ./index.js"
+  },
+  "node_deb": {
+    "init": "sysv",
+    "entrypoints": {
+      "daemon": "node ./index.js"
+    }
   },
   "dependencies": {
     "@log4js-node/redis": "^1.0.0",
@@ -22,6 +30,7 @@
     "log4js": "^3.0.6",
     "method-override": "^3.0.0",
     "morgan": "~1.9.0",
+    "node-deb": "^0.10.7",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "pigpio": "^1.1.4",

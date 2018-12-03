@@ -73,7 +73,7 @@ class Settings {
   }
 
   async getSettings(callback) {
-    var config = await configSchema.validate(await db.hgetallAsync(dbKeys.dbConfigKey));
+    var config = await settingsSchema.validate(await db.hgetallAsync(dbKeys.dbConfigKey));
 
     callback(config);
   }

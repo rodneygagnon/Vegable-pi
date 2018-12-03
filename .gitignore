@@ -9,6 +9,3 @@
 config.js
 server.cert
 server.key
-
-// Ignore backups
-public/(v0.3-paper)
