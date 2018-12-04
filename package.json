@@ -1,40 +1,36 @@
 {
   "name": "vegable",
-  "version": "0.0.1",
-  "description": "Auto-gardener",
-  "author": "Rodney Gagnon <rodney@vegable.co>",
+  "version": "0.1.1",
+  "description": "",
   "private": true,
   "scripts": {
     "start": "node ./index.js"
   },
-  "node_deb": {
-    "init": "sysv",
-    "entrypoints": {
-      "daemon": "node ./index.js"
-    }
-  },
+  "author": "",
+  "license": "MIT",
   "dependencies": {
     "@log4js-node/redis": "^1.0.0",
     "bcryptjs": "^2.4.3",
-    "bluebird": "^3.5.2",
+    "bluebird": "^3.5.3",
     "body-parser": "^1.18.3",
-    "bull": "^3.4.8",
+    "bull": "^3.5.2",
     "cookie-parser": "~1.4.3",
-    "debug": "~2.6.9",
+    "debug": "^4.1.0",
+    "dotenv": "^6.1.0",
     "ejs": "^2.6.1",
-    "express": "~4.16.0",
+    "express": "^4.16.4",
     "express-session": "^1.15.6",
-    "helmet": "^3.13.0",
+    "helmet": "^3.15.0",
     "https": "^1.0.0",
-    "lodash": "^2.4.2",
+    "lodash": "^4.17.11",
     "log4js": "^3.0.6",
     "method-override": "^3.0.0",
     "morgan": "~1.9.0",
-    "node-deb": "^0.10.7",
+    "onoff": "^3.2.2",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
-    "pigpio": "^1.1.4",
     "redis": "^2.8.0",
+    "request": "^2.88.0",
     "schm": "^0.4.1",
     "uuid": "^3.3.2"
   }

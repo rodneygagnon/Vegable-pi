@@ -13,11 +13,11 @@ log4js.configure({
    // },
    // categories: { default: { appenders: ['redis'], level: 'debug' } }
 
-   // appenders: { 'out': { type: 'stdout' } },
-   // categories: { default: { appenders: ['out'], level: 'debug' } }
+   appenders: { 'out': { type: 'stdout' } },
+   categories: { default: { appenders: ['out'], level: 'debug' } }
 
-   appenders: { 'file': { type: 'file', filename: '/var/log/vegable.log', maxLogSize: 10485760, backups: 3,} },
-   categories: { default: { appenders: ['file'], level: 'debug' } }
+   //appenders: { 'file': { type: 'file', filename: '/var/log/vegable.log', maxLogSize: 10485760, backups: 3,} },
+   //categories: { default: { appenders: ['file'], level: 'debug' } }
  });
 
  var log = log4js.getLogger("app");

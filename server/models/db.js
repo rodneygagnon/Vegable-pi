@@ -21,7 +21,7 @@ const dbKeys = {
 
 bluebird.promisifyAll(redis);
 
-var db = redis.createClient()
+var db = redis.createClient({host: 'redis'});
 
 db.on('error', function (err) {
   log.error('DB Error ' + err)

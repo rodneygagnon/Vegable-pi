@@ -8,7 +8,7 @@
 
 const {log} = require('./logger');
 
-const gpio = require('pigpio').Gpio;
+const gpio = require('onoff').Gpio;
 
 const Settings = require('../models/settings');
 
@@ -54,27 +54,27 @@ class OSPi {
     Settings.getSettingsInstance(async (gSettings) => {
       this.config = gSettings;
 
-      this.OSPiSRClock = new gpio(OSPiConfig.Pins.SRClock, {mode: gpio.OUTPUT});
-      this.OSPiSROutputDisable = new gpio(OSPiConfig.Pins.SROutputDisable, {mode: gpio.OUTPUT});
-      this.OSPiSRLatch = new gpio(OSPiConfig.Pins.SRLatch, {mode: gpio.OUTPUT});
-      this.OSPiSRData = new gpio(OSPiConfig.Pins.SRData, {mode: gpio.OUTPUT});
+      this.OSPiSRClock = new gpio(OSPiConfig.Pins.SRClock, 'out');
+      this.OSPiSROutputDisable = new gpio(OSPiConfig.Pins.SROutputDisable, 'out');
+      this.OSPiSRLatch = new gpio(OSPiConfig.Pins.SRLatch, 'out');
+      this.OSPiSRData = new gpio(OSPiConfig.Pins.SRData, 'out');
 
       // pull shift register OD HIGH to disable output
-      this.OSPiSROutputDisable.digitalWrite(OSPiConfig.Status.ON);
+      this.OSPiSROutputDisable.writeSync(OSPiConfig.Status.ON);
 
-      this.OSPiSRLatch.digitalWrite(OSPiConfig.Status.ON);
+      this.OSPiSRLatch.writeSync(OSPiConfig.Status.ON);
 
       this.applyStationBitmask();
 
       // pull shift register OD LOW to ENABLE output
-      this.OSPiSROutputDisable.digitalWrite(OSPiConfig.Status.OFF);
+      this.OSPiSROutputDisable.writeSync(OSPiConfig.Status.OFF);
 
       // Setup Rain Sensor
-      this.OSPiRainSensor = new gpio(OSPiConfig.Pins.RainSensor, {mode: gpio.INPUT});
+      this.OSPiRainSensor = new gpio(OSPiConfig.Pins.RainSensor, 'in');
       // attachInterrupt(PIN_RAINSENSOR, "falling", flow_isr);
 
       //TEMPORARY FOR TESTING
-      this.OSPiSRLatch.digitalWrite(OSPiConfig.Status.OFF);
+      this.OSPiSRLatch.writeSync(OSPiConfig.Status.OFF);
       // TEMPORARY FOR TESTING
 
       this.enabled = true;
@@ -95,7 +95,7 @@ class OSPi {
 
   async applyStationBitmask() {
     // turn off the latch pin
-    this.OSPiSRLatch.digitalWrite(OSPiConfig.Status.OFF);
+    this.OSPiSRLatch.writeSync(OSPiConfig.Status.OFF);
 
     log.debug(`  -- apply OSPI bitmask: 0x${OSPiStationsBitMask.toString(16)}`)
 
@@ -103,13 +103,13 @@ class OSPi {
     for (var i = 0; i < numStations; i++) {
       var value = (OSPiStationsBitMask & (0x01 << ((numStations-1) - i))) ? OSPiConfig.Status.ON : OSPiConfig.Status.OFF;
 
-      this.OSPiSRClock.digitalWrite(OSPiConfig.Status.OFF);
-      this.OSPiSRData.digitalWrite(value);
-      this.OSPiSRClock.digitalWrite(OSPiConfig.Status.ON);
+      this.OSPiSRClock.writeSync(OSPiConfig.Status.OFF);
+      this.OSPiSRData.writeSync(value);
+      this.OSPiSRClock.writeSync(OSPiConfig.Status.ON);
     }
 
     // latch the outputs
-    this.OSPiSRLatch.digitalWrite(OSPiConfig.Status.ON);
+    this.OSPiSRLatch.writeSync(OSPiConfig.Status.ON);
   }
 }
 

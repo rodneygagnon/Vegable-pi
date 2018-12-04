@@ -37,7 +37,7 @@ const operationSchema = schema({
   amount: Number        // Liters
 });
 
-const PlantingsQueue = new Queue('PlantingsQueue');
+var PlantingsQueue;
 
 let PlantingsInstance;
 
@@ -64,11 +64,17 @@ class Plantings {
     Settings.getSettingsInstance(async (gSettings) => {
       this.config = gSettings;
 
-      // Set Queue processor
-      PlantingsQueue.process(async (job, done) => {
-        log.debug(`ProcessQueue.process: (job):${JSON.stringify(job)}`);
-        done();
-      });
+      try {
+        PlantingsQueue = new Queue('PlantingsQueue', {redis: {host: 'redis'}});
+
+        // Set Queue processor
+        PlantingsQueue.process(async (job, done) => {
+          log.debug(`ProcessQueue.process: (job):${JSON.stringify(job)}`);
+          done();
+        });
+      } catch (err) {
+        log.error("Failed to create queue: ", + err);
+      }
 
       callback();
     });

@@ -32,7 +32,7 @@ const scheduleSchema = schema({
 });
 
 // Bull/Redis Jobs Queue
-const SchedulesQueue = new Queue('SchedulesQueue');
+var SchedulesQueue;
 
 let SchedulesInstance;
 
@@ -64,10 +64,16 @@ class Schedules {
         this.zones = gZones;
       });
 
-      // Set Queue processor
-      SchedulesQueue.process(async (job, done) => {
-        this.processJob(job, done);
-      });
+      try {
+      	SchedulesQueue = new Queue('SchedulesQueue', {redis: {host: 'redis'}});
+
+        // Set Queue processor
+        SchedulesQueue.process(async (job, done) => {
+          this.processJob(job, done);
+        });
+      } catch (err) {
+        log.error("Failed to create queue: ", + err);
+      }
 
       callback();
     });
