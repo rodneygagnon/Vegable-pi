@@ -11,7 +11,7 @@ Vegable-pi is an OpenSprinklerPi implementation using a Bootstrap-Node-Express-R
 
 ### Note
 
-THIS IS A ROUGH WIP IMPLEMENTATION. PROVIDED HERE FOR REFERENCE ONLY. MORE DETAILS TO FOLLOW AS THE CODE BECOMES STABLE ENOUGH FOR GENERAL USE.
+PLEASE REFER TO THE <a href="https://github.com/rodneygagnon/Vegable-pi/wiki">WIKI</A> FOR ALL HARDWARE/SOFTWARE NOTES AND INSTALLATION INSTRUCTIONS.
 
 ---
 <a href="http://vegable.co/images/login.png"><img src="http://vegable.co/images/login.png" width="240"/></a>
