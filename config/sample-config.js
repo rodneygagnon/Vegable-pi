@@ -11,6 +11,8 @@ module.exports = {
   default_city: "Sebastopol",
   default_state: "CA",
   default_zip: "95472",
+  default_lat: -122.8251,
+  default_long: 38.4036,
   default_mapbox_key: "-YOUR-MAPBOX-API-KEY-",
   default_darksky_key: "-YOUR-DARKSKY-API-KEY-"
 };
