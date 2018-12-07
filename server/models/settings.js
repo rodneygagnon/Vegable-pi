@@ -24,7 +24,8 @@ const settingsSchema = schema({
   long: Number,
   mapboxKey: String,
   darkskyKey: String,
-  zones: { type: Number, min: 0 }
+  zones: { type: Number, min: 0 },
+  cimisKey: String
 });
 
 let SettingsInstance;
@@ -37,7 +38,8 @@ var defaultSettings = { address : config.default_address,
                         long : config.default_long,
                         mapboxKey : config.default_mapbox_key,
                         darkskyKey : config.default_darksky_key,
-                        zones : config.zones
+                        zones : config.zones,
+                        cimisKey: config.cimis_key
                       };
 
 const getSettingsInstance = async (callback) => {
@@ -154,8 +156,8 @@ class Settings {
     return this.getSetHashKey('darkskyKey', defaultSettings.darkskyKey);
   }
 
-  getIftttUrl() {
-    return this.getSetHashKey('iftttUrl', defaultSettings.iftttUrl);
+  getCimisKey() {
+    return this.getSetHashKey('cimisKey', defaultSettings.cimisKey);
   }
 
   getZones() {

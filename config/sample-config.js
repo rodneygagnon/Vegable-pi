@@ -3,6 +3,7 @@ require("dotenv").config();
 module.exports = {
   zones: process.env.VEGABLE_STATIONS || 8,
   https_port: process.env.HTTPS_PORT || 3005,
+  cimis_key: process.env.CIMIS_KEY || "7A2AA245-A73C-44AA-8FE5-D1D71510BBE0",
 
   default_username: "-MAKE-ONE-",
   default_email: "-MAKE-ONE-",

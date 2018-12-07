@@ -37,7 +37,6 @@ class Weather {
 
   async init(callback) {
     var gSettings;
-    var gGeoLocation;
 
     Settings.getSettingsInstance((gSettings) => {
       this.config = gSettings;
@@ -45,7 +44,7 @@ class Weather {
     });
   }
 
-  // Get Temperature
+  // Get Conditions
   async getConditions(callback)
   {
     var url = darkskyWeatherURL + await this.config.getDarkSkyKey() + '/' +
