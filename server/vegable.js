@@ -12,6 +12,7 @@ const {log} = require('./controllers/logger');
 // Data Model
 const Settings = require("./models/settings");
 const Users = require("./models/users");
+const Crops = require("./models/crops");
 const Zones = require("./models/zones");
 const Plantings = require("./models/plantings");
 
@@ -29,6 +30,7 @@ var gZones;
 var gUsers;
 var gPlantings;
 var gCimis;
+var gCrops;
 var gOSPi;
 
 const getVegableInstance = async (callback) => {
@@ -58,6 +60,11 @@ class Vegable {
     // Initialize Options
     Settings.getSettingsInstance((gSettings) => {
       this.config = gSettings;
+
+      // Get crops
+      Crops.getCropsInstance((gCimis) => {
+        this.crops = gCrops;
+      });
 
       // Get cimis
       Cimis.getCimisInstance((gCimis) => {

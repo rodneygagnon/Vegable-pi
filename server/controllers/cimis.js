@@ -52,7 +52,7 @@ class Cimis {
       log.debug(`CIMIS Date: ${d}`);
 
       this.getConditions(d, (error, conditions) => {
-        log.debug(JSON.stringify(conditions));
+        log.debug(`CIMIS Conditions: ${JSON.stringify(conditions)}`);
       });
 
       callback();
