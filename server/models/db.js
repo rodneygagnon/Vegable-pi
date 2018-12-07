@@ -17,7 +17,8 @@ const dbKeys = {
   dbUsersKey: 'users',
   dbCropsKey: 'crops',
   dbSchedulesKey: 'schedules',
-  dbPlantingsKey: 'plantings'
+  dbPlantingsKey: 'plantings',
+  dbWeatherKey: 'weather'
 };
 
 bluebird.promisifyAll(redis);

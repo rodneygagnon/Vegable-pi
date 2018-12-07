@@ -18,7 +18,7 @@ const Plantings = require("./models/plantings");
 
 // Web Services Controllers
 const GeoLocation = require("./controllers/geolocation");
-const Cimis = require("./controllers/cimis");
+const Weather = require("./controllers/weather");
 
 // OpenSprinker Controller
 const OSPi = require("./controllers/ospi");
@@ -29,7 +29,7 @@ var gSettings;
 var gZones;
 var gUsers;
 var gPlantings;
-var gCimis;
+var gWeather;
 var gCrops;
 var gOSPi;
 
@@ -66,9 +66,9 @@ class Vegable {
         this.crops = gCrops;
       });
 
-      // Get cimis
-      Cimis.getCimisInstance((gCimis) => {
-        this.cimis = gCimis;
+      // Get weather
+      Weather.getWeatherInstance((gWeather) => {
+        this.weather = gWeather;
       });
 
       // Get users
