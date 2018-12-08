@@ -72,7 +72,7 @@ class Events {
           this.processJob(job, done);
         });
       } catch (err) {
-        log.error("Failed to create queue: ", + err);
+        log.error("Failed to create EVENTS queue: ", + err);
       }
 
       callback();
@@ -225,7 +225,7 @@ class Events {
             log.debug(`updateEvent(update): del old event(${removeEvent})`);
 
             await db.zremAsync(dbKeys.dbEventsKey, removeEvent);
-            this.eventJob(savedEvent);
+            this.scheduleJob(savedEvent);
           }
         }
 
@@ -238,7 +238,7 @@ class Events {
 
         await db.zaddAsync(dbKeys.dbEventsKey, validStart, JSON.stringify(validEvent));
 
-        this.eventJob(validEvent);
+        this.scheduleJob(validEvent);
       }
     } catch (err) {
       log.error("updateEvent Failed to save event: " + err);
@@ -247,7 +247,7 @@ class Events {
     callback();
   }
 
-  async eventJob(event) {
+  async scheduleJob(event) {
     // Add event to the EventsQueue. Calculate when it should be processed next.
     var now = new Date();
 
@@ -266,17 +266,17 @@ class Events {
     // Calculate when to process this job
     var delay = repeatEnd.getTime() - now.getTime();
     if (delay < 0) {
-      log.debug(`eventJob(skip): nothing to do, job has expired(${repeatEnd.toLocaleString()})`);
+      log.debug(`scheduleJob(skip): nothing to do, job has expired(${repeatEnd.toLocaleString()})`);
       return;
     } else {
-      log.debug(`eventJob(delay): (${delay}ms) process in ${delay/6000}min`);
+      log.debug(`scheduleJob(delay): (${delay}ms) process in ${delay/6000}min`);
     }
 
-    log.debug(`eventJob(repeatOpts):${JSON.stringify(repeatOpts)}`);
+    log.debug(`scheduleJob(repeatOpts):${JSON.stringify(repeatOpts)}`);
 
     const job = await EventsQueue.add(event, { jobId: event.id, delay: delay, repeatOpts: repeatOpts, removeOnComplete: true });
 
-    log.debug(`eventJob(add): ${JSON.stringify(job)}`);
+    log.debug(`scheduleJob(add): ${JSON.stringify(job)}`);
   }
 
   async processJob(job, done) {

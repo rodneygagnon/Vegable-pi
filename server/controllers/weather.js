@@ -9,11 +9,26 @@
 const {log} = require('./logger');
 
 const request = require('request');
+const Queue = require("bull");
 
 const Settings = require('../models/settings');
 
 const darkskyWeatherURL = 'https://api.darksky.net/forecast/';
 const cimisURL = 'http://et.water.ca.gov/api/data?appKey=';
+
+const {db} = require("../models/db");
+const {dbKeys} = require("../models/db");
+
+const schema = require("schm");
+const weatherSchema = schema({
+  date: String,   // yyyy-mm-dd
+  eto: Number,    // evapotranspiration (inches)
+  solar: Number,  // Solar Radiation (Ly/Day)
+  wind: Number    // Avg Wind Speed (mph)
+});
+
+// Bull/Redis Jobs Queue
+var WeatherQueue;
 
 let WeatherInstance;
 
@@ -42,18 +57,47 @@ class Weather {
     Settings.getSettingsInstance((gSettings) => {
       this.config = gSettings;
 
-      // ==== Test CIMIS API ====
-      // Get yesterday's date
-      var d = new Date();
-      d.setDate(d.getDate() - 1);
+      try {
+      	WeatherQueue = new Queue('WeatherQueue', {redis: {host: 'redis'}});
 
-      this.getCimisConditions(d, (error, conditions) => {
-        log.debug(`CIMIS Conditions: ${JSON.stringify(conditions)}`);
-      });
-      // ==== Test CIMIS API ====
+        // Set Queue processor
+        WeatherQueue.process(async (job, done) => {
+          this.processJob(job, done);
+        });
+      } catch (err) {
+        log.error("Failed to create WEATHER queue: ", + err);
+      }
+
+      // Get the weather every morning at 7am PT
+      WeatherQueue.add({task: "Get Weather!"}, { repeatOpts: { cron: '0 7 * * *' } });
 
       callback();
     });
+  }
+
+  async processJob(job, done) {
+    // Get yesterday's date
+    var d = new Date();
+    d.setDate(d.getDate() - 1);
+
+    var dateString = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+
+    this.getCimisConditions(dateString, async (error, conditions) => {
+      // Add weather entry to Database
+      var dateScore = d.getTime() / 1000;
+      var cimisRecord = conditions.Data.Providers[0].Records[0];
+      var weather = await weatherSchema.validate({ date: cimisRecord.Date,
+                                                   eto: cimisRecord.DayAsceEto.Value,
+                                                   solar: cimisRecord.DaySolRadAvg.Value,
+                                                   wind: cimisRecord.DayWindSpdAvg.Value });
+
+      var zcnt = await db.zaddAsync(dbKeys.dbWeatherKey, dateScore, JSON.stringify(weather));
+      if (zcnt > 0) {
+        log.debug(`processJob: CIMIS conditions (${dateScore}) : ${JSON.stringify(weather)}`);
+      }
+    });
+
+    done();
   }
 
   // Get Conditions
@@ -68,17 +112,15 @@ class Weather {
     }, (error, response, body) => {
       // TODO: Fleshout error handling
       if (error)
-        log.error('Unable to connect to Dark Sky');
+        log.error(`getConditions: ${error}`);
 
       callback(error, body.currently);
     });
   }
 
   // Get Conditions
-  async getCimisConditions(date, callback)
+  async getCimisConditions(targetDate, callback)
   {
-    var targetDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
-
     var url = cimisURL + await this.config.getCimisKey() + '&targets=' + await this.config.getZip() +
               '&startDate=' + targetDate + '&endDate=' + targetDate;
 
@@ -90,7 +132,7 @@ class Weather {
     }, (error, response, body) => {
       // TODO: Fleshout error handling
       if (error)
-        log.error('Unable to connect to CIMIS');
+        log.error(`getCimisConditions: ${error}`);
 
       callback(error, body);
     });
