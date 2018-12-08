@@ -84,7 +84,7 @@
       <div class="fancynavbar-collapse">
         <ul class="fancynavbar-nav">
           <li class="fancynav-item">
-            <a class="fancynav-link" href="/schedules"><span class="fancynav-link-content">schedules</span></a>
+            <a class="fancynav-link" href="/events"><span class="fancynav-link-content">schedules</span></a>
           </li>
           <li class="fancynav-item">
             <a class="fancynav-link" href="/plantings"><span class="fancynav-link-content">plantings</span></a>
@@ -205,10 +205,10 @@
     <!-- ===============================================-->
     <div class="remodal" data-remodal-id="editScheduleModal" align="left" >
       <button class="remodal-close" data-remodal-action="close"></button>
-      <h4 id="remodalTitle">Create/Update Schedule</h4>
-      <p>Set a Vegable Schedule.</p><br>
+      <h4 id="remodalTitle">Create/Update Event</h4>
+      <p>Set a Vegable Event.</p><br>
 
-      <form method="post" action="/schedules/update">
+      <form method="post" action="/events/update">
         <!--  HIDDEN FIELDS -->
         <input type="hidden" id="id" name="id"/>
 
@@ -345,7 +345,7 @@
 					select: function(start, end) {
             var inst = $('[data-remodal-id=editScheduleModal]').remodal();
 
-            $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Create a new Schedule');
+            $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Create a new Event');
             $('[data-remodal-id=editScheduleModal] #title').val("");
             $('[data-remodal-id=editScheduleModal] #id').val("");
             $('[data-remodal-id=editScheduleModal] #sid').selectpicker('val', ['0']); // None
@@ -361,7 +361,7 @@
 					eventClick: function(event, jsEvent, view) {
             var inst = $('[data-remodal-id=editScheduleModal]').remodal();
 
-            $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Update a Schedule');
+            $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Update an Event');
             $('[data-remodal-id=editScheduleModal] #title').val(event.title);
             $('[data-remodal-id=editScheduleModal] #id').val(event.id);
             $('[data-remodal-id=editScheduleModal] #sid').selectpicker('val', event.sid);
@@ -376,12 +376,12 @@
 						$('[data-remodal-id=editScheduleModal] #delete_action').removeClass("hide-form-button");
 					},
          	eventDrop: function(event, delta, revertFunc) {
-            var schedule = { id: event.id, sid: event.sid, title: event.title, start: event.start, end: event.end, repeatDow: event.repeatDow, repeatEnd: repeatEnd };
+            var event = { id: event.id, sid: event.sid, title: event.title, start: event.start, end: event.end, repeatDow: event.repeatDow, repeatEnd: repeatEnd };
             
             $.ajax({
-              url: `/schedules/update`,
+              url: `/events/update`,
               type: 'POST',
-              data: JSON.stringify(schedule),
+              data: JSON.stringify(event),
               contentType: "application/json",
               success: function (result) {
               }
@@ -392,7 +392,7 @@
 
 					//color classes: [ event-blue | event-azure | event-green | event-orange | event-red ],
 					events: {
-					    url: '/schedules/getSchedules',
+					    url: '/events/getEvents',
 					    type: 'GET',
 					}
 				});

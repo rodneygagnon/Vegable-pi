@@ -61,7 +61,7 @@ var app = express();
 // Application Routes
 const IndexRouter = require('./routes/index');
 const SettingsRouter = require('./routes/settings');
-const SchedulesRouter = require('./routes/schedules');
+const EventsRouter = require('./routes/events');
 const PlantingsRouter = require('./routes/plantings');
 
 app.set('view engine', 'ejs');
@@ -91,7 +91,7 @@ app.post('/signin',
 
 app.use('/', IndexRouter);
 app.use('/settings', SettingsRouter);
-app.use('/schedules', SchedulesRouter);
+app.use('/events', EventsRouter);
 app.use('/plantings', PlantingsRouter);
 
 /* 404 */

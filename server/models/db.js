@@ -16,7 +16,7 @@ const dbKeys = {
   dbZonesKey: 'zones',
   dbUsersKey: 'users',
   dbCropsKey: 'crops',
-  dbSchedulesKey: 'schedules',
+  dbEventsKey: 'events',
   dbPlantingsKey: 'plantings',
   dbWeatherKey: 'weather'
 };
