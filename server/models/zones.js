@@ -20,13 +20,18 @@ const schema = require("schm");
 const zonesSchema = schema({
   id: Number,
   name: String,
-  description: String,
-  flowrate: { type: Number, min: 2 }, // litres per hour
-  status: Boolean,
+  area: { type: Number, min: 0 },       // sq ft
+  flowrate: { type: Number, min: 2 },   // litres per hour
+  efficiency: { type: Number, min: 0 }, // irr %
+  ib: { type: Number, min: 0 },         // Initial Water Balance (inches)
+  aw: { type: Number, min: 0 },         // Available Water (inches)
+  status: Boolean,                      // on/off
+  started: { type: Number, min: 0 },    // Date/Time zone switched on.
   color: String, // Used for schedules display
-  textColor: String,
-  started: { type: Number, min: 0 } // Date/Time zone switched on.
+  textColor: String
 });
+
+// TODO: Add soil type/characteristics to zone to more precisely calculate drainage, ib, aw
 
 const FlowRates = { // litres per hour
   two_lph: 2,   // 1/2 gph
@@ -76,8 +81,10 @@ class Zones {
 
           var numZones = await this.config.getZones();
           for (var i = 1; i <= numZones; i++) {
-              var zone = {id: i, name:'Z0' + i, description: 'This is zone Z0' + i,
-                             status: false, color: zoneEventColors[i-1], textColor: zoneTextColor, started: 0, flowrate: FlowRates.two_lph};
+              var zone = {id: i, name:'Z0' + i, area: 0,
+                          flowrate: FlowRates.two_lph, efficiency: 0.90,
+                          ib: 0, aw: 0, status: false, started: 0,
+                          color: zoneEventColors[i-1], textColor: zoneTextColor };
 
               await zonesSchema.validate(zone);
 
@@ -125,7 +132,8 @@ class Zones {
       var saveZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, inputZone.id));
 
       saveZone.name = inputZone.name;
-      saveZone.description = inputZone.description;
+      saveZone.area = inputZone.area;
+      saveZone.efficiency = inputZone.efficiency;
       saveZone.flowrate = inputZone.flowrate;
 
       let status = false, started = 0;
@@ -169,6 +177,8 @@ class Zones {
       if (zone.status)
         zone.started = Date.now();
       else
+        // TODO: Record how much water was applied to the zone when switching OFF
+        // TODO: Find and remove job from queue if one exists, may need to store job id in zone record
         zone.started = 0;
 
       // Save the status

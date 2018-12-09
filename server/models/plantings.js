@@ -18,23 +18,11 @@ const {dbKeys} = require("./db");
 
 const schema = require("schm");
 const plantingSchema = schema({
-  id: String,          // Planting UUID
-  sid: Number,         // Zone ID
+  id: String,       // Planting UUID
+  sid: Number,      // Zone ID
   title: String,
-  start: String, // ISO8601
-  end: String, // ISO8601
-  operations: Array     // List of things to do
-});
-
-const OPS = {
-  irrgation: 0,
-  fertigation: 1
-}
-Object.freeze(OPS);
-
-const operationSchema = schema({
-  type: Number,         // OPS
-  amount: Number        // Liters
+  date: String,     // ISO8601
+  cids: Array      // Crop Ids
 });
 
 var PlantingsQueue;
@@ -69,15 +57,43 @@ class Plantings {
 
         // Set Queue processor
         PlantingsQueue.process(async (job, done) => {
-          log.debug(`ProcessQueue.process: (job):${JSON.stringify(job)}`);
-          done();
+          this.processJob(job, done);
         });
       } catch (err) {
         log.error("Failed to create queue: ", + err);
       }
 
+      // Process the ETc every morning at 4:15am PT
+      PlantingsQueue.add({task: "Process ETc!"}, { repeatOpts: { cron: '15 4 * * *' } });
+
       callback();
     });
+  }
+
+  // Calculate the ETc for all of the crops associated with each planting
+  async processJob(job, done) {
+    // // Get yesterday's date
+    // var d = new Date();
+    // d.setDate(d.getDate() - 1);
+    //
+    // var dateString = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    //
+    // this.getCimisConditions(dateString, async (error, conditions) => {
+    //   // Add weather entry to Database
+    //   var dateScore = d.getTime() / 1000;
+    //   var cimisRecord = conditions.Data.Providers[0].Records[0];
+    //   var weather = await weatherSchema.validate({ date: cimisRecord.Date,
+    //                                                eto: cimisRecord.DayAsceEto.Value,
+    //                                                solar: cimisRecord.DaySolRadAvg.Value,
+    //                                                wind: cimisRecord.DayWindSpdAvg.Value });
+    //
+    //   var zcnt = await db.zaddAsync(dbKeys.dbWeatherKey, dateScore, JSON.stringify(weather));
+    //   if (zcnt > 0) {
+    //     log.debug(`processJob: CIMIS conditions (${dateScore}) : ${JSON.stringify(weather)}`);
+    //   }
+    // });
+
+    done();
   }
 
   async getPlantings(callback) {

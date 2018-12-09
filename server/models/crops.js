@@ -9,6 +9,8 @@
 const csvFilePath='/usr/app/config/CropTables-GenericCAClimate.csv';
 const csv=require('csvtojson');
 
+const uuidv4 = require('uuid/v4');
+
 const {log} = require('../controllers/logger');
 
 const {db} = require("./db");
@@ -16,6 +18,7 @@ const {dbKeys} = require("./db");
 
 const schema = require("schm");
 const cropSchema = schema({
+  id: String,
   name: String,
   type: String,
   plantMonth: Number,
@@ -52,10 +55,12 @@ class Crops {
   }
 
   async init(callback) {
-    var cropCnt = await db.zcount(dbKeys.dbCropsKey, '-inf', '+inf');
+    var cropCnt = await db.zcountAsync(dbKeys.dbCropsKey, '-inf', '+inf');
+
+    log.debug(`Crop Count(${dbKeys.dbCropsKey}): ` + cropCnt);
 
     // Create default crops if necessary
-    if (cropCnt == 0) {
+    if (cropCnt === 0) {
       var crops = [];
       csv()
         .fromFile(csvFilePath)
@@ -76,6 +81,8 @@ class Crops {
     log.debug(`addCrop: (${JSON.stringify(crop)})`);
 
     try {
+      crop.id = uuidv4();
+
       var validCrop = await cropSchema.validate(crop);
 
       // use the plantMonth as the score. there should only be one crop entry per plantMonth

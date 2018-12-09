@@ -68,8 +68,8 @@ class Weather {
         log.error("Failed to create WEATHER queue: ", + err);
       }
 
-      // Get the weather every morning at 7am PT
-      WeatherQueue.add({task: "Get Weather!"}, { repeatOpts: { cron: '0 7 * * *' } });
+      // Get the weather every morning at 4am PT
+      WeatherQueue.add({task: "Get Weather!"}, { repeatOpts: { cron: '0 4 * * *' } });
 
       callback();
     });
@@ -84,7 +84,7 @@ class Weather {
 
     this.getCimisConditions(dateString, async (error, conditions) => {
       // Add weather entry to Database
-      var dateScore = d.getTime() / 1000;
+      var dateScore = d.getTime();
       var cimisRecord = conditions.Data.Providers[0].Records[0];
       var weather = await weatherSchema.validate({ date: cimisRecord.Date,
                                                    eto: cimisRecord.DayAsceEto.Value,

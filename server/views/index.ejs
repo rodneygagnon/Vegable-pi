@@ -154,7 +154,8 @@
                     <tr>
                       <th data-field="id" data-sortable="true" class="text-center">#</th>
                       <th data-field="name" data-sortable="true">Name</th>
-                      <th data-field="description" data-sortable="true">Description</th>
+                      <th data-field="area" data-sortable="true">Area (sqft)</th>
+                      <th data-field="aw" data-sortable="true">Available Water (in)</th>
                       <th data-field="started" data-sortable="true" data-formatter="startedFormatter">Start Time</th>
                       <th data-field="actions" ata-sortable="false" class="td-actions text-right" data-events="operateEvents" data-formatter="operateFormatter">Actions</th
                     </tr>
@@ -211,6 +212,8 @@
       <form method="post" action="/post">
         <!--  HIDDEN FIELDS -->
         <input type="hidden" id="id" name="id"/>
+        <input type="hidden" id="aw" name="aw"/>
+        <input type="hidden" id="ib" name="ib"/>
         <input type="hidden" id="color" name="color"/>
         <input type="hidden" id="textColor" name="textColor"/>
 
@@ -220,21 +223,35 @@
         </div>
 
         <div class="form-group">
-          <label for="description" class="col-form-label">Description</label>
-          <input type="text" class="form-control" id="description" name="description">
+          <label for="area" class="col-form-label">Area (sqft)</label>
+          <input type="text" class="form-control" id="area" name="area">
         </div>
 
         <div class="form-group">
           <label for="flowrate" class="col-form-label">Flow Rate (lpm)</label>
           <select class="selectpicker form-control" id="flowrate" name="flowrate" data-size="7" required="">
             <%
-              var rates = [ "2", "4", "8"];
+              var rates = [ "2", "4", "8" ];
               for ( var i = 0; i < rates.length; i++ ) {
                 %><option value="<%=rates[ i ] %>"><%=rates[ i ] %></option><%
               }
             %>
           </select>
         </div>
+
+        <div class="form-group">
+          <label for="efficiency" class="col-form-label">Irrigation Type</label>
+          <select class="selectpicker form-control" id="efficiency" name="efficiency" data-size="7" required="">
+            <%
+              var types = [ "Drip", "Spray" ];
+              var value = [ "90", "80" ];
+              for ( var i = 0; i < types.length; i++ ) {
+                %><option value="<%=value[ i ] / 100 %>"><%=types[ i ] %></option><%
+              }
+            %>
+          </select>
+        </div>
+
         <button type="submit" class="btn btn-sm btn-primary mr-3">Save</button>
         <button type="button" class="btn btn-sm btn-outline-danger" data-remodal-action="cancel">Cancel</button>
       </form>
@@ -321,7 +338,8 @@
                 $('[data-remodal-id=editZoneModal] #remodalTitle').text('Edit: ' + row.name);
                 $('[data-remodal-id=editZoneModal] #id').val(row.id);
                 $('[data-remodal-id=editZoneModal] #name').val(row.name);
-                $('[data-remodal-id=editZoneModal] #description').val(row.description);
+                $('[data-remodal-id=editZoneModal] #area').val(row.area);
+                $('[data-remodal-id=editZoneModal] #efficiency').selectpicker('val', row.efficiency);
                 $('[data-remodal-id=editZoneModal] #flowrate').selectpicker('val', row.flowrate);
 
                 inst.open();

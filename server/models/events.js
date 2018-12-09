@@ -172,7 +172,7 @@ class Events {
 
       // id is set if we are updating/deleting a event, go find it
       if (typeof event.id !== 'undefined' && event.id !== "") {
-        var eventCnt = await db.zcount(dbKeys.dbEventsKey, '-inf', '+inf');
+        var eventCnt = await db.zcountAsync(dbKeys.dbEventsKey, '-inf', '+inf');
         log.debug(`updateEvent(count): ${eventCnt}`);
 
         var cnt = 0, start = 0;
@@ -274,7 +274,10 @@ class Events {
 
     log.debug(`scheduleJob(repeatOpts):${JSON.stringify(repeatOpts)}`);
 
-    const job = await EventsQueue.add(event, { jobId: event.id, delay: delay, repeatOpts: repeatOpts, removeOnComplete: true });
+    const job = await EventsQueue.add(event, { jobId: event.id,
+                                               delay: delay,
+                                               repeatOpts: repeatOpts,
+                                               removeOnComplete: true });
 
     log.debug(`scheduleJob(add): ${JSON.stringify(job)}`);
   }
@@ -289,12 +292,18 @@ class Events {
       // If the zone is running, calculate its runtime and push a job back
       // on the queue with the a delay (ms) to turn it off
       if (status) {
+        // TODO: Store Job id in zone so we can remove it if the zone is turned off manually
+        // TODO: Calculate real runtime and remove 1 minute test delay
         //var runtime = job.data.amt * zone.flowrate * 3600000;
         var runtime = 60000; // test for 1 minute
 
-        var nextJob = await EventsQueue.add(job.data, { delay: runtime, removeOnComplete: true });
+        var nextJob = await EventsQueue.add(job.data, { jobId: uuidv4(),
+                                                        delay: runtime,
+                                                        removeOnComplete: true });
 
         log.debug(`processJob(add): ${JSON.stringify(nextJob)} delay (${runtime})`);
+      } else {
+        // TODO: record amount of water applied to the zone when shutting off
       }
 
       done();
