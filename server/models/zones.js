@@ -21,14 +21,15 @@ const zonesSchema = schema({
   id: Number,
   name: String,
   area: { type: Number, min: 0 },       // sq ft
+  soil: { type: Number, min: 0 },       // soil type
   flowrate: { type: Number, min: 2 },   // litres per hour
-  efficiency: { type: Number, min: 0 }, // irr %
+  efficiency: { type: Number, min: 0 }, // irr efficiency %
   ib: { type: Number, min: 0 },         // Initial Water Balance (inches)
   aw: { type: Number, min: 0 },         // Available Water (inches)
   status: Boolean,                      // on/off
-  started: { type: Number, min: 0 },    // Date/Time zone switched on.
-  color: String, // Used for schedules display
-  textColor: String
+  started: { type: Number, min: 0 },    // Date/Time the zone was switched on
+  color: String,                        // Used for events display
+  textColor: String                     // ..
 });
 
 // TODO: Add soil type/characteristics to zone to more precisely calculate drainage, ib, aw
@@ -81,7 +82,7 @@ class Zones {
 
           var numZones = await this.config.getZones();
           for (var i = 1; i <= numZones; i++) {
-              var zone = {id: i, name:'Z0' + i, area: 0,
+              var zone = {id: i, name:'Z0' + i, area: 0, soil: 0,
                           flowrate: FlowRates.two_lph, efficiency: 0.90,
                           ib: 0, aw: 0, status: false, started: 0,
                           color: zoneEventColors[i-1], textColor: zoneTextColor };

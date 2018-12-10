@@ -126,7 +126,6 @@ class Events {
           log.debug(`getEvents: Next Day: (${nextDay})`);
 
           nextStart.setDate(nextStart.getDate() + (nextDay != 0 ? nextDay : 7));
-          nextEnd.setDate(nextEnd.getDate() + (nextDay != 0 ? nextDay : 7));
 
           while (nextStart <= masterRepeatEnd) {
             nextEvent.start = nextStart;
@@ -144,7 +143,6 @@ class Events {
             log.debug(`getEvents: Next Day: (${nextDay})`);
 
             nextStart.setDate(nextStart.getDate() + (nextDay != 0 ? nextDay : 7));
-            nextEnd.setDate(nextEnd.getDate() + (nextDay != 0 ? nextDay : 7));
           }
         }
       }
