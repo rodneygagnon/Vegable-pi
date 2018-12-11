@@ -149,18 +149,7 @@
           <div class="row justify-content-between">
             <div class="col-lg-12 py-6">
               <div class="table-responsive mt-3">
-                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-url="/getZones" data-sort-name="id" data-sort-order="asc">
-                  <thead>
-                    <tr>
-                      <th data-field="id" data-sortable="true" class="text-center">#</th>
-                      <th data-field="name" data-sortable="true">Name</th>
-                      <th data-field="area" data-sortable="true">Area (sqft)</th>
-                      <th data-field="aw" data-sortable="true">Available Water (in)</th>
-                      <th data-field="started" data-sortable="true" data-formatter="startedFormatter">Start Time</th>
-                      <th data-field="actions" ata-sortable="false" class="td-actions text-right" data-events="operateEvents" data-formatter="operateFormatter">Actions</th
-                    </tr>
-                  </thead>
-                </table>
+                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-sort-name="id" data-sort-order="asc"></table>
               </div>
            </div>
           </div>
@@ -257,14 +246,14 @@
       </form>
      </div>
       
-     <div class="remodal" data-remodal-id="switchModal">
+    <div class="remodal" data-remodal-id="switchModal">
       <button class="remodal-close" data-remodal-action="close"></button>
       <h4 id="remodalTitle">Switch Zone</h4>
       <p></p>
       <button class="btn btn-sm btn-primary mr-3" data-remodal-action="confirm">Awesome</button>
     </div> 
       
-      
+
     <!-- ===============================================-->
     <!--    JavaScripts-->
     <!-- ===============================================-->
@@ -284,9 +273,47 @@
     <script type="text/javascript">
       var $table = $('#bootstrap-table');
 
-      function startedFormatter(value) {
-        var started = (value == 0 ? "" : new Date(value).toLocaleString());
-        return `<span>${started}</span>`;
+      function initBootstrapTable() {
+        $table.bootstrapTable({
+            url: "/getZones",
+            columns: [
+              {
+                field: 'id',
+                title: '#',
+                sortable: true
+              },
+              {
+                field: 'name',
+                title: 'Name',
+                sortable: true
+              },
+              {
+                field: 'area',
+                title: 'Area (sqft)',
+                sortable: true
+              },
+              {
+                field: 'aw',
+                title: 'Available Water',
+                sortable: true
+              },
+              {
+                field: 'started',
+                title: 'Start Time',
+                sortable: true,
+                formatter: function (value) {
+                  return `<span>${(value == 0 ? "" : new Date(value).toLocaleString())}</span>`;
+                }
+              },
+              {
+                field: 'actions',
+                title: 'Actions',
+                sortable: false,
+                events: operateEvents,
+                formatter: operateFormatter
+              }
+            ]
+        });
       }
 
       function operateFormatter(value, row, index) {
@@ -311,91 +338,58 @@
           ].join('');
       }
 
-      $().ready(function(){
-          window.operateEvents = {
-              'click .power': function (e, value, row, index) {
-                  var t = $(event.target);
-
-                 $.ajax({
-                      url: `/enable/${row.id}`,
-                      type: 'POST',
-                      data: {'submit':true}, // An object with the key 'submit' and value 'true;
-                      success: function (result) {
-                        var inst = $('[data-remodal-id=switchModal]').remodal();
-                        
-                        $('[data-remodal-id=switchModal] #remodalTitle').text(`${row.name} is ${row.status ? "OFF" : "ON"}!`);
-                        
-                        inst.open();
-
-                        $table.bootstrapTable('refresh');
-                      }
-                  });
-
-              },
-              'click .edit': function (e, value, row, index) {
-                var inst = $('[data-remodal-id=editZoneModal]').remodal();
-                
-                $('[data-remodal-id=editZoneModal] #remodalTitle').text('Edit: ' + row.name);
-                $('[data-remodal-id=editZoneModal] #id').val(row.id);
-                $('[data-remodal-id=editZoneModal] #name').val(row.name);
-                $('[data-remodal-id=editZoneModal] #area').val(row.area);
-                $('[data-remodal-id=editZoneModal] #efficiency').selectpicker('val', row.efficiency);
-                $('[data-remodal-id=editZoneModal] #flowrate').selectpicker('val', row.flowrate);
-
-                inst.open();
-              }
-          };
-
-          $table.bootstrapTable({
-              toolbar: ".toolbar",
-              clickToSelect: true,
-              showRefresh: false,
-              search: false,
-              showToggle: false,
-              showColumns: false,
-              pagination: false,
-              searchAlign: 'left',
-              pageSize: 8,
-              clickToSelect: false,
-              pageList: [8,10,25,50,100],
-
-              formatShowingRows: function(pageFrom, pageTo, totalRows){
-                  //do nothing here, we don't want to show the text "showing x of y from..."
-              },
-              formatRecordsPerPage: function(pageNumber){
-                  return pageNumber + " rows visible";
-              },
-              icons: {
-                  refresh: 'fa fa-refresh',
-                  toggle: 'fa fa-th-list',
-                  columns: 'fa fa-columns',
-                  detailOpen: 'fa fa-plus-circle',
-                  detailClose: 'ti-close'
-              }
-          });
-
-          //activate the tooltips after the data table is initialized
-          $('[rel="tooltip"]').tooltip();
-
-          $(window).resize(function () {
-              $table.bootstrapTable('resetView');
-          });
       
-          var skycons = new Skycons();
-  
-          // Only for testing
-//          skycons.add("weatherIcon", "rain");
-//          skycons.play();               
-        
-          $.getJSON('/getConditions', (conditions) => {
+      $().ready(function(){
+        var skycons = new Skycons();
+        $.getJSON('/getConditions', (conditions) => {
+          $('#weatherString').replaceWith(`<p id="weatherString" class="lead">${conditions.summary}, ${conditions.temperature.toFixed(1)}˚F</p>`);
+          skycons.add("weatherIcon", conditions.icon);
+          skycons.play();               
+        });
 
-            $('#weatherString').replaceWith(`<p id="weatherString" class="lead">${conditions.summary}, ${conditions.temperature.toFixed(1)}˚F</p>`);
-            
-            skycons.add("weatherIcon", conditions.icon);
-            skycons.play();               
-          });
+
+        window.operateEvents = {
+          'click .power': function (e, value, row, index) {
+             $.ajax({
+                  url: `/enable/${row.id}`,
+                  type: 'POST',
+                  data: {'submit':true}, // An object with the key 'submit' and value 'true;
+                  success: function (result) {
+                    var inst = $('[data-remodal-id=switchModal]').remodal();
+
+                    $('[data-remodal-id=switchModal] #remodalTitle').text(`${row.name} is ${row.status ? "OFF" : "ON"}!`);
+
+                    inst.open();
+
+                    $table.bootstrapTable('refresh');
+                  }
+              });
+
+          },
+          'click .edit': function (e, value, row, index) {
+            var inst = $('[data-remodal-id=editZoneModal]').remodal();
+
+            $('[data-remodal-id=editZoneModal] #remodalTitle').text('Edit: ' + row.name);
+            $('[data-remodal-id=editZoneModal] #id').val(row.id);
+            $('[data-remodal-id=editZoneModal] #name').val(row.name);
+            $('[data-remodal-id=editZoneModal] #area').val(row.area);
+            $('[data-remodal-id=editZoneModal] #efficiency').selectpicker('val', row.efficiency);
+            $('[data-remodal-id=editZoneModal] #flowrate').selectpicker('val', row.flowrate);
+
+            inst.open();
+          }
+        };
+         
+        initBootstrapTable();
+
+        //activate the tooltips after the data table is initialized
+        $('[rel="tooltip"]').tooltip();
+
+        $(window).resize(function () {
+            $table.bootstrapTable('resetView');
+        });
         
-     });
+      });
      
 	</script>
 
