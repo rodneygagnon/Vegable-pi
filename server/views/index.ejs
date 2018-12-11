@@ -127,7 +127,7 @@
           <div class="row">
             <div class="col-lg-6 col-xl-5">
               <h1 class="fs-3 fs-sm-4">Zones</h1>
-              <p class="lead">Curent Status of Vegable Zones</p>
+              <p class="lead">Current Status of Vegable Zones</p>
             </div>
             <div class="col-lg-6 col-xl-5 text-lg-right">
               <canvas id="weatherIcon" width="64" height="64"></canvas>
@@ -149,7 +149,7 @@
           <div class="row justify-content-between">
             <div class="col-lg-12 py-6">
               <div class="table-responsive mt-3">
-                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-url="/getZones" data-sort-name="id" data-sort-order="asc">
+                <table id="bootstrap-table" data-toggle="table" class="bootstrap-table table table-no-bordered" data-url="/getZones" data-sort-name="id" data-sort-order="asc">
                   <thead>
                     <tr>
                       <th data-field="id" data-sortable="true" class="text-center">#</th>
@@ -170,7 +170,7 @@
       </section>
       <!-- <section> close ============================-->
       <!-- ============================================-->
-		
+
 
     </main>
     <!-- ===============================================-->
@@ -256,15 +256,15 @@
         <button type="button" class="btn btn-sm btn-outline-danger" data-remodal-action="cancel">Cancel</button>
       </form>
      </div>
-      
+
      <div class="remodal" data-remodal-id="switchModal">
       <button class="remodal-close" data-remodal-action="close"></button>
       <h4 id="remodalTitle">Switch Zone</h4>
       <p></p>
       <button class="btn btn-sm btn-primary mr-3" data-remodal-action="confirm">Awesome</button>
-    </div> 
-      
-      
+    </div>
+
+
     <!-- ===============================================-->
     <!--    JavaScripts-->
     <!-- ===============================================-->
@@ -280,7 +280,7 @@
     <script src="assets/js/skycons.js"></script>
     <script src="assets/js/theme.js"></script>
     <script src="assets/js/bootstrap-table.js"></script>
-      
+
     <script type="text/javascript">
       var $table = $('#bootstrap-table');
 
@@ -322,9 +322,9 @@
                       data: {'submit':true}, // An object with the key 'submit' and value 'true;
                       success: function (result) {
                         var inst = $('[data-remodal-id=switchModal]').remodal();
-                        
+
                         $('[data-remodal-id=switchModal] #remodalTitle').text(`${row.name} is ${row.status ? "OFF" : "ON"}!`);
-                        
+
                         inst.open();
 
                         $table.bootstrapTable('refresh');
@@ -334,7 +334,7 @@
               },
               'click .edit': function (e, value, row, index) {
                 var inst = $('[data-remodal-id=editZoneModal]').remodal();
-                
+
                 $('[data-remodal-id=editZoneModal] #remodalTitle').text('Edit: ' + row.name);
                 $('[data-remodal-id=editZoneModal] #id').val(row.id);
                 $('[data-remodal-id=editZoneModal] #name').val(row.name);
@@ -380,23 +380,23 @@
           $(window).resize(function () {
               $table.bootstrapTable('resetView');
           });
-      
+
           var skycons = new Skycons();
-  
+
           // Only for testing
 //          skycons.add("weatherIcon", "rain");
-//          skycons.play();               
-        
+//          skycons.play();
+
           $.getJSON('/getConditions', (conditions) => {
 
             $('#weatherString').replaceWith(`<p id="weatherString" class="lead">${conditions.summary}, ${conditions.temperature.toFixed(1)}˚F</p>`);
-            
+
             skycons.add("weatherIcon", conditions.icon);
-            skycons.play();               
+            skycons.play();
           });
-        
+
      });
-     
+
 	</script>
 
   </body>

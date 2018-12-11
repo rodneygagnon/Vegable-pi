@@ -21,12 +21,7 @@ router.get('/', function(req, res, next) {
   if (typeof req.user === 'undefined')
     res.redirect('/signin');
   else {
-    Zones.getZonesInstance((ZonesInstance) => {
-      var zones = [];
-      ZonesInstance.getZones((zones) => {
-        res.render('index', {title: 'Vegable', zones: zones, user: req.user });
-      });
-    });
+    res.render('index', {title: 'Vegable', user: req.user });
   }
 });
 

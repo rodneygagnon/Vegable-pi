@@ -91,14 +91,26 @@ class Crops {
     } catch (err) {
       log.error(`addCrop(FAILED): ${err}`);
     }
-}
+  }
 
   async getAllCrops(callback) {
-    callback(await db.zrangebyscoreAsync(dbKeys.dbCropsKey, '-inf', '+inf'));
+    var crops = [];
+
+    var redisCrops = await db.zrangebyscoreAsync(dbKeys.dbCropsKey, '-inf', '+inf');
+    for (var i = 0; i < redisCrops.length; i++)
+      crops[i] = await cropSchema.validate(JSON.parse(redisCrops[i]));
+
+    callback(crops);
   }
 
   async getCropsByMonth(month, callback) {
-    callback(await db.zrangebyscoreAsync(dbKeys.dbCropsKey, month, month));
+    var crops = [];
+
+    var redisCrops = await db.zrangebyscoreAsync(dbKeys.dbCropsKey, month, month);
+    for (var i = 0; i < redisCrops.length; i++)
+      crops[i] = await cropSchema.validate(JSON.parse(redisCrops[i]));
+
+    callback(crops);
   }
 
 }

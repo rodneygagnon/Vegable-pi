@@ -34,8 +34,6 @@ const plantingSchema = schema({
   cids: Array       // Crop Ids
 });
 
-var PlantingsQueue;
-
 let PlantingsInstance;
 
 const getPlantingsInstance = async (callback) => {
@@ -65,6 +63,16 @@ class Plantings {
     });
   }
 
+  async getAllPlantings(callback) {
+    var plantings = [];
+
+    var redisPlantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, '-inf', '+inf');
+    for (var i = 0; i < redisPlantings.length; i++) {
+      plantings[i] = await plantingSchema.validate(JSON.parse(redisPlantings[i]));
+    }
+    callback(plantings);
+  }
+
   async getPlantingsByZone(zid, callback) {
     var plantings = [];
 
@@ -92,12 +100,18 @@ class Plantings {
         var plantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey,
                                                     planting.zid, planting.zid);
 
-        plantings.forEach((p) => {
-          if (p.zid === validPlanting.zid) {
-            savedPlanting = p;
-            break;
-          }
-        });
+        log.debug(`updatePlanting (updating): (${JSON.stringify(validPlanting)})`);
+
+        try {
+          plantings.forEach((p) => {
+            if (p.zid === validPlanting.zid) {
+              savedPlanting = p;
+              throw BreakException;
+            }
+          });
+        } catch (e) {
+          if (e !== BreakException) throw (e);
+        }
       }
 
       if (savedPlanting) {

@@ -368,8 +368,8 @@
             $('[data-remodal-id=editScheduleModal] #amt').selectpicker('val', event.amt);
             $('[data-remodal-id=editScheduleModal] #fertilize').prop("checked", event.fertilize);
             $('[data-remodal-id=editScheduleModal] #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
-            $('[data-remodal-id=editScheduleModal] #repeatDow').selectpicker('val', (typeof event.repeatDow == 'undefined') ? "" : event.repeatDow);
-            $('[data-remodal-id=editScheduleModal] #repeatEnd').val((typeof event.repeatEnd === 'undefined') ? moment(event.end).format('MM/DD/YYYY hh:mm A') :                   
+            $('[data-remodal-id=editScheduleModal] #repeatDow').selectpicker('val', (typeof event.repeatDow === 'undefined') ? "" : event.repeatDow);
+            $('[data-remodal-id=editScheduleModal] #repeatEnd').val((typeof event.repeatEnd === 'undefined') ? moment(event.end).format('MM/DD/YYYY') :                   
                                                                                                                moment(event.repeatEnd).format('MM/DD/YYYY'));
 
             inst.open();
