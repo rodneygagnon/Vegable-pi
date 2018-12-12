@@ -217,25 +217,39 @@
         </div>
 
         <div class="form-group">
-          <label for="flowrate" class="col-form-label">Flow Rate (lpm)</label>
-          <select class="selectpicker form-control" id="flowrate" name="flowrate" data-size="7" required="">
+          <label for="swhc" class="col-form-label">Soil Type</label>
+          <select class="selectpicker form-control" id="swhc" name="swhc" data-size="7" required="">
             <%
-              var rates = [ "2", "4", "8" ];
-              for ( var i = 0; i < rates.length; i++ ) {
-                %><option value="<%=rates[ i ] %>"><%=rates[ i ] %></option><%
+              var soilTypes = [ "Coarse", "Sandy", "Medium", "Fine" ];
+              var soilWHC = [ "0.75", "1.25", "1.5", "2.0" ];
+              for ( var i = 0; i < soilTypes.length; i++ ) {
+                %><option value="<%=soilWHC[ i ] %>"><%=soilTypes[ i ] %></option><%
               }
             %>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="efficiency" class="col-form-label">Irrigation Type</label>
-          <select class="selectpicker form-control" id="efficiency" name="efficiency" data-size="7" required="">
+          <label for="flowrate" class="col-form-label">Flow Rate (gpm)</label>
+          <select class="selectpicker form-control" id="flowrate" name="flowrate" data-size="7" required="">
             <%
-              var types = [ "Drip", "Spray" ];
-              var value = [ "90", "80" ];
-              for ( var i = 0; i < types.length; i++ ) {
-                %><option value="<%=value[ i ] / 100 %>"><%=types[ i ] %></option><%
+              var flowTypes = [ "0.5", "1.0", "2.0" ];
+              var rates = [ "0.5", "1", "2" ];
+              for ( var i = 0; i < rates.length; i++ ) {
+                %><option value="<%=rates[ i ] %>"><%=flowTypes[ i ] %></option><%
+              }
+            %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="irreff" class="col-form-label">Irrigation Type</label>
+          <select class="selectpicker form-control" id="irreff" name="irreff" data-size="7" required="">
+            <%
+              var irrTypes = [ "Drip", "Spray" ];
+              var irrEff = [ "90", "80" ];
+              for ( var i = 0; i < irrTypes.length; i++ ) {
+                %><option value="<%=irrEff[ i ] / 100 %>"><%=irrTypes[ i ] %></option><%
               }
             %>
           </select>
@@ -373,7 +387,8 @@
             $('[data-remodal-id=editZoneModal] #id').val(row.id);
             $('[data-remodal-id=editZoneModal] #name').val(row.name);
             $('[data-remodal-id=editZoneModal] #area').val(row.area);
-            $('[data-remodal-id=editZoneModal] #efficiency').selectpicker('val', row.efficiency);
+            $('[data-remodal-id=editZoneModal] #irreff').selectpicker('val', row.irreff);
+            $('[data-remodal-id=editZoneModal] #swhc').selectpicker('val', row.swhc);
             $('[data-remodal-id=editZoneModal] #flowrate').selectpicker('val', row.flowrate);
 
             inst.open();

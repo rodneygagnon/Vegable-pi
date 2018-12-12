@@ -21,9 +21,9 @@ const zonesSchema = schema({
   id: Number,
   name: String,
   area: { type: Number, min: 0 },       // sq ft
-  soil: { type: Number, min: 0 },       // soil type
-  flowrate: { type: Number, min: 2 },   // litres per hour
-  efficiency: { type: Number, min: 0 }, // irr efficiency %
+  flowrate: { type: Number, min: 0.5 }, // gallons per hour
+  irreff: { type: Number, min: 0 },     // Irrigation Efficiency %
+  swhc: { type: Number, min: 0 },       // Soil Water Holding Capacity
   ib: { type: Number, min: 0 },         // Initial Water Balance (inches)
   aw: { type: Number, min: 0 },         // Available Water (inches)
   status: Boolean,                      // on/off
@@ -32,14 +32,28 @@ const zonesSchema = schema({
   textColor: String                     // ..
 });
 
-// TODO: Add soil type/characteristics to zone to more precisely calculate drainage, ib, aw
-
-const FlowRates = { // litres per hour
-  two_lph: 2,   // 1/2 gph
-  four_lph: 4,  // 1 gph
-  eight_lph: 8  // 2 gph
-}
+// Irrigation Types and Rates and Types
+const FlowRates = { // Gallons per Hour
+  halfGPH: 0.5,
+  oneGPH: 1.0,
+  twoGPH: 2.0
+};
 Object.freeze(FlowRates);
+
+const IrrEff = { // Percentage
+  spray: 0.8,
+  drip: 0.9
+};
+Object.freeze(IrrEff);
+
+// Soil Water Holding Capacity
+const SoilWHC = { // Inches
+  coarse: 0.75, // Sand / Loamy-Sand
+  sandy: 1.25,  // Loamy-Sand / Sandy-Loam / Loam
+  medium: 1.50, // Loam / Sandy-Clay-Loam (Default/Optimal)
+  fine: 2.00    // Silty-Loam / Silty-Clay-Loam / Clay-Loam / Silty-Clay
+};
+Object.freeze(SoilWHC);
 
 let zoneEventColors = ['#538D9E', '#408093', '#2D7489', '#296A7D', '#255F71', '#215564', '#1D4A58', '#19404B'];
 let zoneTextColor = '#EBF2F4';
@@ -78,28 +92,32 @@ class Zones {
         log.debug(`Zone Count(${dbKeys.dbZonesKey}): ` + zoneCount);
 
         if (zoneCount === 0) {
-          var multi = db.multi();
+          try {
+            var multi = db.multi();
 
-          var numZones = await this.config.getZones();
-          for (var i = 1; i <= numZones; i++) {
-              var zone = {id: i, name:'Z0' + i, area: 0, soil: 0,
-                          flowrate: FlowRates.two_lph, efficiency: 0.90,
-                          ib: 0, aw: 0, status: false, started: 0,
-                          color: zoneEventColors[i-1], textColor: zoneTextColor };
+            var numZones = await this.config.getZones();
+            for (var i = 1; i <= numZones; i++) {
+                var zone = {id: i, name:'Z0' + i, area: 0, flowrate: FlowRates.oneGPH,
+                            irreff: IrrEff.drip, swhc: SoilWHC.medium,
+                            ib: 0, aw: 0, status: false, started: 0,
+                            color: zoneEventColors[i-1], textColor: zoneTextColor };
 
-              await zonesSchema.validate(zone);
+                await zonesSchema.validate(zone);
 
-              log.debug(`Adding Zone(${i}): ` + JSON.stringify(zone));
+                log.debug(`Adding Zone(${i}): ` + JSON.stringify(zone));
 
-              multi.hset(dbKeys.dbZonesKey, zone.id, JSON.stringify(zone));
+                multi.hset(dbKeys.dbZonesKey, zone.id, JSON.stringify(zone));
+            }
+
+            await multi.execAsync((error, results) => {
+              if (error)
+                log.error(error);
+              else
+                log.debug("multi.execAsync(): " + results)
+            });
+          } catch (err) {
+            log.error(`ZoneInit: ${JSON.stringify(err)}`);
           }
-
-          await multi.execAsync((error, results) => {
-            if (error)
-              log.error(error);
-            else
-              log.debug("multi.execAsync(): " + results)
-          });
         }
 
         callback();
@@ -134,7 +152,8 @@ class Zones {
 
       saveZone.name = inputZone.name;
       saveZone.area = inputZone.area;
-      saveZone.efficiency = inputZone.efficiency;
+      saveZone.irreff = inputZone.irreff;
+      saveZone.swhc = inputZone.swhc;
       saveZone.flowrate = inputZone.flowrate;
 
       let status = false, started = 0;
