@@ -33,9 +33,8 @@ const getUsersInstance = async (callback) => {
   }
 
   UsersInstance = await new Users();
-  log.debug("Users Constructed! ");
   await UsersInstance.init(() => {
-    log.debug("Users Initialized! ");
+    log.debug("*** Users Initialized! ");
     callback(UsersInstance);
   })
 }
@@ -65,8 +64,6 @@ class Users {
 
         userCount = await db.hlenAsync(dbKeys.dbUsersKey);
       }
-
-      log.debug(`User Count(${dbKeys.dbUsersKey}): ` + userCount);
 
       callback();
     });

@@ -289,7 +289,7 @@
 
       function initBootstrapTable() {
         $table.bootstrapTable({
-            url: "/getZones",
+            url: "/api/zones/get",
             columns: [
               {
                 field: 'id',
@@ -352,15 +352,13 @@
           ].join('');
       }
 
-      
       $().ready(function(){
         var skycons = new Skycons();
-        $.getJSON('/getConditions', (conditions) => {
+        $.getJSON('/api/weather/get', (conditions) => {
           $('#weatherString').replaceWith(`<p id="weatherString" class="lead">${conditions.summary}, ${conditions.temperature.toFixed(1)}˚F</p>`);
           skycons.add("weatherIcon", conditions.icon);
           skycons.play();               
         });
-
 
         window.operateEvents = {
           'click .power': function (e, value, row, index) {
@@ -403,6 +401,7 @@
         $(window).resize(function () {
             $table.bootstrapTable('resetView');
         });
+        
         
       });
      

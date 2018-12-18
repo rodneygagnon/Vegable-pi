@@ -11,7 +11,6 @@ const {log} = require('../controllers/logger');
 const uuidv4 = require('uuid/v4');
 const Queue = require("bull");
 
-const Settings = require('./settings');
 const Zones = require('./zones');
 
 const {db} = require("./db");
@@ -43,40 +42,33 @@ const getEventsInstance = async (callback) => {
   }
 
   EventsInstance = await new Events();
-  log.debug("Events Constructed! ");
   await EventsInstance.init(() => {
-   log.debug("Events Initialized! ");
+   log.debug("*** Events Initialized! ");
    callback(EventsInstance);
   })
 }
 
 class Events {
-  constructor() {
-    this.config = null;
-  }
+  constructor() {}
 
   async init(callback) {
-    Settings.getSettingsInstance(async (gSettings) => {
-      this.config = gSettings;
-
-      // Get zones
-      Zones.getZonesInstance((gZones) => {
-        this.zones = gZones;
-      });
-
-      try {
-      	EventsQueue = new Queue('EventsQueue', {redis: {host: 'redis'}});
-
-        // Set Queue processor
-        EventsQueue.process(async (job, done) => {
-          this.processJob(job, done);
-        });
-      } catch (err) {
-        log.error("Failed to create EVENTS queue: ", + err);
-      }
-
-      callback();
+    // Get zones
+    Zones.getZonesInstance((gZones) => {
+      this.zones = gZones;
     });
+
+    try {
+    	EventsQueue = new Queue('EventsQueue', {redis: {host: 'redis'}});
+
+      // Set Queue processor
+      EventsQueue.process(async (job, done) => {
+        this.processJob(job, done);
+      });
+    } catch (err) {
+      log.error("Failed to create EVENTS queue: ", + err);
+    }
+
+    callback();
   }
 
   async getEvents(start, end, callback) {
@@ -205,7 +197,7 @@ class Events {
           log.debug(`updateEvent(delete): del old event(${removeEvent})`);
           await db.zremAsync(dbKeys.dbEventsKey, removeEvent);
 
-        } else { // UPDATE a event
+        } else { // UPDATE an event
           savedEvent.sid = validEvent.sid;
           savedEvent.color = validEvent.color;
           savedEvent.textColor = validEvent.textColor;
@@ -239,7 +231,7 @@ class Events {
         this.scheduleJob(validEvent);
       }
     } catch (err) {
-      log.error("updateEvent Failed to save event: " + err);
+      log.error(`updateEvent Failed to save event: ${err}`);
     }
 
     callback();
@@ -274,7 +266,7 @@ class Events {
 
     const job = await EventsQueue.add(event, { jobId: event.id,
                                                delay: delay,
-                                               repeatOpts: repeatOpts,
+                                               repeat: repeatOpts,
                                                removeOnComplete: true });
 
     log.debug(`scheduleJob(add): ${JSON.stringify(job)}`);
@@ -291,9 +283,7 @@ class Events {
       // on the queue with the a delay (ms) to turn it off
       if (status) {
         // TODO: Store Job id in zone so we can remove it if the zone is turned off manually
-        // TODO: Calculate real runtime and remove 1 minute test delay
-        //var runtime = job.data.amt * zone.flowrate * 3600000;
-        var runtime = 60000; // test for 1 minute
+        var runtime = job.data.amt * zone.flowrate * 3600000;
 
         var nextJob = await EventsQueue.add(job.data, { jobId: uuidv4(),
                                                         delay: runtime,

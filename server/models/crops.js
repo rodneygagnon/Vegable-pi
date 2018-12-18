@@ -21,7 +21,6 @@ const cropSchema = schema({
   id: String,
   name: String,
   type: String,
-  plantMonth: Number,
   initDay: Number,
   initKc: Number,
   devDay: Number,
@@ -43,19 +42,17 @@ const getCropsInstance = async (callback) => {
   }
 
   CropsInstance = await new Crops();
-  log.debug("Crops Constructed! ");
   await CropsInstance.init(() => {
-    log.debug("Crops Initialized! ");
+    log.debug("*** Crops Initialized! ");
     callback(CropsInstance);
   })
 }
 
 class Crops {
-  constructor() {
-  }
+  constructor() {}
 
   async init(callback) {
-    var cropCnt = await db.zcountAsync(dbKeys.dbCropsKey, '-inf', '+inf');
+    var cropCnt = await db.hlenAsync(dbKeys.dbCropsKey);
 
     log.debug(`Crop Count(${dbKeys.dbCropsKey}): ` + cropCnt);
 
@@ -64,55 +61,112 @@ class Crops {
       var crops = [];
       csv()
         .fromFile(csvFilePath)
-        .then((crops) => {
+        .then(async (crops) => {
           log.debug(`Crops: ${crops.length}`);
 
-          crops.forEach((crop) => {
-            this.addCrop(crop);
+          crops.forEach(async (crop) => {
+            var validCrop = await cropSchema.validate(crop);
+
+            validCrop.id = uuidv4();
+
+            log.debug(`Adding Crop(${validCrop.id}): ` + JSON.stringify(validCrop));
+
+            await db.hsetAsync(dbKeys.dbCropsKey, validCrop.id, JSON.stringify(validCrop));
           });
-        })
+        });
     }
-
     callback();
-  }
-
-  // Add a crop to the database.
-  async addCrop(crop) {
-    log.debug(`addCrop: (${JSON.stringify(crop)})`);
-
-    try {
-      crop.id = uuidv4();
-
-      var validCrop = await cropSchema.validate(crop);
-
-      // use the plantMonth as the score. there should only be one crop entry per plantMonth
-      if (!await db.zaddAsync(dbKeys.dbCropsKey, crop.plantMonth, JSON.stringify(crop)))
-        log.debug(`addCrop(FAILED)`);
-    } catch (err) {
-      log.error(`addCrop(FAILED): ${err}`);
-    }
   }
 
   async getAllCrops(callback) {
     var crops = [];
 
-    var redisCrops = await db.zrangebyscoreAsync(dbKeys.dbCropsKey, '-inf', '+inf');
+    var redisCrops = await db.hvalsAsync(dbKeys.dbCropsKey);
     for (var i = 0; i < redisCrops.length; i++)
       crops[i] = await cropSchema.validate(JSON.parse(redisCrops[i]));
+
+    // sort by name
+    await crops.sort((a, b) => {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    });
 
     callback(crops);
   }
 
-  async getCropsByMonth(month, callback) {
-    var crops = [];
-
-    var redisCrops = await db.zrangebyscoreAsync(dbKeys.dbCropsKey, month, month);
-    for (var i = 0; i < redisCrops.length; i++)
-      crops[i] = await cropSchema.validate(JSON.parse(redisCrops[i]));
-
-    callback(crops);
+  async getCrop(cid) {
+    var crop = null;
+    try {
+      crop = JSON.parse(await db.hgetAsync(dbKeys.dbCropsKey, cid));
+    } catch (err) {
+      log.error(`getCrop Failed to get crop: ${err}`);
+    }
+    return crop;
   }
 
+  // Update a planting. Create if it doesn't exist. Delete if action=='delete'
+  async updateCrop(crop, action, callback) {
+    log.debug(`updateCrop: (${JSON.stringify(crop)})`);
+
+    try {
+      var validCrop = await cropSchema.validate(crop);
+
+      // id is set if we are updating/deleting a crop, go find it
+      if (typeof crop.id !== 'undefined' && crop.id !== "") {
+        var savedCrop = JSON.parse(await db.hgetAsync(dbKeys.dbCropsKey, crop.id));
+
+        if (savedCrop) {
+          if (action === 'delete') { // DELETE a crop
+            log.debug(`updateCrop(delete): del old crop(${savedCrop})`);
+
+            await db.hdelAsync(dbKeys.dbCropsKey, savedCrop.id);
+          } else { // UPDATE a planting
+            savedCrop.name = validCrop.name;
+            savedCrop.type = validCrop.type;
+            savedCrop.initDay = validCrop.initDay;
+            savedCrop.initKc = validCrop.initKc;
+            savedCrop.devDay = validCrop.devDay;
+            savedCrop.devKc = validCrop.devKc;
+            savedCrop.midDay = validCrop.midDay;
+            savedCrop.midKc = validCrop.midKc;
+            savedCrop.lateDay = validCrop.lateDay;
+            savedCrop.lateKc = validCrop.lateKc;
+
+            // Calculate totals
+            savedCrop.totDay = savedCrop.initDay + savedCrop.devDay +
+                               savedCrop.midDay + savedCrop.lateDay;
+            savedCrop.totKc = savedCrop.initDay * savedCrop.initKc +
+                              savedCrop.devDay * savedCrop.devKc +
+                              savedCrop.midDay * savedCrop.midKc +
+                              savedCrop.lateDay * savedCrop.lateKc;
+
+            log.debug(`updateCrop(update): update crop(${JSON.stringify(savedCrop)})`);
+
+            await db.hsetAsync(dbKeys.dbCropsKey, savedCrop.id, JSON.stringify(savedCrop));
+          }
+        }
+      } else { // CREATE a new crop
+        // Assign a uuidv
+        validCrop.id = uuidv4();
+
+        // Calculate totals
+        validCrop.totDay = validCrop.initDay + validCrop.devDay +
+                           validCrop.midDay + validCrop.lateDay;
+        validCrop.totKc = validCrop.initDay * validCrop.initKc +
+                          validCrop.devDay * validCrop.devKc +
+                          validCrop.midDay * validCrop.midKc +
+                          validCrop.lateDay * validCrop.lateKc;
+
+        log.debug(`updateCrop(create): validCrop(${JSON.stringify(validCrop)})`);
+
+        await db.hsetAsync(dbKeys.dbCropsKey, validCrop.id, JSON.stringify(validCrop));
+      }
+    } catch (err) {
+      log.error(`updateCrop Failed to save crop: ${err}`);
+    }
+    callback();
+  }
 }
 
 module.exports = {

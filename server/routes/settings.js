@@ -8,6 +8,7 @@ var express = require('express');
 var router = express.Router();
 
 const Settings = require('../models/settings');
+const Crops = require('../models/crops');
 
 var SettingsInstance;
 
@@ -38,5 +39,14 @@ router.route('/post').post(function (req, res) {
     res.redirect('/settings');
   });
 });
+
+// create, update or delete a crop
+router.route('/updateCrop').post(function (req, res) {
+  Crops.getCropsInstance((CropsInstance) => {
+    CropsInstance.updateCrop(req.body, req.body.action, () => {
+      res.redirect('/settings');
+    });
+  });
+ });
 
 module.exports = router;

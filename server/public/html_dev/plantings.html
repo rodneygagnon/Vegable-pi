@@ -160,8 +160,7 @@
                     </svg>
                   </a>
                 </div>
-                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-sort-name="date" data-sort-order="asc"
-                        data-toolbar="#toolbar" data-search="true">
+                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-sort-name="date" data-sort-order="asc" data-toolbar="#toolbar" data-search="true">
                 </table>
               </div>
            </div>
@@ -216,45 +215,65 @@
         <!--  HIDDEN FIELDS -->
         <input type="hidden" id="id" name="id"/>
 
-        <div class="form-group">
-          <label for="title" class="col-form-label">Title</label>
-          <input type="text" class="form-control" id="title" name="title">
-        </div>
-
-        <div class="form-group">
-          <label for="sid" class="col-form-label">Zone</label>
-          <select class="selectpicker form-control" id="zid" name="zid" required="" placeholder="Zone">
-            <% for(var i=0; i < zones.length; i++) { %>
-              <option value="<%= zones[i].id %>"><%= zones[i].name %></option>
-            <% } %>
-          </select>
-        </div>
-          
-        <div class="form-group">
-          <label for="cids" class="col-form-label">Crops</label>
-          <select multiple class="selectpicker form-control" id="cids" name="cids">
-            <% for(var i=0; i < crops.length; i++) { %>
-              <option value="<%= crops[i].id %>"><%= crops[i].name %></option>
-            <% } %>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="date" class="col-form-label">Planting Date</label>
-           <div class="input-group date" id="starttimepicker" data-target-input="nearest">
-              <input id="date" name="date" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
-              <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
-                  <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-              </div>
+        <div class="row mb-4">
+          <div class="col">
+            <label for="title" class="col-form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title">
+          </div>
+          <div class="col">
+            <label for="sid" class="col-form-label">Zone</label>
+            <select class="selectpicker form-control" id="zid" name="zid" required="" placeholder="Zone">
+              <% for(var i=0; i < zones.length; i++) { %>
+                <option value="<%= zones[i].id %>"><%= zones[i].name %></option>
+              <% } %>
+            </select>
           </div>
         </div>
 
-         <div class="d-flex">
+        <div class="row mb-4">
+          <div class="col">
+            <label for="cid" class="col-form-label">Crop</label>
+            <select  class="selectpicker form-control" id="cid" name="cid">
+              <% for(var i=0; i < crops.length; i++) { %>
+                <option value="<%= crops[i].id %>"><%= crops[i].name %></option>
+              <% } %>
+            </select>
+          </div>
+          <div class="col">
+            <label for="date" class="col-form-label">Planting Date</label>
+            <div class="input-group date" id="starttimepicker" data-target-input="nearest">
+              <input id="date" name="date" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
+              <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
+                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col">
+            <label for="count" class="col-form-label">Count</label>
+            <input type="text" class="form-control" id="count" name="count">
+          </div>
+          <div class="col">
+            <label for="spacing" class="col-form-label">Spacing (in)</label>
+            <input type="text" class="form-control" id="spacing" name="spacing">
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col">
+            <label for="mad" class="col-form-label">Maximum Allowable Depletion (%)</label>
+            <input type="text" class="form-control" id="mad" name="mad">
+          </div>
+        </div>
+
+        <div class="d-flex">
           <div class="p-2"><button type="submit" class="btn btn-sm btn-primary">Save</button></div>
           <div class="p-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-remodal-action="cancel">Cancel</button></div>
           <div class="ml-auto p-2 hide-form-button" id="delete_action"><button name="action" type="submit" class="btn btn-sm btn-outline-danger" value="delete">Delete</button></div>
         </div>
-     </form>
+       </form>
      </div>
       
       
@@ -281,10 +300,10 @@
       var $table = $('#bootstrap-table');
 
       function initBootstrapTable() {
-        $.getJSON('/getZones', (zones) => {
-          $.getJSON('/plantings/getCrops', (crops) => {
+        $.getJSON('/api/zones/get', (zones) => {
+          $.getJSON('/api/crops/get', (crops) => {
             $table.bootstrapTable({
-                url: "/plantings/getPlantings",
+                url: "/api/plantings/get",
                 columns: [
                    {
                     field: 'date',
@@ -313,23 +332,20 @@
                     }
                   },
                   {
-                    field: 'cids',
-                    title: 'Crops',
+                    field: 'cid',
+                    title: 'Crop',
                     sortable: true,
                     formatter: function (value) {
-                      var cids = String(value).split(',');
-                      var cropNames = "";
-
-                      for (var i = 0; i < cids.length; i++) {
-                        for (var j = 0; j < crops.length; j++) {
-                          if (cids[i] === crops[j].id) {
-                            cropNames += (cropNames === "" ? "" : ", ") + `${crops[j].name}`;
-                            break;
-                          }
+                      var crop = value;
+                      for (var i = 0; i < crops.length; i++) {
+                        if (crops[i].id === value) {
+                          crop = crops[i].name;
+                          break;
                         }
                       }
-                      return `<span>${cropNames}</span>`;
+                      return `<span>${crop}</span>`;
                     }
+
                   }
                 ]
             });
@@ -346,7 +362,7 @@
 
       $().ready(function() {
         var skycons = new Skycons();
-        $.getJSON('/getConditions', (conditions) => {
+        $.getJSON('/api/weather/get', (conditions) => {
           $('#weatherString').replaceWith(`<p id="weatherString" class="lead">${conditions.summary}, ${conditions.temperature.toFixed(1)}˚F</p>`);
           skycons.add("weatherIcon", conditions.icon);
           skycons.play();               
@@ -359,8 +375,11 @@
           $('[data-remodal-id=editPlantingModal] #id').val(row.id);
           $('[data-remodal-id=editPlantingModal] #title').val(row.title);
           $('[data-remodal-id=editPlantingModal] #zid').selectpicker('val', row.zid);
-          $('[data-remodal-id=editPlantingModal] #cids').selectpicker('val', (typeof row.cids === 'undefined') ? "" : row.cids);
+          $('[data-remodal-id=editPlantingModal] #cid').selectpicker('val', (typeof row.cid === 'undefined') ? "" : row.cid);
           $('[data-remodal-id=editPlantingModal] #date').val(moment(row.date).format('MM/DD/YYYY'));
+          $('[data-remodal-id=editPlantingModal] #count').val(row.count);
+          $('[data-remodal-id=editPlantingModal] #spacing').val(row.spacing);
+          $('[data-remodal-id=editPlantingModal] #mad').val(row.mad);
 
           inst.open();
           $('[data-remodal-id=editPlantingModal] #delete_action').removeClass("hide-form-button");

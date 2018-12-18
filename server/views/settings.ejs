@@ -32,6 +32,7 @@
     <link href="https://fonts.googleapis.com/css?family=PT+Mono%7cPT+Serif:400,400i%7cLato:100,300,400,700,800,900" rel="stylesheet">
     <link href="assets/lib/remodal/remodal.css" rel="stylesheet">
     <link href="assets/lib/remodal/remodal-default-theme.css" rel="stylesheet">
+    <link href="assets/css/bootstrap-table.css" rel="stylesheet">
     <link href="assets/css/bootstrap-select.css" rel="stylesheet">
     <link href="assets/css/theme.css" rel="stylesheet">
 
@@ -39,7 +40,6 @@
 
 
   <body class="has-sidemenu overflow-hidden-x">
-
 
     <!--===============================================-->
     <!--    Fancynav-->
@@ -85,10 +85,10 @@
           <li class="fancynav-item">
             <a class="fancynav-link" href="/plantings"><span class="fancynav-link-content">plantings</span></a>
           </li>
-          <li class="fancynav-item">
+           <li class="fancynav-item">
             <a class="fancynav-link" href="/settings"><span class="fancynav-link-content">settings</span></a>
           </li>
-        </ul>
+       </ul>
       </div>
     </nav>
     <!--===============================================-->
@@ -119,69 +119,17 @@
       <!-- ============================================-->
       <!-- End of Preloader ===========================-->
 
-
       <!-- ============================================-->
       <!-- <section> begin ============================-->
-      <section class="py-0" id="page-signup">
+      <section class="bg-light pt-8 pb-7 pt-lg-6 pb-lg-5 pt-xl-8 pb-xl-7">
 
-        <div class="container-fluid">
+        <div class="container">
           <div class="row">
-            <div class="col-lg-6 px-0">
-              <div class="sticky-top h-lg-100vh py-9">
-                <div class="bg-holder" style="background-image:url(assets/img/settings.jpg);" data-zanim-trigger="scroll" data-zanim-lg='{"animation":"zoom-out-slide-right","delay":0.4}'>
-                </div>
-                <!--/.bg-holder-->
-
-              </div>
+            <div class="col-lg-6 col-xl-5">
+              <h1 class="fs-3 fs-sm-4">Settings</h1>
+              <p class="lead">Location, Crops, ...</p>
             </div>
-            <div class="col-lg-6 bg-white py-6">
-              <div class="row h-100 align-items-center justify-content-center">
-                <div class="col-sm-8 col-md-6 col-lg-10 col-xl-8" data-zanim-xs='{"delay":0.5,"animation":"slide-right"}' data-zanim-trigger="scroll">
-                  <h1 class="display-4 fs-2">Settings</h1>
-                  <h3 class="text-danger mt-3">Location</h3>
-                  <form class="needs-validation mt-5" method="post" action="/settings/post" novalidate>
-                    <div class="row mb-4">
-					            <div class="col">
-						            <input class="form-control border-300 bg-light" type="text" placeholder="Your Address" id="address" name="address"  value="<%= config.address %>" required=""/>
-					            </div>
-                    </div>
-                    <div class="row mb-4">
-                      <div class="col">
-	                      <input class="form-control border-300 bg-light" type="text" placeholder="Your City" id="city" name="city" value="<%= config.city %>" required=""/>
-                      </div>
-                    </div>
-                    <div class="row mb-4">
-                      <div class="col">
- 						            <select class="selectpicker form-control" id="state" name="state" data-size="7" required="">
-							            <%
-                            var states = [ "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
-                                    "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "MA",
-                                    "ME", "MD", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE",
-                                    "NH", "NJ", "NM", "NY", "OH", "OK", "OR", "PA", "RI", "SC",
-                                    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
-                                  ];
-                            for ( var i = 0; i < states.length; i++ ) {
-                              var selected = ( config.state === states[i] ) ? "selected" : "";
-
-                              %><option value="<%=states[ i ] %>" <%=selected %>><%=states[ i ] %></option><%
-                            }
-                          %>
-          						  </select>
-                      </div>
-                      <div class="col">
-                        <input class="form-control border-300 bg-light" type="text" placeholder="Your Zipcode" id="zip" name="zip" value="<%= config.zip %>" required=""/>
-                      </div>
-                    </div>
-                    <div class="row mb-4 align-items-center">
-                      <div class="col-auto">
-                        <input class="btn btn-dark btn-block" type="submit" name="submit" value="Save" />
-                      </div>
-                      <div class="col-sm">
-                      </div>
-                    </div>
-                  </form>
-                </div>
-              </div>
+            <div class="col-lg-6 col-xl-5 text-lg-right">
             </div>
           </div>
         </div>
@@ -191,12 +139,93 @@
       <!-- <section> close ============================-->
       <!-- ============================================-->
 
+      <!-- ============================================-->
+      <!-- <section> begin ============================-->
+      <section class="py-0">
+        <div class="container">
+          <div class="row justify-content-between">
+            <div class="col-lg-12 py-6">
+              <h3 class="text-danger mt-3">Location</h3>
+              <form class="needs-validation mt-5" method="post" action="/settings/post" novalidate>
+                <div class="row mb-4">
+                  <div class="col">
+                    <input class="form-control border-300 bg-light" type="text" placeholder="Your Address" id="address" name="address"  value="<%= config.address %>" required=""/>
+                  </div>
+                </div>
+                <div class="row mb-4">
+                  <div class="col">
+                    <input class="form-control border-300 bg-light" type="text" placeholder="Your City" id="city" name="city" value="<%= config.city %>" required=""/>
+                  </div>
+                </div>
+                <div class="row mb-4">
+                  <div class="col">
+                    <select class="selectpicker form-control" id="state" name="state" data-size="7" required="">
+                      <%
+                        var states = [ "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+                                "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "MA",
+                                "ME", "MD", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE",
+                                "NH", "NJ", "NM", "NY", "OH", "OK", "OR", "PA", "RI", "SC",
+                                "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+                              ];
+                        for ( var i = 0; i < states.length; i++ ) {
+                          var selected = ( config.state === states[i] ) ? "selected" : "";
+
+                          %><option value="<%=states[ i ] %>" <%=selected %>><%=states[ i ] %></option><%
+                        }
+                      %>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <input class="form-control border-300 bg-light" type="text" placeholder="Your Zipcode" id="zip" name="zip" value="<%= config.zip %>" required=""/>
+                  </div>
+                </div>
+                <div class="d-flex">
+                  <div class="ml-auto p-2"><button type="submit" class="btn btn-sm btn-dark">Save</button></div>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="row justify-content-between">
+            <div class="col-lg-12 py-6">
+              <h3 class="text-danger mt-3">Crops</h3>
+              <div class="table-responsive mt-3">
+                <div id="toolbar" class="btn-group">
+                  <a rel="tooltip" title="Add Crop" href="javascript:void(0)" data-remodal-target="editCropModal">
+                    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="32px" height="32px" viewBox="0 0 300 300" style="enable-background:new 0 0 300 300;" xml:space="preserve">
+                      <g>
+                        <path class="st0" d="M225.2,138h-63.9V74c0-6.3-5-11.7-11.7-11.7c-6.3,0-11.7,5-11.7,11.7V138H74c-6.3,0-11.7,5-11.7,11.7 c0,3.1,1.3,6,3.5,8.2c2.2,2.2,5,3.5,8.2,3.5H138v63.9c0,3.1,1.3,6,3.5,8.2s5,3.5,8.2,3.5c6.3,0,11.7-5,11.7-11.7v-63.9h63.9 c6.3,0,11.7-5,11.7-11.7C236.6,143.3,231.5,138,225.2,138z"/>
+                        <path class="st0" d="M149.6,0C67.1,0,0,67.1,0,149.6s67.1,149.6,149.6,149.6s149.6-67.1,149.6-149.6S232.2,0,149.6,0z M149.6,276.3C79.7,276.3,23,219.6,23,149.6S79.7,23,149.6,23s126.6,56.7,126.6,126.6S219.6,276.3,149.6,276.3z"/>
+                      </g>
+                    </svg>
+                  </a>
+                </div>
+                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-sort-name="date" data-sort-order="asc" data-toolbar="#toolbar" data-search="true">
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+      <!-- <section> close ============================-->
+      <!-- ============================================-->
+
+      <!-- ============================================-->
+      <!-- <section> begin ============================-->
+      <section class="py-0">
+        <div class="container">
+        </div>
+        <!-- end of .container-->
+
+      </section>
+      <!-- <section> close ============================-->
+      <!-- ============================================-->
+		
 
     </main>
     <!-- ===============================================-->
     <!--    End of Main Content-->
     <!-- ===============================================-->
-
 
 
     <!--===============================================-->
@@ -223,6 +252,100 @@
 
 
     <!-- ===============================================-->
+    <!--    Modals-->
+    <!-- ===============================================-->
+    <div class="remodal" data-remodal-id="editCropModal" align="left" >
+      <button class="remodal-close" data-remodal-action="close"></button>
+      <h4 id="remodalTitle">Edit Crop</h4>
+      <p>Change the name, type, stages, coefficients, ...</p><br>
+
+      <form id="cropForm" method="post" action="/settings/updateCrop">
+
+        <!--  HIDDEN FIELDS -->
+        <input type="hidden" id="id" name="id"/>
+
+        <div class="row mb-4">
+          <div class="col">
+            <label for="name" class="col-form-label">Name</label>
+            <input type="text" class="form-control" id="name" name="name">
+          </div>
+          <div class="col">
+            <label for="type" class="col-form-label">Type</label>
+            <input type="text" class="form-control" id="type" name="type">
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col" align="center">
+            <h4>Crop Stages &amp; Coefficients</h4>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+          </div>
+          <div class="col" align="center">
+            <label class="col-form-label">Days</label>
+          </div>
+          <div class="col" align="center">
+            <label class="col-form-label">ETc</label>
+          </div>
+        </div>
+        <div class="row mb-4">
+          <div class="col">
+            <label class="col-form-label">Initial</label>
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="initDay" name="initDay">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="initKc" name="initKc">
+          </div>
+        </div>
+        <div class="row mb-4">
+          <div class="col">
+            <label class="col-form-label">Development</label>
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="devDay" name="devDay">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="devKc" name="devKc">
+          </div>
+        </div>
+        <div class="row mb-4">
+          <div class="col">
+            <label class="col-form-label">Mid Season</label>
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="midDay" name="midDay">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="midKc" name="midKc">
+          </div>
+        </div>
+        <div class="row mb-4">
+          <div class="col">
+            <label class="col-form-label">Late</label>
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="lateDay" name="lateDay">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="lateKc" name="lateKc">
+          </div>
+        </div>
+
+       <div class="d-flex">
+          <div class="p-2"><button type="submit" class="btn btn-sm btn-primary">Save</button></div>
+          <div class="p-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-remodal-action="cancel">Cancel</button></div>
+          <div class="ml-auto p-2 hide-form-button" id="delete_action"><button name="action" type="submit" class="btn btn-sm btn-outline-danger" value="delete">Delete</button></div>
+        </div>
+      </form>
+    </div>
+      
+      
+    <!-- ===============================================-->
     <!--    JavaScripts-->
     <!-- ===============================================-->
     <script src="assets/js/jquery.min.js"></script>
@@ -234,7 +357,70 @@
     <script src="assets/lib/remodal/remodal.js"></script>
     <script src="assets/js/rellax.min.js"></script>
     <script src="assets/js/bootstrap-select.js"></script>
+    <script src="assets/js/bootstrap-table.js"></script>
     <script src="assets/js/theme.js"></script>
+
+    <script type="text/javascript">
+            
+      var $table = $('#bootstrap-table');
+
+      function initBootstrapTable() {
+        $table.bootstrapTable({
+          url: "/api/crops/get",
+          columns: [
+            {
+              field: 'name',
+              title: 'Name',
+              sortable: true
+            },
+            {
+              field: 'type',
+              title: 'Type',
+              sortable: true
+            }
+          ]
+        });
+      }
+      
+      $().ready(function() {
+
+        $table.on('click-row.bs.table', function (e, row, $element) {
+          var inst = $('[data-remodal-id=editCropModal]').remodal();
+          
+          $('[data-remodal-id=editCropModal] #remodalTitle').text('Edit: ' + row.name);
+          $('[data-remodal-id=editCropModal] #id').val(row.id);
+          $('[data-remodal-id=editCropModal] #name').val(row.name);
+          $('[data-remodal-id=editCropModal] #type').val(row.type);
+          $('[data-remodal-id=editCropModal] #initDay').val(row.initDay);
+          $('[data-remodal-id=editCropModal] #initKc').val(row.initKc);
+          $('[data-remodal-id=editCropModal] #devDay').val(row.devDay);
+          $('[data-remodal-id=editCropModal] #devKc').val(row.devKc);
+          $('[data-remodal-id=editCropModal] #midDay').val(row.midDay);
+          $('[data-remodal-id=editCropModal] #midKc').val(row.midKc);
+          $('[data-remodal-id=editCropModal] #lateDay').val(row.lateDay);
+          $('[data-remodal-id=editCropModal] #lateKc').val(row.lateKc);
+
+          inst.open();
+          $('[data-remodal-id=editCropModal] #delete_action').removeClass("hide-form-button");
+        });
+        
+        $(document).on('closing', '.remodal', function (e) { 
+          $('[data-remodal-id=editCropModal] #cropForm')[0].reset();
+          $('[data-remodal-id=editCropModal] #delete_action').addClass("hide-form-button");
+        });
+          
+        initBootstrapTable();
+
+        //activate the tooltips after the data table is initialized
+        $('[rel="tooltip"]').tooltip();
+
+        $(window).resize(function () {
+            $table.bootstrapTable('resetView');
+        });
+
+     });
+     
+	</script>
 
   </body>
 

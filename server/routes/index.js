@@ -47,28 +47,6 @@ router.post('/signup', function(req, res, next) {
   });
 });
 
-// service bootstrap-table's data-url
-router.route('/getZones').get(function (req, res) {
-  Zones.getZonesInstance((ZonesInstance) => {
-    var zones = [];
-    ZonesInstance.getZones((zones) => {
-      res.statusCode = 200;
-      return res.json(zones);
-    });
-  });
-});
-
-// service data call for skycon
-router.route('/getConditions').get(function (req, res) {
-  Weather.getWeatherInstance((WeatherInstance) => {
-    var error, conditions;
-    WeatherInstance.getConditions((error, conditions) => {
-      res.statusCode = 200;
-      return res.json(conditions);
-    });
-  });
-});
-
 // update zone name, desc, flow info
 router.route('/post').post(function (req, res) {
   Zones.getZonesInstance((ZonesInstance) => {

@@ -11,6 +11,8 @@ const {log} = require('../controllers/logger');
 const config = require("../../config/config");
 const GeoLocation = require('../controllers/geolocation')
 
+const Crops = require('./crops');
+
 const {db} = require("./db");
 const {dbKeys} = require("./db");
 
@@ -49,9 +51,8 @@ const getSettingsInstance = async (callback) => {
   }
 
   SettingsInstance = await new Settings();
-  log.debug("Settings Constructed! ");
   await SettingsInstance.init(() => {
-    log.debug("Settings Initialized! ");
+    log.debug("*** Settings Initialized! ");
     callback(SettingsInstance);
   })
 }
@@ -71,13 +72,24 @@ class Settings {
         log.error(error);
       }
     }
+
+    // Initialize crops
+    Crops.getCropsInstance((crops) => {
+      this.crops = crops;
+    });
+
     callback();
   }
 
   async getSettings(callback) {
     var config = await settingsSchema.validate(await db.hgetallAsync(dbKeys.dbConfigKey));
-
     callback(config);
+  }
+
+  async getAllCrops(callback) {
+    await this.crops.getAllCrops((crops) => {
+      callback(crops);
+    });
   }
 
   async setLocation(address, city, state, zip) {

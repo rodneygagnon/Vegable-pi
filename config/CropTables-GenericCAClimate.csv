@@ -1,37 +1,19 @@
-name,type,plantMonth,initDay,initKc,devDay,devKc,midDay,midKc,lateDay,lateKc,totDay,totKc
-Broccoli,Small Vegetable,9,35,0.7,45,0.7,40,1.05,15,0.95,135,112
-Brussel Sprouts,Small Vegetable,9,35,0.7,45,0.7,40,1.05,15,0.95,135,112
-Cabbage,Small Vegetable,9,40,0.7,60,0.7,50,1.05,15,0.95,165,137
-Carrots,Small Vegetable,1,20,0.7,30,0.7,50,1.05,20,0.95,120,107
-Carrots,Small Vegetable,3,30,0.70,40,0.70,60,1.05,20,0.95,150,131
-Carrots,Small Vegetable,10,30,0.70,50,0.70,90,1.05,30,0.95,200,179
-Cauliflower,Small Vegetable,9,35,0.70,50,0.70,40,1.05,15,0.95,140,116
-Celery,Small Vegetable,1,30,0.70,55,0.70,105,1.05,20,1.00,210,190
-Celery,Small Vegetable,4,25,0.70,40,0.70,45,1.05,15,1.00,125,108
-Celery,Small Vegetable,10,25,0.70,40,0.70,95,1.05,20,1.00,180,165
-Crucifers,Small Vegetable,2,25,0.70,35,0.70,25,1.05,10,0.95,95,78
-Crucifers,Small Vegetable,4,20,0.70,30,0.70,20,1.05,10,0.95,80,66
-Crucifers,Small Vegetable,10,30,0.70,35,0.70,90,1.05,40,0.95,195,178
-Garlic,Small Vegetable,1,20,0.70,35,0.70,110,1.00,45,1.00,210,194
-Garlic,Small Vegetable,4,15,0.70,25,0.70,70,1.00,40,1.00,150,138
-Garlic,Small Vegetable,10,20,0.70,35,0.70,110,1.00,45,1.00,210,194
-Lettuce,Small Vegetable,1,30,0.70,40,0.70,25,1.00,10,0.95,90,84
-Lettuce,Small Vegetable,4,20,0.70,30,0.70,15,1.00,10,0.95,60,60
-Lettuce,Small Vegetable,10,25,0.70,35,0.70,30,1.00,10,0.95,95,82
-Onions (dry),Small Vegetable,1,20,0.70,35,0.70,110,1.00,45,1.00,210,194
-Onions (dry),Small Vegetable,4,15,0.70,25,0.70,70,1.00,40,1.00,150,138
-Onions (dry),Small Vegetable,10,20,0.70,35,0.70,110,1.00,45,1.00,210,194
-Onions (green),Small Vegetable,4,25,0.70,30,0.70,10,1.05,5,1.00,70,54
-Onions (green),Small Vegetable,10,20,0.70,45,0.70,20,1.05,10,1.00,95,77
-Spinach,Small Vegetable,4,20,0.70,20,0.70,15,1.00,5,0.95,60,48
-Spinach,Small Vegetable,10,20,0.70,20,0.70,25,1.00,5,0.95,70,58
-Radish,Small Vegetable,4,5,0.70,10,0.70,15,0.90,5,0.85,35,28
-Radish,Small Vegetable,10,10,0.70,10,0.70,15,0.90,5,0.85,40,32
-Small Vegetable (General),Small Vegetable,0,22,0.70,34,0.70,55,1.01,21,0.96,130,116
-Eggplant,Vegetable,4,30,0.6,40,0.6,40,1.05,20,0.9,130,102
-Eggplant,Vegetable,10,30,0.6,45,0.6,40,1.05,25,0.9,140,110
-Peppers,Vegetable,4,30,0.6,35,0.6,40,1.05,20,0.9,125,99
-Peppers,Vegetable,10,30,0.6,40,0.6,110,1.05,30,0.9,210,185
-Tomato,Vegetable,4,35,0.6,40,0.6,50,1.15,30,0.9,155,130
-Tomato,Vegetable,10,35,0.6,45,0.6,70,1.15,30,0.9,180,156
-Vegetable (General),Vegetable,0,32,0.6,41,0.6,58,1.08,26,0.90,157,130
+name,type,initDay,initKc,devDay,devKc,midDay,midKc,lateDay,lateKc,totDay,totKc
+Broccoli,Small Vegetable,35,0.7,45,0.7,40,1.05,15,0.95,135,112
+Brussel Sprouts,Small Vegetable,35,0.7,45,0.7,40,1.05,15,0.95,135,112
+Cabbage,Small Vegetable,40,0.7,60,0.7,50,1.05,15,0.95,165,137
+Carrots,Small Vegetable,30,0.70,40,0.70,60,1.05,20,0.95,150,131
+Cauliflower,Small Vegetable,35,0.70,50,0.70,40,1.05,15,0.95,140,116
+Celery,Small Vegetable,25,0.70,40,0.70,45,1.05,15,1.00,125,108
+Crucifers,Small Vegetable,20,0.70,30,0.70,20,1.05,10,0.95,80,66
+Garlic,Small Vegetable,15,0.70,25,0.70,70,1.00,40,1.00,150,138
+Lettuce,Small Vegetable,20,0.70,30,0.70,15,1.00,10,0.95,60,60
+Onions (dry),Small Vegetable,15,0.70,25,0.70,70,1.00,40,1.00,150,138
+Onions (green),Small Vegetable,25,0.70,30,0.70,10,1.05,5,1.00,70,54
+Spinach,Small Vegetable,20,0.70,20,0.70,15,1.00,5,0.95,60,48
+Radish,Small Vegetable,5,0.70,10,0.70,15,0.90,5,0.85,35,28
+Small Vegetable (General),Small Vegetable,21,0.70,30,0.70,36,1.02,17,0.96,102,89
+Eggplant,Vegetable,30,0.6,40,0.6,40,1.05,20,0.9,130,102
+Peppers,Vegetable,30,0.6,35,0.6,40,1.05,20,0.9,125,99
+Tomato,Vegetable,35,0.6,40,0.6,50,1.15,30,0.9,155,130
+Vegetable (General),Vegetable,32,0.6,38,0.6,43,1.08,23,0.90,137,110

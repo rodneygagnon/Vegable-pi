@@ -7,9 +7,6 @@
 var express = require('express');
 var router = express.Router();
 
-const url = require('url');
-const querystring = require('querystring');
-
 const Events = require('../models/events');
 const Zones = require('../models/zones');
 
@@ -26,20 +23,6 @@ router.get('/', function(req, res, next) {
       });
     });
   }
-});
-
-// service fullcalendar's events url
-router.route('/getEvents').get(function (req, res) {
-  let parsedUrl = url.parse(req.url);
-  let parsedQs = querystring.parse(parsedUrl.query);
-
-  Events.getEventsInstance((EventsInstance) => {
-    var events = [];
-    EventsInstance.getEvents(parsedQs.start, parsedQs.end, (events) => {
-      res.statusCode = 200;
-      return res.json(events);
-    });
-  });
 });
 
 // create, update or delete an event

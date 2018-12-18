@@ -6,11 +6,11 @@
  */
 'use strict';
 
+const fs = require('fs');
+
 const {log} = require('./logger');
 
 const gpio = require('onoff').Gpio;
-
-const Settings = require('../models/settings');
 
 var OSPiConfig = {
   Status: {
@@ -30,30 +30,33 @@ var OSPiConfig = {
 let OSPiInstance;
 let OSPiStationsBitMask = 0;
 
-const getOSPiInstance = async (callback) => {
+const getOSPiInstance = async (zoneCount, callback) => {
   if (OSPiInstance) {
     callback(OSPiInstance);
     return;
   }
 
-  OSPiInstance = await new OSPi();
-  log.debug("OSPi Constructed! ");
+  OSPiInstance = await new OSPi(zoneCount);
   await OSPiInstance.init(() => {
-    log.debug("OSPi Initialized! ");
+    log.debug("*** OSPi Initialized! ");
     callback(OSPiInstance);
   })
 }
 
 class OSPi {
-  constructor() {
+  constructor(zoneCount) {
+    this.zoneCount = zoneCount;
     this.enabled = false;
   }
 
   async init (callback) {
+    // Read the RPi System info before initilizing OSPi
+    await this.getRPiInformation();
 
-    Settings.getSettingsInstance(async (gSettings) => {
-      this.config = gSettings;
-
+    if (typeof this.rpiRevision === 'undefined' || this.rpiRevision === 0) {
+      log.debug(`*** We are not running on a rPi ***`);
+      log.debug(`    RPI Info: Revision(${this.rpiRevision}) Serial(${this.rpiSerial})`);
+    } else {
       this.OSPiSRClock = new gpio(OSPiConfig.Pins.SRClock, 'out');
       this.OSPiSROutputDisable = new gpio(OSPiConfig.Pins.SROutputDisable, 'out');
       this.OSPiSRLatch = new gpio(OSPiConfig.Pins.SRLatch, 'out');
@@ -73,34 +76,54 @@ class OSPi {
       this.OSPiRainSensor = new gpio(OSPiConfig.Pins.RainSensor, 'in');
       // attachInterrupt(PIN_RAINSENSOR, "falling", flow_isr);
 
-      //TEMPORARY FOR TESTING
+      // TEMPORARY FOR TESTING
       this.OSPiSRLatch.writeSync(OSPiConfig.Status.OFF);
       // TEMPORARY FOR TESTING
 
       this.enabled = true;
-      callback();
-    });
+    }
+
+    callback();
+  }
+
+  getRPiInformation() {
+    // Get Device Info
+    var obj = fs.readFileSync('/proc/cpuinfo', 'utf8');
+    var lines = obj.split('\n');
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+
+      if (line.startsWith('Revision'))
+        this.rpiRevision = line.split(':')[1].trim();
+
+      if (line.startsWith('Serial'))
+          this.rpiSerial = line.split(':')[1].trim();
+    }
   }
 
   async switchStation(stationId, value) {
+    if (this.enabled === false)
+      return;
+
     if (value)
       OSPiStationsBitMask |= value << (stationId - 1);
     else
       OSPiStationsBitMask &= ~(!value << (stationId - 1));
 
-    log.debug(`switchStation: Station Bitmask: 0x${OSPiStationsBitMask.toString(16)}`)
-
     this.applyStationBitmask();
   }
 
   async applyStationBitmask() {
+    if (this.enabled === false)
+      return;
+
     // turn off the latch pin
     this.OSPiSRLatch.writeSync(OSPiConfig.Status.OFF);
 
-    log.debug(`  -- apply OSPI bitmask: 0x${OSPiStationsBitMask.toString(16)}`)
+    log.debug(`  -- OSPI apply bitmask: 0x${OSPiStationsBitMask.toString(16)}`)
 
-    var numStations = await this.config.getZones();
-    for (var i = 0; i < numStations; i++) {
+    for (var i = 0; i < this.zoneCount; i++) {
       var value = (OSPiStationsBitMask & (0x01 << ((numStations-1) - i))) ? OSPiConfig.Status.ON : OSPiConfig.Status.OFF;
 
       this.OSPiSRClock.writeSync(OSPiConfig.Status.OFF);

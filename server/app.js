@@ -60,6 +60,7 @@ var app = express();
 
 // Application Routes
 const IndexRouter = require('./routes/index');
+const ApiRouter = require('./routes/api');
 const SettingsRouter = require('./routes/settings');
 const EventsRouter = require('./routes/events');
 const PlantingsRouter = require('./routes/plantings');
@@ -90,6 +91,7 @@ app.post('/signin',
   });
 
 app.use('/', IndexRouter);
+app.use('/api', ApiRouter);
 app.use('/settings', SettingsRouter);
 app.use('/events', EventsRouter);
 app.use('/plantings', PlantingsRouter);

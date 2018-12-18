@@ -10,28 +10,21 @@ const {log} = require('../controllers/logger');
 
 const uuidv4 = require('uuid/v4');
 
-const Settings = require('./settings');
+const Crops = require('./crops');
 
-const {db} = require("./db");
-const {dbKeys} = require("./db");
+const {db} = require('./db');
+const {dbKeys} = require('./db');
 
-const schema = require("schm");
+const schema = require('schm');
 const plantingSchema = schema({
   id: String,       // Planting UUID
   zid: Number,      // Zone ID
   title: String,
   date: String,     // ISO8601
-  initDay: Number,  // Agreggated Crop data for this planting
-  initKc: Number,
-  devDay: Number,
-  devKc: Number,
-  midDay: Number,
-  midKc: Number,
-  lateDay: Number,
-  lateKc: Number,
-  totDay: Number,
-  totKc: Number,
-  cids: Array       // Crop Ids
+  cid: String,
+  mad: { type: Number, min: 0 },       // Max Allowable Depletion (MAD %)
+  count: { type: Number, default: 1 },
+  spacing: { type: Number, default: 1} // Inches
 });
 
 let PlantingsInstance;
@@ -43,24 +36,22 @@ const getPlantingsInstance = async (callback) => {
   }
 
   PlantingsInstance = await new Plantings();
-  log.debug("Plantings Constructed! ");
   await PlantingsInstance.init(() => {
-   log.debug("Plantings Initialized! ");
+   log.debug("*** Plantings Initialized! ");
    callback(PlantingsInstance);
   })
 }
 
 class Plantings {
-  constructor() {
-    this.config = null;
-  }
+  constructor() {}
 
   async init(callback) {
-    Settings.getSettingsInstance(async (gSettings) => {
-      this.config = gSettings;
-
-      callback();
+    // Initialize crops
+    Crops.getCropsInstance((crops) => {
+      this.crops = crops;
     });
+
+    callback();
   }
 
   async getAllPlantings(callback) {
@@ -87,30 +78,36 @@ class Plantings {
     callback(plantings);
   }
 
+  async getCrop(cid) {
+    return (await this.crops.getCrop(cid));
+  }
+
   // Update a planting. Create if it doesn't exist. Delete if action=='delete'
   async updatePlanting(planting, action, callback) {
     log.debug(`updatePlanting: (${JSON.stringify(planting)})`);
 
+    // Keep track of which zones need to be notified of a planting change
+    var zoneIds = [];
+
     try {
       var validPlanting = await plantingSchema.validate(planting);
+
+      zoneIds.push(validPlanting.zid);
+
       var savedPlanting = null;
 
       // id is set if we are updating/deleting a planting, go find it
       if (typeof planting.id !== 'undefined' && planting.id !== "") {
-        var plantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey,
-                                                    planting.zid, planting.zid);
+        var plantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, '-inf', '+inf');
 
         log.debug(`updatePlanting (updating): (${JSON.stringify(validPlanting)})`);
 
-        try {
-          plantings.forEach((p) => {
-            if (p.zid === validPlanting.zid) {
-              savedPlanting = p;
-              throw BreakException;
-            }
-          });
-        } catch (e) {
-          if (e !== BreakException) throw (e);
+        for (var i = 0; i < plantings.length; i++) {
+          var pObj = JSON.parse(plantings[i]);
+          if (pObj.id === validPlanting.id) {
+            savedPlanting = pObj;
+            break;
+          }
         }
       }
 
@@ -118,18 +115,20 @@ class Plantings {
         var removePlanting = JSON.stringify(savedPlanting);
 
         if (action === 'delete') { // DELETE a planting
-
           log.debug(`updatePlanting(delete): del old planting(${removePlanting})`);
 
           await db.zremAsync(dbKeys.dbPlantingsKey, removePlanting);
-
         } else { // UPDATE a planting
+          if (savedPlanting.zid !== validPlanting.zid)
+            zoneIds.push(savedPlanting.zid);
+
           savedPlanting.zid = validPlanting.zid;
           savedPlanting.title = validPlanting.title;
           savedPlanting.date = validPlanting.date;
-          savedPlanting.cids = validPlanting.cids;
-
-          // TODO: calcuate the aggregate crop data for this planting
+          savedPlanting.cid = validPlanting.cid;
+          savedPlanting.count = validPlanting.count;
+          savedPlanting.spacing = validPlanting.spacing;
+          savedPlanting.mad = validPlanting.mad;
 
           log.debug(`updatePlanting(update): add new planting(${JSON.stringify(savedPlanting)})`);
 
@@ -137,7 +136,7 @@ class Plantings {
           if (zcnt > 0) {
             log.debug(`updatePlanting(update): del old planting(${removePlanting})`);
 
-            await db.zremAsync(dbKeys.dbEventsKey, removePlanting);
+            await db.zremAsync(dbKeys.dbPlantingsKey, removePlanting);
           }
         }
 
@@ -151,10 +150,10 @@ class Plantings {
         await db.zaddAsync(dbKeys.dbPlantingsKey, validPlanting.zid, JSON.stringify(validPlanting));
       }
     } catch (err) {
-      log.error("updatePlanting Failed to save planting: " + err);
+      log.error(`updatePlanting Failed to save planting: ${err}`);
     }
 
-    callback();
+    callback(zoneIds);
   }
 }
 
