@@ -147,9 +147,19 @@
 
         <div class="container">
           <div class="row justify-content-between">
-            <div class="col-lg-12 py-6">
+            <div class="col-lg-6 py-6">
+              <h3 class="text-danger mt-3">Control Zones</h3>
               <div class="table-responsive mt-3">
-                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-sort-name="id" data-sort-order="asc"></table>
+                <table id="cntl-zone-table" class="bootstrap-table table table-no-bordered" data-sort-name="name" data-sort-order="desc"></table>
+              </div>
+            </div>
+          </div>
+
+          <div class="row justify-content-between">
+            <div class="col-lg-12 py-6">
+              <h3 class="text-danger mt-3">Planting Zones</h3>
+              <div class="table-responsive mt-3">
+                <table id="open-zone-table" class="bootstrap-table table table-no-bordered" data-sort-name="id" data-sort-order="asc"></table>
               </div>
            </div>
           </div>
@@ -206,53 +216,57 @@
         <input type="hidden" id="color" name="color"/>
         <input type="hidden" id="textColor" name="textColor"/>
 
-        <div class="form-group">
-          <label for="name" class="col-form-label">Name</label>
-          <input type="text" class="form-control" id="name" name="name">
+        <div class="row mb-4">
+          <div class="col">
+            <label for="name" class="col-form-label">Name</label>
+            <input type="text" class="form-control" id="name" name="name">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="area" class="col-form-label">Area (sqft)</label>
-          <input type="text" class="form-control" id="area" name="area">
+        <div class="row mb-4">
+          <div class="col">
+            <label for="area" class="col-form-label">Area (sqft)</label>
+            <input type="text" class="form-control" id="area" name="area">
+          </div>
+          <div class="col">
+            <label for="swhc" class="col-form-label">Soil Type</label>
+            <select class="selectpicker form-control" id="swhc" name="swhc" data-size="7" required="">
+              <%
+                var soilTypes = [ "Coarse", "Sandy", "Medium", "Fine" ];
+                var soilWHC = [ "0.75", "1.25", "1.5", "2.0" ];
+                for ( var i = 0; i < soilTypes.length; i++ ) {
+                  %><option value="<%=soilWHC[ i ] %>"><%=soilTypes[ i ] %></option><%
+                }
+              %>
+            </select>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="swhc" class="col-form-label">Soil Type</label>
-          <select class="selectpicker form-control" id="swhc" name="swhc" data-size="7" required="">
-            <%
-              var soilTypes = [ "Coarse", "Sandy", "Medium", "Fine" ];
-              var soilWHC = [ "0.75", "1.25", "1.5", "2.0" ];
-              for ( var i = 0; i < soilTypes.length; i++ ) {
-                %><option value="<%=soilWHC[ i ] %>"><%=soilTypes[ i ] %></option><%
-              }
-            %>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="flowrate" class="col-form-label">Flow Rate (gpm)</label>
-          <select class="selectpicker form-control" id="flowrate" name="flowrate" data-size="7" required="">
-            <%
-              var flowTypes = [ "0.5", "1.0", "2.0" ];
-              var rates = [ "0.5", "1", "2" ];
-              for ( var i = 0; i < rates.length; i++ ) {
-                %><option value="<%=rates[ i ] %>"><%=flowTypes[ i ] %></option><%
-              }
-            %>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="irreff" class="col-form-label">Irrigation Type</label>
-          <select class="selectpicker form-control" id="irreff" name="irreff" data-size="7" required="">
-            <%
-              var irrTypes = [ "Drip", "Spray" ];
-              var irrEff = [ "90", "80" ];
-              for ( var i = 0; i < irrTypes.length; i++ ) {
-                %><option value="<%=irrEff[ i ] / 100 %>"><%=irrTypes[ i ] %></option><%
-              }
-            %>
-          </select>
+        <div class="row mb-4">
+          <div class="col">
+            <label for="irreff" class="col-form-label">Irrigation Type</label>
+            <select class="selectpicker form-control" id="irreff" name="irreff" data-size="7" required="">
+              <%
+                var irrTypes = [ "Drip", "Spray" ];
+                var irrEff = [ "90", "80" ];
+                for ( var i = 0; i < irrTypes.length; i++ ) {
+                  %><option value="<%=irrEff[ i ] / 100 %>"><%=irrTypes[ i ] %></option><%
+                }
+              %>
+            </select>
+          </div>
+          <div class="col">
+            <label for="flowrate" class="col-form-label">Flow Rate (gpm)</label>
+            <select class="selectpicker form-control" id="flowrate" name="flowrate" data-size="7" required="">
+              <%
+                var flowTypes = [ "0.5", "1.0", "2.0" ];
+                var rates = [ "0.5", "1", "2" ];
+                for ( var i = 0; i < rates.length; i++ ) {
+                  %><option value="<%=rates[ i ] %>"><%=flowTypes[ i ] %></option><%
+                }
+              %>
+            </select>
+          </div>
         </div>
 
         <button type="submit" class="btn btn-sm btn-primary mr-3">Save</button>
@@ -285,30 +299,16 @@
     <script src="assets/js/bootstrap-table.js"></script>
       
     <script type="text/javascript">
-      var $table = $('#bootstrap-table');
+      var $cntlZoneTable = $('#cntl-zone-table');
+      var $openZoneTable = $('#open-zone-table');
 
-      function initBootstrapTable() {
-        $table.bootstrapTable({
-            url: "/api/zones/get",
+      function initTables() {
+        $cntlZoneTable.bootstrapTable({
+            url: "/api/zones/getControl",
             columns: [
-              {
-                field: 'id',
-                title: '#',
-                sortable: true
-              },
               {
                 field: 'name',
                 title: 'Name',
-                sortable: true
-              },
-              {
-                field: 'area',
-                title: 'Area (sqft)',
-                sortable: true
-              },
-              {
-                field: 'aw',
-                title: 'Available Water',
                 sortable: true
               },
               {
@@ -324,13 +324,93 @@
                 title: 'Actions',
                 sortable: false,
                 events: operateEvents,
-                formatter: operateFormatter
+                formatter: cntlOperateFormatter
+              }
+
+            ]
+        });
+
+        $openZoneTable.bootstrapTable({
+            url: "/api/zones/get",
+            columns: [
+              {
+                field: 'name',
+                title: 'Name',
+                sortable: true
+              },
+              {
+                field: 'area',
+                title: 'Area (sqft)',
+                sortable: true
+              },
+              {
+                field: 'swhc',
+                title: 'Soil',
+                sortable: true,
+                formatter: function (value) {
+                  var soilWHC = [ 0.75, 1.25, 1.5, 2.0 ];
+                  var soilTypes = [ "Coarse", "Sandy", "Medium", "Fine" ];
+                  for ( var i = 0; i < soilWHC.length; i++ )
+                    if (value === soilWHC[i]) return `<span>${soilTypes[i]}</span>`;
+                }
+              },
+              {
+                field: 'irreff',
+                title: 'Irrigation',
+                sortable: true,
+                formatter: function (value) {
+                  var irrEff = [ 0.9, 0.8 ];
+                  var irrTypes = [ "Drip", "Spray" ];
+                  for ( var i = 0; i < irrEff.length; i++ )
+                    if (value === irrEff[i]) return `<span>${irrTypes[i]}</span>`;
+                }
+              },
+              {
+                field: 'flowrate',
+                title: 'Flow Rate (gpm)',
+                sortable: true,
+                formatter: function (value) {
+                  var rates = [ 0.5, 1, 2 ];
+                  var flowTypes = [ "0.5", "1.0", "2.0" ];
+                  for ( var i = 0; i < rates.length; i++ )
+                    if (value === rates[i]) return `<span>${flowTypes[i]}</span>`;
+                }
+              },
+              {
+                field: 'started',
+                title: 'Start Time',
+                sortable: true,
+                formatter: function (value) {
+                  return `<span>${(value == 0 ? "" : new Date(value).toLocaleString())}</span>`;
+                }
+              },
+              {
+                field: 'actions',
+                title: 'Actions',
+                sortable: false,
+                events: operateEvents,
+                formatter: openOperateFormatter
               }
             ]
         });
       }
 
-      function operateFormatter(value, row, index) {
+       function cntlOperateFormatter(value, row, index) {
+          var switchStyle = (row.status ? "svg-success" : "svg-secondary");
+          return [
+             '<div class="table-icons">',
+                '<a rel="tooltip" title="Power" class="power table-actions" href="javascript:void(0)">',
+                  '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 300 300" style="enable-background:new 0 0 300 300;" xml:space="preserve">',
+                    '<g>',
+                      `<path class="${switchStyle}" d="M150,0L150,0C67.5,0,0,67.5,0,150l0,0c0,82.5,67.5,150,150,150l0,0c82.5,0,150-67.5,150-150l0,0 C300,67.5,232.5,0,150,0z M138.1,74c0-6.6,5.3-11.9,11.9-11.9c6.6,0,11.9,5.3,11.9,11.9c0,0,0,0,0,0v83.2c0,6.6-5.3,11.9-11.9,11.9 c-6.6,0-11.9-5.3-11.9-11.9C138.1,157.2,138.1,74,138.1,74z M211,212.6c-33.7,33.7-88.3,33.6-122-0.1s-33.6-88.3,0.1-122 c1.4-1.4,2.9-2.8,4.4-4.1c5-4.3,12.5-3.7,16.8,1.2c4.3,4.9,3.7,12.4-1.2,16.7c-26.1,22.6-28.9,62.1-6.2,88.2s62.1,28.9,88.2,6.2 c26.1-22.6,28.9-62.1,6.2-88.2c-2-2.4-4.3-4.6-6.6-6.6c-5-4.3-5.6-11.8-1.3-16.7S201,81.8,206,86c36.2,30.9,40.5,85.4,9.6,121.6 C214.1,209.4,212.6,211,211,212.6z"/>`,
+                    '</g>',
+                  '</svg>',
+                '</a>',
+            '</div>',
+          ].join('');
+      }
+
+      function openOperateFormatter(value, row, index) {
           var switchStyle = (row.status ? "svg-success" : "svg-secondary");
           return [
              '<div class="table-icons">',
@@ -352,7 +432,7 @@
           ].join('');
       }
 
-      $().ready(function(){
+     $().ready(function(){
         var skycons = new Skycons();
         $.getJSON('/api/weather/get', (conditions) => {
           $('#weatherString').replaceWith(`<p id="weatherString" class="lead">${conditions.summary}, ${conditions.temperature.toFixed(1)}˚F</p>`);
@@ -367,13 +447,8 @@
                   type: 'POST',
                   data: {'submit':true}, // An object with the key 'submit' and value 'true;
                   success: function (result) {
-                    var inst = $('[data-remodal-id=switchModal]').remodal();
-
-                    $('[data-remodal-id=switchModal] #remodalTitle').text(`${row.name} is ${row.status ? "OFF" : "ON"}!`);
-
-                    inst.open();
-
-                    $table.bootstrapTable('refresh');
+                    $cntlZoneTable.bootstrapTable('refresh');
+                    $openZoneTable.bootstrapTable('refresh');
                   }
               });
 
@@ -381,7 +456,7 @@
           'click .edit': function (e, value, row, index) {
             var inst = $('[data-remodal-id=editZoneModal]').remodal();
 
-            $('[data-remodal-id=editZoneModal] #remodalTitle').text('Edit: ' + row.name);
+            $('[data-remodal-id=editZoneModal] #remodalTitle').text(`Edit: ${row.name} (Port #: ${row.id})`);
             $('[data-remodal-id=editZoneModal] #id').val(row.id);
             $('[data-remodal-id=editZoneModal] #name').val(row.name);
             $('[data-remodal-id=editZoneModal] #area').val(row.area);
@@ -393,16 +468,16 @@
           }
         };
          
-        initBootstrapTable();
-
+        initTables();
+        
         //activate the tooltips after the data table is initialized
         $('[rel="tooltip"]').tooltip();
 
         $(window).resize(function () {
-            $table.bootstrapTable('resetView');
+            $cntlZoneTable.bootstrapTable('resetView');
+            $openZoneTable.bootstrapTable('resetView');
         });
-        
-        
+                
       });
      
 	</script>

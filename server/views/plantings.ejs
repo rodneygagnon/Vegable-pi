@@ -221,12 +221,13 @@
             <input type="text" class="form-control" id="title" name="title">
           </div>
           <div class="col">
-            <label for="sid" class="col-form-label">Zone</label>
-            <select class="selectpicker form-control" id="zid" name="zid" required="" placeholder="Zone">
-              <% for(var i=0; i < zones.length; i++) { %>
-                <option value="<%= zones[i].id %>"><%= zones[i].name %></option>
-              <% } %>
-            </select>
+            <label for="date" class="col-form-label">Planting Date</label>
+            <div class="input-group date" id="starttimepicker" data-target-input="nearest">
+              <input id="date" name="date" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
+              <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
+                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -240,13 +241,12 @@
             </select>
           </div>
           <div class="col">
-            <label for="date" class="col-form-label">Planting Date</label>
-            <div class="input-group date" id="starttimepicker" data-target-input="nearest">
-              <input id="date" name="date" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
-              <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
-                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-              </div>
-            </div>
+            <label for="sid" class="col-form-label">Zone</label>
+            <select class="selectpicker form-control" id="zid" name="zid" required="" placeholder="Zone">
+              <% for(var i=0; i < zones.length; i++) { %>
+                <option value="<%= zones[i].id %>"><%= zones[i].name %></option>
+              <% } %>
+            </select>
           </div>
         </div>
 
@@ -311,7 +311,7 @@
                     sortable: true,
                     formatter: dateFormatter
                   },
-                 {
+                  {
                     field: 'title',
                     title: 'Title',
                     sortable: true
@@ -345,7 +345,11 @@
                       }
                       return `<span>${crop}</span>`;
                     }
-
+                  },
+                  {
+                    field: 'count',
+                    title: 'Count',
+                    sortable: true
                   }
                 ]
             });

@@ -1,5 +1,5 @@
 /*
- * Index Router
+ * API Router
  *
  * @author: rgagnon
  * @copyright 2018 vegable.io
@@ -59,6 +59,18 @@ router.route('/zones/get').get(function (req, res) {
   Zones.getZonesInstance((ZonesInstance) => {
     var zones = [];
     ZonesInstance.getZones((zones) => {
+      res.statusCode = 200;
+      return res.json(zones);
+    });
+  });
+});
+
+// Get all zones
+router.route('/zones/getControl').get(function (req, res) {
+  Zones.getZonesInstance((ZonesInstance) => {
+    var zones = [];
+    ZonesInstance.getControlZones((zones) => {
+      console.log(`Zones(${zones.length})`);
       res.statusCode = 200;
       return res.json(zones);
     });

@@ -23,6 +23,7 @@ const schema = require("schm");
 const zonesSchema = schema({
   id: Number,
   name: String,
+  type: Number,
   area: { type: Number, min: 0 },       // sq ft
   flowrate: { type: Number, min: 0.5 }, // gallons per hour
   irreff: { type: Number, min: 0 },     // Irrigation Efficiency %
@@ -49,6 +50,15 @@ const zonesSchema = schema({
   color: String,
   textColor: String
 });
+
+const MasterZoneId = 1;
+const FertilizerZoneId = 2;
+
+const ZoneType = { // Master, Fertilizer, Open
+  control: 0,
+  open: 1
+};
+Object.freeze(ZoneType);
 
 // Irrigation Types and Rates and Types
 const FlowRates = { // Gallons per Hour
@@ -108,9 +118,23 @@ class Zones {
         try {
           var multi = db.multi();
 
-          for (var i = 1; i <= zoneCount; i++) {
-            var zone = { id: i, name:'Z0' + i, area: 0, flowrate: FlowRates.oneGPH,
-                         irreff: IrrEff.drip, swhc: SoilWHC.medium,
+          // Fixed Zones (Master + Fertilizer)
+          await multi.hset(dbKeys.dbZonesKey, MasterZoneId, JSON.stringify({ id: MasterZoneId, name:'Master', area: 0,
+                                                                             type: ZoneType.control, flowrate: FlowRates.oneGPH,
+                                                                             irreff: IrrEff.drip, swhc: SoilWHC.medium, ib: 0, aw: 0,
+                                                                             status: false, started: 0,
+                                                                             color: zoneEventColors[0], textColor: zoneTextColor
+                                                                           }));
+          await multi.hset(dbKeys.dbZonesKey, FertilizerZoneId, JSON.stringify({ id: FertilizerZoneId, name:'Fertilizer', area: 0,
+                                                                                type: ZoneType.control, flowrate: FlowRates.oneGPH,
+                                                                                irreff: IrrEff.drip, swhc: SoilWHC.medium, ib: 0, aw: 0,
+                                                                                status: false, started: 0,
+                                                                                color: zoneEventColors[1], textColor: zoneTextColor
+                                                                              }));
+
+          for (var i = 3; i <= zoneCount; i++) {
+            var zone = { id: i, name:`Z0${i-2}`, area: 0, type: ZoneType.open,
+                         flowrate: FlowRates.oneGPH, irreff: IrrEff.drip, swhc: SoilWHC.medium,
                          ib: 0, aw: 0, status: false, started: 0,
                          color: zoneEventColors[i-1], textColor: zoneTextColor };
 
@@ -118,7 +142,7 @@ class Zones {
 
             log.debug(`  Adding Zone(${i}): ` + JSON.stringify(zone));
 
-            multi.hset(dbKeys.dbZonesKey, zone.id, JSON.stringify(zone));
+            await multi.hset(dbKeys.dbZonesKey, zone.id, JSON.stringify(zone));
           }
 
           await multi.execAsync((error, results) => {
@@ -160,12 +184,26 @@ class Zones {
 
   // TODO: Calculate daily water depletion for each zone based on plantings.
   // TODO: Create irrigation/fertilization events as necessary
+  //
+  // 1. Initial Water Balance (ib)
+  // 2. Minus Crop Water Use (ETc(day) = ETo (day) x Kc (Crop coefficient))
+  // 3. Irrigate until soil is recharged to Field Capacity (fc): water remaining after drainage
+  //
+  // Yield Threshold Depletion (YTD)   - minimum available water to avoid crop stress impacting yield
+  // Maximum Allowable Depletion (MAD) - (<=YTD) management practice before irrigation
+  //
+  // Irrigators Equation : Q x t = d x A
+  // Q - flow rate (ft3/sec)
+  // t - time (hr)
+  // d - depth (inches)
+  // A - area (acres)
+  //
   async processJob(job, done) {
     log.error(`Zone job fired @ ${new Date()}`);
 
     Plantings.getPlantingsInstance(async (plantingsInstance) => {
       try {
-        var zones = await this.getZones();
+        var zones = await this.getAllZones();
         zones.forEach(async (zone) => {
           plantingsInstance.getPlantingsByZone(zid, async (plantings) => {
             if (plantings.length) {
@@ -183,7 +221,29 @@ class Zones {
     });
   }
 
+  // Returns zones that are available for assignment
   async getZones(callback) {
+    callback(await this.getZonesByType(ZoneType.open));
+  }
+
+  // Returns control zones
+  async getControlZones(callback) {
+    callback(await this.getZonesByType(ZoneType.control));
+  }
+
+  async getZonesByType(type) {
+    var zones = await this.getAllZones();
+
+    var zonesByType = [];
+    for (var i = 0; i < zones.length; i++) {
+      if (zones[i].type === type)
+        zonesByType.push(zones[i]);
+    }
+
+    return zonesByType;
+  }
+
+  async getAllZones() {
     var zones = [];
 
     var redisZones = await db.hvalsAsync(dbKeys.dbZonesKey);
@@ -197,8 +257,11 @@ class Zones {
       return 0;
     });
 
-    callback(zones);
+    return zones;
   }
+
+  async getMasterZone() { await this.getZone(MasterZoneId); }
+  async getFertilizerZone() { await this.getZone(FertilizerZoneId); }
 
   async getZone(zid) {
     var zone = null;
@@ -207,6 +270,7 @@ class Zones {
     } catch (err) {
       log.error(`getZone(${zid}) Failed to get zone: ${err}`);
     }
+
     return zone;
   }
 
