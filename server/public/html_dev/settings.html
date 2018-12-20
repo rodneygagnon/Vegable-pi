@@ -202,7 +202,7 @@
                     </svg>
                   </a>
                 </div>
-                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-sort-name="date" data-sort-order="asc" data-toolbar="#toolbar" data-search="true">
+                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-sort-name="date" data-sort-order="asc" data-toolbar="#toolbar" data-search="true" data-detail-view="true" data-detail-formatter="detailFormatter">
                 </table>
               </div>
             </div>
@@ -393,6 +393,28 @@
             }
           ]
         });
+      }
+      
+      function detailFormatter(index, row) {
+          var html = [];
+        
+          html.push('<p>    ')
+          $.each(row, function (key, value) {
+            switch (key) {
+              case 'initDay':
+              case 'initKc':
+              case 'devDay':
+              case 'devKc':
+              case 'midDay':
+              case 'midKc':
+              case 'lateDay':
+              case 'lateKc':
+                html.push('<b>    ' + key + ':</b> ' + value);
+                break;
+            }
+          });
+          html.push('</p>');
+          return html.join('');
       }
       
       $().ready(function() {
