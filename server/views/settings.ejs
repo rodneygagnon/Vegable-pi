@@ -370,6 +370,10 @@
       function initBootstrapTable() {
         $table.bootstrapTable({
           url: "/api/crops/get",
+          icons: {
+            detailOpen: 'fas fa-chevron-right',
+            detailClose: 'fas fa-chevron-down'
+          },
           columns: [
             {
               field: 'name',

@@ -34,6 +34,7 @@ const zonesSchema = schema({
   started: { type: Number, min: 0 },    // Date/Time the zone was switched on
 
   // Agreggated Crop/Planting data for this zone
+  plantings: { type: Number, min: 0 },
   initDay: { type: Number, min: 0 },
   initKc: { type: Number, min: 0 },
   devDay: { type: Number, min: 0 },
@@ -295,6 +296,7 @@ class Zones {
       saveZone.totDay = inputZone.totDay;
       saveZone.totKc = inputZone.totKc;
       saveZone.mad = inputZone.mad;
+      saveZone.plantings = inputZone.plantings;
 
       let status = false, started = 0;
       if (typeof inputZone.status != 'undefined')
@@ -396,6 +398,8 @@ class Zones {
               zone.totKc /= plantings.length;
               zone.mad /= plantings.length;
             }
+            zone.plantings = plantings.length;
+
             this.setZone(zone, () => {});
           }); // getPlantingByZone
         }); // forEach zone

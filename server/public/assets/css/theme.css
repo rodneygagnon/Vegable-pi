@@ -578,6 +578,9 @@ pre code {
 .svg-success {
   fill:#2ED321;
 }
+.svg-primary {
+  fill:#045bc1;
+}
 
 /** Card List **/
 .card-list {
