@@ -14,10 +14,12 @@ Vegable-pi is an OpenSprinklerPi implementation using a Bootstrap-Node-Express-R
 PLEASE REFER TO THE <a href="https://github.com/rodneygagnon/Vegable-pi/wiki">WIKI</A> FOR ALL HARDWARE/SOFTWARE NOTES AND INSTALLATION INSTRUCTIONS.
 
 ---
-<a href="http://vegable.co/images/login.png"><img src="http://vegable.co/images/login.png" width="240"/></a>
-<a href="http://vegable.co/images/Zones2.png"><img src="http://vegable.co/images/Zones2.png" width="240"/></a>
-<a href="http://vegable.co/images/Plantings.png"><img src="http://vegable.co/images/Plantings.png" width="240"/></a>
-<a href="http://vegable.co/images/Schedules2.png"><img src="http://vegable.co/images/Schedules2.png" width="240"/></a>
+<a href="http://vegable.co/images/VegableScreenshots/Login.png"><img src="http://vegable.co/images/VegableScreenshots/Login.png" width="240"/></a>
+<a href="http://vegable.co/images/VegableScreenshots/Dashboard.png"><img src="http://vegable.co/images/VegableScreenshots/Dashboard.png" width="240"/></a>
+<a href="http://vegable.co/images/VegableScreenshots/Plantings.png"><img src="http://vegable.co/images/VegableScreenshots/Plantings.png" width="240"/></a>
+<a href="http://vegable.co/images/VegableScreenshots/Zones.png"><img src="http://vegable.co/images/VegableScreenshots/Zones.png" width="240"/></a>
+<a href="http://vegable.co/images/VegableScreenshots/Schedule.png"><img src="http://vegable.co/images/VegableScreenshots/Schedule.png" width="240"/></a>
+<a href="http://vegable.co/images/VegableScreenshots/Setting.png"><img src="http://vegable.co/images/VegableScreenshots/Setting.png" width="240"/></a>
 ---
 
 # Questions and issues
