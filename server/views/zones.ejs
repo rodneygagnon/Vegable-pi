@@ -162,7 +162,7 @@
             <div class="col-lg-12 pb-6 pt-3">
               <h3 class="text-danger mt-3">Planting Zones</h3>
               <div class="table-responsive mt-3">
-                <table id="open-zone-table" class="bootstrap-table table table-no-bordered" data-sort-name="id" data-sort-order="asc"></table>
+                <table id="open-zone-table" class="bootstrap-table table table-no-bordered" data-sort-name="id" data-sort-order="asc" data-detail-view="true" data-detail-formatter="detailFormatter"></table>
               </div>
            </div>
           </div>
@@ -434,6 +434,29 @@
             '</div>',
           ].join('');
       }
+
+      function detailFormatter(index, row) {
+          var html = [];
+        
+          html.push('<p>    ')
+          $.each(row, function (key, value) {
+            switch (key) {
+              case 'initDay':
+              case 'initKc':
+              case 'devDay':
+              case 'devKc':
+              case 'midDay':
+              case 'midKc':
+              case 'lateDay':
+              case 'lateKc':
+                html.push('<b>    ' + key + ':</b> ' + value);
+                break;
+            }
+          });
+          html.push('</p>');
+          return html.join('');
+      }
+      
 
      $().ready(function(){
         var skycons = new Skycons();

@@ -205,7 +205,7 @@ class Zones {
       try {
         var zones = await this.getAllZones();
         zones.forEach(async (zone) => {
-          plantingsInstance.getPlantingsByZone(zid, async (plantings) => {
+          plantingsInstance.getPlantingsByZone(zone.id, async (plantings) => {
             if (plantings.length) {
               for (var i = 0; i < plantings.length; i++) {
                 // TODO: *** DO THE CALCS, CREATE THE EVENT
