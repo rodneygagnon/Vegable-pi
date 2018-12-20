@@ -64,6 +64,7 @@ const ApiRouter = require('./routes/api');
 const SettingsRouter = require('./routes/settings');
 const EventsRouter = require('./routes/events');
 const PlantingsRouter = require('./routes/plantings');
+const ZonesRouter = require('./routes/zones');
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '/views'));
@@ -95,6 +96,7 @@ app.use('/api', ApiRouter);
 app.use('/settings', SettingsRouter);
 app.use('/events', EventsRouter);
 app.use('/plantings', PlantingsRouter);
+app.use('/zones', ZonesRouter);
 
 /* 404 */
 app.all('*', function(req, res) {

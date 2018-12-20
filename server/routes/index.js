@@ -8,9 +8,6 @@ const express = require('express');
 const router = express.Router();
 
 const Users = require('../models/users');
-const Zones = require('../models/zones');
-
-const Weather = require('../controllers/weather');
 
 var ZonesInstance;
 var UsersInstance;
@@ -43,24 +40,6 @@ router.post('/signup', function(req, res, next) {
     UsersInstance.updateUser(req.body, "" /* action */, (result) => {
       // TODO: check result of new user registration before redirecting
       res.redirect('/signin');
-    });
-  });
-});
-
-// update zone name, desc, flow info
-router.route('/post').post(function (req, res) {
-  Zones.getZonesInstance((ZonesInstance) => {
-    ZonesInstance.setZone(req.body, () => {
-      res.redirect('/');
-    });
-  });
-});
-
-// ad hoc turning on/off zones
-router.route('/enable/:id').post(function (req, res) {
-  Zones.getZonesInstance((ZonesInstance) => {
-    ZonesInstance.switchZone(req.params.id, () => {
-      res.redirect('/');
     });
   });
 });
