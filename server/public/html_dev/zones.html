@@ -34,6 +34,7 @@
     <link href="assets/lib/remodal/remodal-default-theme.css" rel="stylesheet">
     <link href="assets/css/bootstrap-table.css" rel="stylesheet">
     <link href="assets/css/bootstrap-select.css" rel="stylesheet">
+    <link href="assets/css/tempusdominus-bootstrap-4.css" rel="stylesheet">
     <link href="assets/css/theme.css" rel="stylesheet">
 
   </head>
@@ -224,8 +225,16 @@
             <label for="name" class="col-form-label">Name</label>
             <input type="text" class="form-control" id="name" name="name">
           </div>
+          <div class="col">
+            <label for="start" class="col-form-label">Schedule Start Time</label>
+            <div class="input-group date" id="starttimepicker" data-target-input="nearest">
+                <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
+                <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
+                    <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                </div>
+            </div>
+          </div>
         </div>
-
         <div class="row mb-4">
           <div class="col">
             <label for="area" class="col-form-label">Area (sqft)</label>
@@ -296,6 +305,8 @@
     <script src="assets/js/stickyfill.min.js"></script>
     <script src="assets/lib/remodal/remodal.js"></script>
     <script src="assets/js/rellax.min.js"></script>
+	  <script src="assets/js/moment.min.js"></script>
+    <script src="assets/js/tempusdominus-bootstrap-4.js"></script>
     <script src="assets/js/bootstrap-select.js"></script>
     <script src="assets/js/skycons.js"></script>
     <script src="assets/js/theme.js"></script>
@@ -319,7 +330,7 @@
                 title: 'Start Time',
                 sortable: true,
                 formatter: function (value) {
-                  return `<span>${(value == 0 ? "" : new Date(value).toLocaleString())}</span>`;
+                  return `<span>${(value == 0 ? "" : moment(value).format("DD MMM YYYY hh:mm a"))}</span>`;
                 }
               },
               {
@@ -380,7 +391,8 @@
                 title: 'Start Time',
                 sortable: true,
                 formatter: function (value) {
-                  return `<span>${(value == 0 ? "" : new Date(value).toLocaleString())}</span>`;
+                  return `<span>${(value == 0 ? "" : moment(value).format("DD MMM YYYY hh:mm a"))}</span>`;
+                  
                 }
               },
               {
@@ -443,18 +455,7 @@
         
           html.push('<p>    ')
           $.each(row, function (key, value) {
-            switch (key) {
-              case 'initDay':
-              case 'initKc':
-              case 'devDay':
-              case 'devKc':
-              case 'midDay':
-              case 'midKc':
-              case 'lateDay':
-              case 'lateKc':
-                html.push('<b>    ' + key + ':</b> ' + value);
-                break;
-            }
+            html.push('<b>    ' + key + ':</b> ' + value);
           });
           html.push('</p>');
           return html.join('');
@@ -491,6 +492,13 @@
             $('[data-remodal-id=editZoneModal] #irreff').selectpicker('val', row.irreff);
             $('[data-remodal-id=editZoneModal] #swhc').selectpicker('val', row.swhc);
             $('[data-remodal-id=editZoneModal] #flowrate').selectpicker('val', row.flowrate);
+            
+            var times = String(row.start).split(':');
+            var now = new Date();
+            now.setHours(times[0]);
+            now.setMinutes(times[1]);
+            
+            $('[data-remodal-id=editZoneModal] #start').val(moment(now).format('HH:mm'));
 
             inst.open();
           }
@@ -505,7 +513,17 @@
             $cntlZoneTable.bootstrapTable('resetView');
             $openZoneTable.bootstrapTable('resetView');
         });
-                
+       
+        $('#starttimepicker').datetimepicker({
+          format: 'HH:mm',
+          icons: {
+            time: "far fa-clock",
+            date: "far fa-calendar-alt",
+            up: "fas fa-angle-up",
+            down: "fas fa-angle-down"
+          }
+        });
+           
       });
      
 	</script>

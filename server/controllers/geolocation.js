@@ -22,9 +22,8 @@ const getGeoLocationInstance = async (key, callback) => {
   }
 
   GeoLocationInstance = await new GeoLocation(key);
-  log.debug("GeoLocation Constructed! ");
   GeoLocationInstance.init(() => {
-    log.debug("GeoLocation Initialized! ");
+    log.debug("*** GeoLocation Initialized! ");
     callback(GeoLocationInstance);
   })
 }

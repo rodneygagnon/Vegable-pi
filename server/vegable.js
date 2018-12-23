@@ -8,7 +8,7 @@
 // Data Models
 const Settings = require("./models/settings");
 const Users = require("./models/users");
-const Zones = require("./models/zones");
+const Events = require("./models/events");
 
 // Controllers
 const {log} = require('./controllers/logger');
@@ -51,9 +51,9 @@ class Vegable {
         this.weather = weather;
       });
 
-      // Manage Zones
-      Zones.getZonesInstance((zones) => {
-        this.zones = zones;
+      // Manage Events
+      Events.getEventsInstance((events) => {
+        this.events = events;
       });
 
       callback();

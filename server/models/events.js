@@ -22,13 +22,16 @@ const eventSchema = schema({
   sid: Number,                    // Zone ID
   title: String,
   start: String,                  // ISO8601
-  amt: { type: Number, min: 1 },  // amount of water to apply: min 1 litre (0.26 gallons)
+  amt: { type: Number, min: 1 },  // inches of water to apply
   fertilize: Boolean,             // fertigate?
   color: String,
   textColor: String,
   repeatDow: Array,
   repeatEnd: String               // ISO8601
 });
+
+const gpm_cfs = 448.83;
+const sqft_acre = 43560;
 
 // Bull/Redis Jobs Queue
 var EventsQueue;
@@ -52,11 +55,6 @@ class Events {
   constructor() {}
 
   async init(callback) {
-    // Get zones
-    Zones.getZonesInstance((gZones) => {
-      this.zones = gZones;
-    });
-
     try {
     	EventsQueue = new Queue('EventsQueue', {redis: {host: 'redis'}});
 
@@ -67,6 +65,11 @@ class Events {
     } catch (err) {
       log.error("Failed to create EVENTS queue: ", + err);
     }
+
+    // Manage Zones
+    Zones.getZonesInstance((zones) => {
+      this.zones = zones;
+    });
 
     callback();
   }
@@ -144,6 +147,7 @@ class Events {
 
     callback(events);
   }
+
 
   // Update a event. Create if it doesn't exist. Delete if action=='delete'
   async updateEvent(event, action, callback) {
@@ -282,16 +286,21 @@ class Events {
       // If the zone is running, calculate its runtime and push a job back
       // on the queue with the a delay (ms) to turn it off
       if (status) {
-        // TODO: Store Job id in zone so we can remove it if the zone is turned off manually
-        var runtime = job.data.amt * zone.flowrate * 3600000;
+        // Calculate irrigation time (minutes) to recharge the zone
+        // Irrigators Equation : Q x t = d x A
+        //   Q - flow rate (cfs)
+        //   t - time (hr)
+        //   d - depth (inches - adjusted for efficiency of irrigation system)
+        //   A - area (acres)
+        var zone = await this.zones.getZone(job.data.sid);
+        var irrTime = (((job.data.amt / zone.irreff) * (zone.area / sqft_acre)) / (zone.flowrate / gpm_cfs));
 
+        // TODO: Store Job id in zone so we can remove it if the zone is turned off manually
         var nextJob = await EventsQueue.add(job.data, { jobId: uuidv4(),
-                                                        delay: runtime,
+                                                        delay: irrTime * 3600000,
                                                         removeOnComplete: true });
 
-        log.debug(`processJob(add): ${JSON.stringify(nextJob)} delay (${runtime})`);
-      } else {
-        // TODO: record amount of water applied to the zone when shutting off
+        log.debug(`processJob(add): ${JSON.stringify(nextJob)} delay (${irrTime} hr)`);
       }
 
       done();

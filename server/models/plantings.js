@@ -11,9 +11,12 @@ const {log} = require('../controllers/logger');
 const uuidv4 = require('uuid/v4');
 
 const Crops = require('./crops');
+const Weather = require('../controllers/weather');
 
 const {db} = require('./db');
 const {dbKeys} = require('./db');
+
+const oneDay = 24*60*60*1000; // hours*minutes*seconds*milliseconds
 
 const schema = require('schm');
 const plantingSchema = schema({
@@ -22,6 +25,7 @@ const plantingSchema = schema({
   title: String,
   date: String,     // ISO8601
   cid: String,
+  age: { type: Number, min: 0 },       // Age (days) of the crop at planting (seed = 0)
   mad: { type: Number, min: 0 },       // Max Allowable Depletion (MAD %)
   count: { type: Number, default: 1 },
   spacing: { type: Number, default: 1} // Inches
@@ -51,6 +55,10 @@ class Plantings {
       this.crops = crops;
     });
 
+    Weather.getWeatherInstance((weather) => {
+      this.weather = weather;
+    });
+
     callback();
   }
 
@@ -76,6 +84,44 @@ class Plantings {
       plantings[i] = await plantingSchema.validate(JSON.parse(redisPlantings[i]));
 
     callback(plantings);
+  }
+
+  // Calculate the cumulative ETc for the plantings in this zone between the given dates
+  // TODO: adjust the coefficients based on counts and spacing of crops
+  async getETcByZone(zid, start, end, callback) {
+    var dailyETc = 0;
+    var totalDays = Math.round(Math.abs((end.getTime() - start.getTime())/(oneDay)));
+
+    // Get daily weather for given date range
+    var dailyWeather = await this.weather.getWeather(start, end);
+
+    this.getPlantingsByZone(zid, (plantings) => {
+        plantings.forEach(async (planting) => {
+          // Get the crop Kc's for this planting and calculate the age
+          // of the crop at the start of this range
+          var crop = await this.getCrop(planting.cid);
+          var plantingDate = new Date(planting.date);
+          var age = planting.age +
+                      Math.round(Math.abs((start.getTime() - plantingDate.getTime())/(oneDay)));
+
+          // Caclulate this crop stages in order to extract the appropriate Kc
+          var initStage = crop.initDay;
+          var devStage = initStage + crop.devDay;
+          var midStage = devStage + crop.midDay;
+
+          // For each day on the given range, accumulate the dailyETc using the ETo and Kc
+          for (var day = 0; day < totalDays; day++) {
+            dailyETc += dailyWeather[day].eto *
+                          (age <= initStage ? crop.initKc :
+                            (age <= devStage ? crop.devKc :
+                              (age <= midStage ? crop.midKc : crop.lateKc)));
+            age++;
+          }
+        });
+    });
+
+    // Return the zone's ETc for the given date range
+    callback(dailyETc);
   }
 
   async getCrop(cid) {
@@ -128,6 +174,7 @@ class Plantings {
           savedPlanting.cid = validPlanting.cid;
           savedPlanting.count = validPlanting.count;
           savedPlanting.spacing = validPlanting.spacing;
+          savedPlanting.age = validPlanting.age;
           savedPlanting.mad = validPlanting.mad;
 
           log.debug(`updatePlanting(update): add new planting(${JSON.stringify(savedPlanting)})`);

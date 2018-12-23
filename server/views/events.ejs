@@ -219,7 +219,7 @@
 
         <div class="form-row">
           <div class="col-md-6 mb-3">
-            <label for="amt" class="col-form-label">Amount (litres)</label>
+            <label for="amt" class="col-form-label">Amount (inches)</label>
             <select class="selectpicker form-control" id="amt" name="amt" data-size="7" required="">
               <%
                 var amts = [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
@@ -240,11 +240,11 @@
 
         <div class="form-group">
           <label for="start" class="col-form-label">Start</label>
-           <div class="input-group date" id="starttimepicker" data-target-input="nearest">
-              <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
-              <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
-                  <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-              </div>
+          <div class="input-group date" id="starttimepicker" data-target-input="nearest">
+            <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
+            <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
+                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+            </div>
           </div>
         </div>
 
@@ -390,16 +390,27 @@
 	   }
 
       $(document).ready(function(){
-           initCalendar();
+         initCalendar();
 
-					 $('#starttimepicker').datetimepicker({
-						 	 format: 'MM/DD/YYYY hh:mm A'
-						});
-					 $('#repeatendpicker').datetimepicker({
-						 	 format: 'MM/DD/YYYY'
-						});        
+         $('#starttimepicker').datetimepicker({
+            format: 'MM/DD/YYYY hh:mm A',
+            icons: {
+              time: "far fa-clock",
+              date: "far fa-calendar-alt",
+              up: "fas fa-angle-up",
+              down: "fas fa-angle-down"
+            }
+         });
+         $('#repeatendpicker').datetimepicker({
+            format: 'MM/DD/YYYY',
+            icons: {
+              time: "far fa-clock",
+              date: "far fa-calendar-alt",
+              up: "fas fa-angle-up",
+              down: "fas fa-angle-down"
+            }
+         });        
       });
-      
 
 	</script>
 

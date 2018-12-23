@@ -107,6 +107,12 @@ class Weather {
     done();
   }
 
+  // Return the weather for a given date range
+  async getWeather(startDate, endDate) {
+    log.debug(`getWeather: Get stored CIMIS weather from (${startDate}) to (${endDate})`);
+    return(await db.zrangebyscoreAsync(dbKeys.dbWeatherKey, startDate.getTime(), endDate.getTime()));
+  }
+
   // Get Conditions
   async getConditions(callback)
   {
@@ -135,6 +141,10 @@ class Weather {
       url: url,
       json: true
     }, (error, response, body) => {
+      // TODO: Fleshout error handling
+      if (error)
+        log.error(`getCimisConditions: ${error}`);
+
       callback(error, body);
     });
   }

@@ -12,6 +12,7 @@ const {log} = require('../controllers/logger');
 
 const Settings = require('./settings');
 const Plantings = require("./plantings");
+const Events = require("./events");
 
 // OpenSprinker Controller
 const OSPi = require("../controllers/ospi");
@@ -28,24 +29,17 @@ const zonesSchema = schema({
   flowrate: { type: Number, min: 0.5 }, // gallons per hour
   irreff: { type: Number, min: 0 },     // Irrigation Efficiency %
   swhc: { type: Number, min: 0 },       // Soil Water Holding Capacity
-  ib: { type: Number, min: 0 },         // Initial Water Balance (inches)
-  aw: { type: Number, min: 0 },         // Available Water (inches)
-  status: Boolean,                      // on/off
-  started: { type: Number, min: 0 },    // Date/Time the zone was switched on
 
-  // Agreggated Crop/Planting data for this zone
-  plantings: { type: Number, min: 0 },
-  initDay: { type: Number, min: 0 },
-  initKc: { type: Number, min: 0 },
-  devDay: { type: Number, min: 0 },
-  devKc: { type: Number, min: 0 },
-  midDay: { type: Number, min: 0 },
-  midKc: { type: Number, min: 0 },
-  lateDay: { type: Number, min: 0 },
-  lateKc: { type: Number, min: 0 },
-  totDay: { type: Number, min: 0 },
-  totKc: { type: Number, min: 0 },
+  status: Boolean,                      // on/off
+  start: String,                        // HH:mm - time to irrigate when needed
+  started: { type: Number, min: 0 },    // ISO8601 - Irrigation started
+
+  recharged: String,                    // ISO8601 - Last Date the zone was recharged
+  adjusted: String,                     // ISO8601 - Last Date aw was adjusted for depletion
+  aw: { type: Number, min: 0 },         // Available Water (inches)
   mad: { type: Number, min: 0 },        // Max Allowable Depletion (MAD %)
+
+  plantings: { type: Number, min: 0 },
 
   // Color coding for events in the schedule
   color: String,
@@ -114,7 +108,7 @@ class Zones {
     if (!zoneCount) {
       Settings.getSettingsInstance(async (settings) => {
         zoneCount = await settings.getZones();
-        log.debug(`ZoneInit Creating Zones(${dbKeys.dbZonesKey}): ${zoneCount}`);
+        log.debug(`   ZoneInit Creating Zones(${dbKeys.dbZonesKey}): ${zoneCount}`);
 
         try {
           var multi = db.multi();
@@ -122,22 +116,22 @@ class Zones {
           // Fixed Zones (Master + Fertilizer)
           await multi.hset(dbKeys.dbZonesKey, MasterZoneId, JSON.stringify({ id: MasterZoneId, name:'Master', area: 0,
                                                                              type: ZoneType.control, flowrate: FlowRates.oneGPH,
-                                                                             irreff: IrrEff.drip, swhc: SoilWHC.medium, ib: 0, aw: 0,
-                                                                             status: false, started: 0,
-                                                                             color: zoneEventColors[0], textColor: zoneTextColor
+                                                                             irreff: IrrEff.drip, swhc: SoilWHC.medium, ib: 0, aw: 0, mad: 0,
+                                                                             status: false, start: 0, started: 0, recharged: 0, adjusted: 0,
+                                                                             plantings: 0, color: zoneEventColors[0], textColor: zoneTextColor
                                                                            }));
           await multi.hset(dbKeys.dbZonesKey, FertilizerZoneId, JSON.stringify({ id: FertilizerZoneId, name:'Fertilizer', area: 0,
                                                                                 type: ZoneType.control, flowrate: FlowRates.oneGPH,
-                                                                                irreff: IrrEff.drip, swhc: SoilWHC.medium, ib: 0, aw: 0,
-                                                                                status: false, started: 0,
-                                                                                color: zoneEventColors[1], textColor: zoneTextColor
+                                                                                irreff: IrrEff.drip, swhc: SoilWHC.medium, ib: 0, aw: 0, mad: 0,
+                                                                                status: false, start: 0, started: 0, recharged: 0, adjusted: 0,
+                                                                                plantings: 0, color: zoneEventColors[1], textColor: zoneTextColor
                                                                               }));
 
           for (var i = 3; i <= zoneCount; i++) {
             var zone = { id: i, name:`Z0${i-2}`, area: 0, type: ZoneType.open,
                          flowrate: FlowRates.oneGPH, irreff: IrrEff.drip, swhc: SoilWHC.medium,
-                         ib: 0, aw: 0, status: false, started: 0,
-                         color: zoneEventColors[i-1], textColor: zoneTextColor };
+                         ib: 0, aw: 0, status: false, start: 0, started: 0, recharged: 0, adjusted: 0,
+                         plantings: 0, color: zoneEventColors[i-1], textColor: zoneTextColor };
 
             await zonesSchema.validate(zone);
 
@@ -172,7 +166,7 @@ class Zones {
         this.processJob(job, done);
       });
 
-      // Create a job to calculate the irr/fert demand every morning, if job !exist
+      // Create a job to calculate the irr/fert demand every morning
       ZoneQueue.add( { task: "Calculate zone irr/fert demand!"},
                      { repeat: { cron: '15 3 * * *' }, removeOnComplete: true } );
 
@@ -183,41 +177,61 @@ class Zones {
     callback();
   }
 
-  // TODO: Calculate daily water depletion for each zone based on plantings.
-  // TODO: Create irrigation/fertilization events as necessary
+  // Create irrigation/fertilization events as necessary
+  //    1. Take available water (aw) ...
+  //    2. Subtract depletion (ETc(day) = ETo (day) x Kc (Crop coefficient))
+  //    3. If less than the Maximum Allowable Depletion (MAD)remains, create an event to
+  //       irrigate until soil is recharged to Field Capacity (swhc - water remaining after drainage)
   //
-  // 1. Initial Water Balance (ib)
-  // 2. Minus Crop Water Use (ETc(day) = ETo (day) x Kc (Crop coefficient))
-  // 3. Irrigate until soil is recharged to Field Capacity (fc): water remaining after drainage
-  //
-  // Yield Threshold Depletion (YTD)   - minimum available water to avoid crop stress impacting yield
-  // Maximum Allowable Depletion (MAD) - (<=YTD) management practice before irrigation
-  //
-  // Irrigators Equation : Q x t = d x A
-  // Q - flow rate (ft3/sec)
-  // t - time (hr)
-  // d - depth (inches)
-  // A - area (acres)
+  // (NOTE: calculations are still approximations and need vetting and measurements)
   //
   async processJob(job, done) {
-    log.error(`Zone job fired @ ${new Date()}`);
+    log.debug(`Zone::processJob @ ${new Date()}`);
+
+    // End date for processing is yesterday (last time we grabbed weather data)
+    var endDate = new Date();
+    endDate.setDate(endDate.getDate() - 1);
 
     Plantings.getPlantingsInstance(async (plantingsInstance) => {
       try {
         var zones = await this.getAllZones();
         zones.forEach(async (zone) => {
-          plantingsInstance.getPlantingsByZone(zone.id, async (plantings) => {
-            if (plantings.length) {
-              for (var i = 0; i < plantings.length; i++) {
-                // TODO: *** DO THE CALCS, CREATE THE EVENT
+          // Only check zones with plantings
+          if (zone.plantings) {
+            var fertilize = false;
+
+            // Get the ETc since that last time we adjusted the soil
+            plantingsInstance.getETcByZone(zone.id, new Date(zone.adjusted), endDate, async (dailyETc) => {
+              // Record the Depletion and check if the zone needs water
+              // TODO: determine if the plant needs nutrients
+
+              zone.aw -= dailyETc;
+
+              // Create an irrigation event if necessary
+              if (zone.aw < (zone.swhc * zone.mad)) {
+                var start = new Date();
+                var times = zone.start.split(':');
+
+                start.setHours(times[0]);
+                start.setMinutes(times[1]);
+
+                Events.getEventsInstance((events) => {
+                  events.updateEvent(/* event */ { sid: zone.id, title: `(auto) ${zone.name} Event`,
+                                                   start: start, amt: zone.swhc - zone.aw, fertilize: fertilize },
+                                     /* action */ "", () => {});
+                });
               }
-            }
-          });
+
+              // Record that we've adjusted the zone up to now
+              zone.adjusted = new Date();
+
+              this.setZone(zone, () => {});
+            });
+          }
         });
       } catch (err) {
         log.error(`Zone processJob error: ${err}`);
       }
-
       done();
     });
   }
@@ -271,7 +285,6 @@ class Zones {
     } catch (err) {
       log.error(`getZone(${zid}) Failed to get zone: ${err}`);
     }
-
     return zone;
   }
 
@@ -285,16 +298,7 @@ class Zones {
       saveZone.irreff = inputZone.irreff;
       saveZone.swhc = inputZone.swhc;
       saveZone.flowrate = inputZone.flowrate;
-      saveZone.initDay = inputZone.initDay;
-      saveZone.initKc = inputZone.initKc;
-      saveZone.devDay = inputZone.devDay;
-      saveZone.devKc = inputZone.devKc;
-      saveZone.midDay = inputZone.midDay;
-      saveZone.midKc = inputZone.midKc;
-      saveZone.lateDay = inputZone.lateDay;
-      saveZone.lateKc = inputZone.lateKc;
-      saveZone.totDay = inputZone.totDay;
-      saveZone.totKc = inputZone.totKc;
+      saveZone.start = inputZone.start;
       saveZone.mad = inputZone.mad;
       saveZone.plantings = inputZone.plantings;
 
@@ -352,50 +356,20 @@ class Zones {
     callback(zone.status);
   }
 
-  // Average the crop stage durations and Kc's for every planting per zone.
-  // Result is an approximation across crops.
-  // Better to group same or like crops to increase precision
+  // Average the MAD and record the number of plantings in this zone
   async updatePlantings(zids) {
     Plantings.getPlantingsInstance((plantingsInstance) => {
       try {
         zids.forEach(async (zid) => {
           var zone = await this.getZone(zid);
 
-          // Clear old coefficients
-          zone.initDay = zone.initKc = zone.devDay = zone.devKc = 0;
-          zone.midDay = zone.midKc = zone.lateDay = zone.lateKc = 0;
-          zone.totDay = zone.totKc = zone.mad = 0;
+          zone.mad = 0;
 
           plantingsInstance.getPlantingsByZone(zid, async (plantings) => {
             if (plantings.length) {
-              for (var i = 0; i < plantings.length; i++) {
-                // TODO: adjust the coefficients based on counts and spacing of crops
-                var planting = plantings[i];
-                var crop = await plantingsInstance.getCrop(planting.cid);
+              for (var i = 0; i < plantings.length; i++)
+                zone.mad += plantings[i].mad;
 
-                zone.initDay += crop.initDay;
-                zone.initKc += crop.initKc;
-                zone.devDay += crop.devDay;
-                zone.devKc += crop.devKc;
-                zone.midDay += crop.midDay;
-                zone.midKc += crop.midKc;
-                zone.lateDay += crop.lateDay;
-                zone.lateKc += crop.lateKc;
-                zone.totDay += crop.totDay;
-                zone.totKc += crop.totKc;
-                zone.mad += planting.mad;
-              }
-
-              zone.initDay /= plantings.length;
-              zone.initKc /= plantings.length;
-              zone.devDay /= plantings.length;
-              zone.devKc /= plantings.length;
-              zone.midDay /= plantings.length;
-              zone.midKc /= plantings.length;
-              zone.lateDay /= plantings.length;
-              zone.lateKc /= plantings.length;
-              zone.totDay /= plantings.length;
-              zone.totKc /= plantings.length;
               zone.mad /= plantings.length;
             }
             zone.plantings = plantings.length;
