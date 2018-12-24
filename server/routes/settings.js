@@ -28,24 +28,29 @@ router.get('/', function(req, res, next) {
 });
 
 // set new config info
-router.route('/post').post(function (req, res) {
+router.route('/location/set').post(function (req, res) {
   Settings.getSettingsInstance((SettingsInstance) => {
     console.log(`Setting Location: `);
     console.log(req.body);
 
     SettingsInstance.setLocation(req.body.address, req.body.city,
-                               req.body.state, req.body.zip);
+                                  req.body.state, req.body.zip);
 
     res.redirect('/settings');
   });
 });
 
 // create, update or delete a crop
-router.route('/updateCrop').post(function (req, res) {
-  Crops.getCropsInstance((CropsInstance) => {
-    CropsInstance.updateCrop(req.body, req.body.action, () => {
-      res.redirect('/settings');
-    });
+router.route('/crops/update').post(function (req, res) {
+  Crops.getCropsInstance(async (CropsInstance) => {
+    var result;
+
+    if (req.body.action === 'delete')
+      result = await CropsInstance.delCrop(req.body.id);
+    else
+      result = await CropsInstance.setCrop(req.body);
+
+    res.redirect('/settings');
   });
  });
 

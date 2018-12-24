@@ -78,7 +78,7 @@ class Crops {
     callback();
   }
 
-  async getAllCrops(callback) {
+  async getCrops(callback) {
     var crops = [];
 
     var redisCrops = await db.hvalsAsync(dbKeys.dbCropsKey);
@@ -105,67 +105,39 @@ class Crops {
     return crop;
   }
 
-  // Update a planting. Create if it doesn't exist. Delete if action=='delete'
-  async updateCrop(crop, action, callback) {
-    log.debug(`updateCrop: (${JSON.stringify(crop)})`);
-
+  async setCrop(crop) {
     try {
       var validCrop = await cropSchema.validate(crop);
 
-      // id is set if we are updating/deleting a crop, go find it
-      if (typeof crop.id !== 'undefined' && crop.id !== "") {
-        var savedCrop = JSON.parse(await db.hgetAsync(dbKeys.dbCropsKey, crop.id));
+      // Calculate totals
+      validCrop.totDay = validCrop.initDay + validCrop.devDay +
+                         validCrop.midDay + validCrop.lateDay;
+      validCrop.totKc = validCrop.initDay * validCrop.initKc +
+                        validCrop.devDay * validCrop.devKc +
+                        validCrop.midDay * validCrop.midKc +
+                        validCrop.lateDay * validCrop.lateKc;
 
-        if (savedCrop) {
-          if (action === 'delete') { // DELETE a crop
-            log.debug(`updateCrop(delete): del old crop(${savedCrop})`);
-
-            await db.hdelAsync(dbKeys.dbCropsKey, savedCrop.id);
-          } else { // UPDATE a planting
-            savedCrop.name = validCrop.name;
-            savedCrop.type = validCrop.type;
-            savedCrop.initDay = validCrop.initDay;
-            savedCrop.initKc = validCrop.initKc;
-            savedCrop.devDay = validCrop.devDay;
-            savedCrop.devKc = validCrop.devKc;
-            savedCrop.midDay = validCrop.midDay;
-            savedCrop.midKc = validCrop.midKc;
-            savedCrop.lateDay = validCrop.lateDay;
-            savedCrop.lateKc = validCrop.lateKc;
-
-            // Calculate totals
-            savedCrop.totDay = savedCrop.initDay + savedCrop.devDay +
-                               savedCrop.midDay + savedCrop.lateDay;
-            savedCrop.totKc = savedCrop.initDay * savedCrop.initKc +
-                              savedCrop.devDay * savedCrop.devKc +
-                              savedCrop.midDay * savedCrop.midKc +
-                              savedCrop.lateDay * savedCrop.lateKc;
-
-            log.debug(`updateCrop(update): update crop(${JSON.stringify(savedCrop)})`);
-
-            await db.hsetAsync(dbKeys.dbCropsKey, savedCrop.id, JSON.stringify(savedCrop));
-          }
-        }
-      } else { // CREATE a new crop
-        // Assign a uuidv
+      if (typeof validCrop.id === 'undefined' || validCrop.id === "")
+        // Create a new crop id.
         validCrop.id = uuidv4();
 
-        // Calculate totals
-        validCrop.totDay = validCrop.initDay + validCrop.devDay +
-                           validCrop.midDay + validCrop.lateDay;
-        validCrop.totKc = validCrop.initDay * validCrop.initKc +
-                          validCrop.devDay * validCrop.devKc +
-                          validCrop.midDay * validCrop.midKc +
-                          validCrop.lateDay * validCrop.lateKc;
+      await db.hsetAsync(dbKeys.dbCropsKey, validCrop.id, JSON.stringify(validCrop));
 
-        log.debug(`updateCrop(create): validCrop(${JSON.stringify(validCrop)})`);
-
-        await db.hsetAsync(dbKeys.dbCropsKey, validCrop.id, JSON.stringify(validCrop));
-      }
+      return(validCrop.id);
     } catch (err) {
-      log.error(`updateCrop Failed to save crop: ${err}`);
+      log.error(`getCrop Failed to set crop: ${err}`);
+      return;
     }
-    callback();
+  }
+
+  async delCrop(cid) {
+    try {
+      await db.hdelAsync(dbKeys.dbCropsKey, cid);
+    } catch (err) {
+      log.error(`delCrop Failed to get crop: ${err}`);
+      return;
+    }
+    return cid;
   }
 }
 
