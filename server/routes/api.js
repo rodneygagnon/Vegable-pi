@@ -175,11 +175,28 @@ router.route('/zones/get/control').get(function (req, res) {
   });
 });
 
-// update zone name, desc, flow info
+/**
+ * Update Zone
+ *
+ * @returns {result}
+ */
 router.route('/zones/set').post(function (req, res) {
   Zones.getZonesInstance((ZonesInstance) => {
     ZonesInstance.setZone(req.body, (err) => {
       res.statusCode = (err === 0 ? 200 : 500);
+    });
+  });
+});
+
+/**
+ * Switch on/off zone
+ *
+ * @returns {status}
+ */
+router.route('/zones/switch').post(function (req, res) {
+  Zones.getZonesInstance((ZonesInstance) => {
+    ZonesInstance.switchZone(req.query.id, (status) => {
+      res.status(200).json({ status: status });
     });
   });
 });

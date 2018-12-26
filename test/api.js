@@ -100,7 +100,6 @@ describe('API', () => {
 
   describe('Zones', () => {
     var getZone;
-    var setZone;
 
     it ('should get all zones', (done) => {
       request(app)
@@ -139,6 +138,22 @@ describe('API', () => {
         .get('/api/zones/set')
         .send(getZone)
         .expect(200)
+        .end(done);
+    });
+    it ('should switch a zone ON', (done) => {
+      request(app)
+        .post('/api/zones/switch')
+        .query({ id: `${getZone.id}` })
+        .expect('Content-Type', /json/)
+        .expect(200, {status: true})
+        .end(done);
+    });
+    it ('should switch a zone OFF', (done) => {
+      request(app)
+        .post('/api/zones/switch')
+        .query({ id: `${getZone.id}` })
+        .expect('Content-Type', /json/)
+        .expect(200, {status: false})
         .end(done);
     });
   });
