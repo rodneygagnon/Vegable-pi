@@ -378,7 +378,7 @@ class Zones {
           }); // getPlantingByZone
         }); // forEach zone
       } catch (err) {
-        log.error(`updatePlantings Failed to get zone: ${err}`);
+        log.error(`updatePlantings Failed to update planting for zones(${zids}): ${err}`);
       }
     });
   }

@@ -19,9 +19,9 @@ router.get('/', function(req, res, next) {
   else {
     let zones = [];
     Zones.getZonesInstance((ZonesInstance) => {
-      ZonesInstance.getZones((zones) => {
+      ZonesInstance.getPlantingZones((zones) => {
         Crops.getCropsInstance((CropsInstance) => {
-          CropsInstance.getAllCrops((crops) => {
+          CropsInstance.getCrops((crops) => {
             res.render('plantings', {title: 'Vegable', zones: zones, crops: crops});
           });
         });
@@ -31,23 +31,20 @@ router.get('/', function(req, res, next) {
 });
 
 router.route('/update').post(function (req, res) {
-  console.log(`Update Planting: ${JSON.stringify(req.body)}`);
+  Plantings.getPlantingsInstance(async (PlantingsInstance) => {
+    var result;
 
-  Plantings.getPlantingsInstance((PlantingsInstance) => {
-    PlantingsInstance.updatePlanting(req.body, req.body.action, (zids) => {
+    if (req.body.action === 'delete')
+      result = await PlantingsInstance.delPlanting(req.body);
+    else
+      result = await PlantingsInstance.setPlanting(req.body);
 
-      res.redirect('/plantings');
-
-      try {
-        // Tell the zone(s) of the planting change
-        Zones.getZonesInstance((ZonesInstance) => {
-          ZonesInstance.updatePlantings(zids);
-        });
-      } catch (err) {
-        log.error(`update planting can not get zone instance: ${JSON.stringify(Zones)} ${err}`);
-      }
-
+    // Tell the zone of a planting change
+    Zones.getZonesInstance((ZonesInstance) => {
+      ZonesInstance.updatePlantings(result.zids);
     });
+
+    res.redirect('/plantings');
   });
 });
 

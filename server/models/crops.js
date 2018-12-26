@@ -125,7 +125,7 @@ class Crops {
 
       return(validCrop.id);
     } catch (err) {
-      log.error(`getCrop Failed to set crop: ${err}`);
+      log.error(`setCrop Failed to set crop: ${err}`);
       return;
     }
   }
@@ -134,7 +134,7 @@ class Crops {
     try {
       await db.hdelAsync(dbKeys.dbCropsKey, cid);
     } catch (err) {
-      log.error(`delCrop Failed to get crop: ${err}`);
+      log.error(`delCrop Failed to del crop: ${err}`);
       return;
     }
     return cid;

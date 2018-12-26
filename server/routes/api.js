@@ -23,9 +23,9 @@ var CropsInstance;
 var EventsInstance;
 var PlantingsInstance;
 
-/****************
+/*******************
  ** Location APIs **
- ****************/
+ *******************/
 
 /**
  * Get location
@@ -101,30 +101,78 @@ router.route('/crops/set').post(function (req, res) {
   });
  });
 
+ /********************
+  ** Events APIs **
+  ********************/
+
  /**
-  * Event APIs
+  * Returns Individual or list of events
+  * --- TODO TODO ---
+  * @param {pid} Planting Id
+  * @returns {plantings or plantings[]}
   */
-router.route('/events/get').get(function (req, res) {
-  let parsedUrl = url.parse(req.url);
-  let parsedQs = querystring.parse(parsedUrl.query);
+ router.route('/events/get').get(function (req, res) {
+   let parsedUrl = url.parse(req.url);
+   let parsedQs = querystring.parse(parsedUrl.query);
 
-  Events.getEventsInstance((EventsInstance) => {
-    var events = [];
-    EventsInstance.getEvents(parsedQs.start, parsedQs.end, (events) => {
-      res.status(200).json(events);
-    });
-  });
-});
+   Events.getEventsInstance((EventsInstance) => {
+     var events = [];
+     EventsInstance.getEvents(parsedQs.start, parsedQs.end, (events) => {
+       res.status(200).json(events);
+     });
+   });
+ });
 
-router.route('/plantings/get').get(function (req, res) {
-  Plantings.getPlantingsInstance((PlantingsInstance) => {
-    var plantings = [];
-    PlantingsInstance.getAllPlantings((plantings) => {
-      res.status(200).json(plantings);
-      return res.json(plantings);
-    });
+/********************
+ ** Plantings APIs **
+ ********************/
+
+ /**
+  * Returns Individual or list of plantings
+  *
+  * @param {pid} Planting Id
+  * @returns {plantings or plantings[]}
+  */
+ router.route('/plantings/get').get(function (req, res) {
+   Plantings.getPlantingsInstance(async (PlantingsInstance) => {
+     if (typeof req.query === 'undefined' ||
+         typeof req.query.id === 'undefined') {
+       // Get all plantings
+       var plantings = [];
+       PlantingsInstance.getAllPlantings((plantings) => {
+         res.status(200).json(plantings);
+       });
+     } else {
+       var planting = await PlantingsInstance.getPlanting(req.query.id);
+       res.status(planting != null ? 200 : 500).json(planting);
+     }
+   });
+ });
+
+ /**
+  * Create, update or delete a planting
+  *
+  * @param {planting} Planting
+  * @returns {id}
+  */
+ router.route('/plantings/set').post(function (req, res) {
+   Plantings.getPlantingsInstance(async (PlantingsInstance) => {
+     var result;
+
+     if (req.body.action === 'delete')
+       result = await PlantingsInstance.delPlanting(req.body);
+     else
+       result = await PlantingsInstance.setPlanting(req.body);
+
+    // Tell the zone of a planting change
+     Zones.getZonesInstance((ZonesInstance) => {
+       ZonesInstance.updatePlantings(result.zids);
+     });
+
+     res.status(result.zids !== null ? 200 : 500)
+        .json({ id: result.id });
+   });
   });
-});
 
 /****************
  ** Zones APIs **

@@ -78,7 +78,7 @@ class Plantings {
     // get all plantings for given zone
     var redisPlantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, zid, zid);
 
-    log.debug(`getPlantingsByZone: (${redisPlantings.length})`);
+    log.debug(`getPlantingsByZone: Zone(${zid}) Plantings(${redisPlantings.length})`);
 
     for (var i = 0; i < redisPlantings.length; i++)
       plantings[i] = await plantingSchema.validate(JSON.parse(redisPlantings[i]));
@@ -128,80 +128,82 @@ class Plantings {
     return (await this.crops.getCrop(cid));
   }
 
-  // Update a planting. Create if it doesn't exist. Delete if action=='delete'
-  async updatePlanting(planting, action, callback) {
-    log.debug(`updatePlanting: (${JSON.stringify(planting)})`);
-
-    // Keep track of which zones need to be notified of a planting change
-    var zoneIds = [];
+  async setPlanting(planting) {
+    var pid;
+    var zids = [];
 
     try {
       var validPlanting = await plantingSchema.validate(planting);
 
-      zoneIds.push(validPlanting.zid);
+      zids.push(validPlanting.zid);
 
-      var savedPlanting = null;
-
-      // id is set if we are updating/deleting a planting, go find it
-      if (typeof planting.id !== 'undefined' && planting.id !== "") {
+      if (typeof validPlanting.id === 'undefined' || validPlanting.id === "") {
+        // Create a new crop id.
+        validPlanting.id = uuidv4();
+      } else {
+        // Find and remove the old planting
         var plantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, '-inf', '+inf');
-
-        log.debug(`updatePlanting (updating): (${JSON.stringify(validPlanting)})`);
 
         for (var i = 0; i < plantings.length; i++) {
           var pObj = JSON.parse(plantings[i]);
           if (pObj.id === validPlanting.id) {
-            savedPlanting = pObj;
+            // Record if it was moved to another zone
+            if (pObj.zid !== validPlanting.zid)
+              zids.push(pObj.zid);
+
+            // Remove the old planting
+            await db.zremAsync(dbKeys.dbPlantingsKey, JSON.stringify(pObj));
             break;
           }
         }
       }
+      pid = validPlanting.id;
 
-      if (savedPlanting) {
-        var removePlanting = JSON.stringify(savedPlanting);
+      await db.zaddAsync(dbKeys.dbPlantingsKey, validPlanting.zid, JSON.stringify(validPlanting));
 
-        if (action === 'delete') { // DELETE a planting
-          log.debug(`updatePlanting(delete): del old planting(${removePlanting})`);
+    } catch (err) {
+      log.error(`setPlanting Failed to set planting: ${err}`);
+    }
+    return({id: pid, zids: zids});
+  }
 
-          await db.zremAsync(dbKeys.dbPlantingsKey, removePlanting);
-        } else { // UPDATE a planting
-          if (savedPlanting.zid !== validPlanting.zid)
-            zoneIds.push(savedPlanting.zid);
+  async getPlanting(pid) {
+    var planting = null;
+    try {
+      // Find planting
+      var plantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, '-inf', '+inf');
 
-          savedPlanting.zid = validPlanting.zid;
-          savedPlanting.title = validPlanting.title;
-          savedPlanting.date = validPlanting.date;
-          savedPlanting.cid = validPlanting.cid;
-          savedPlanting.count = validPlanting.count;
-          savedPlanting.spacing = validPlanting.spacing;
-          savedPlanting.age = validPlanting.age;
-          savedPlanting.mad = validPlanting.mad;
-
-          log.debug(`updatePlanting(update): add new planting(${JSON.stringify(savedPlanting)})`);
-
-          var zcnt = await db.zaddAsync(dbKeys.dbPlantingsKey, savedPlanting.zid, JSON.stringify(savedPlanting));
-          if (zcnt > 0) {
-            log.debug(`updatePlanting(update): del old planting(${removePlanting})`);
-
-            await db.zremAsync(dbKeys.dbPlantingsKey, removePlanting);
-          }
+      for (var i = 0; i < plantings.length; i++) {
+        var pObj = JSON.parse(plantings[i]);
+        if (pObj.id === pid) {
+          planting = pObj;
+          break;
         }
-
-      // CREATE a new planting
-      } else {
-        log.debug(`updatePlanting(create): validPlanting(${JSON.stringify(validPlanting)})`);
-
-        // Assign a uuidv
-        validPlanting.id = uuidv4();
-
-        await db.zaddAsync(dbKeys.dbPlantingsKey, validPlanting.zid, JSON.stringify(validPlanting));
       }
     } catch (err) {
-      log.error(`updatePlanting Failed to save planting: ${err}`);
+      log.error(`getPlanting Failed to get planting: ${err}`);
+    }
+    return planting;
+  }
+
+  async delPlanting(planting) {
+    var pid;
+    var zids = [];
+
+    try {
+      var validPlanting = await plantingSchema.validate(planting);
+
+      await db.zremAsync(dbKeys.dbPlantingsKey, JSON.stringify(validPlanting));
+
+      pid = validPlanting.id;
+      zids.push(validPlanting.zid);
+    } catch (err) {
+      log.error(`delPlanting Failed to del planting: ${err}`);
     }
 
-    callback(zoneIds);
+    return({id: pid, zids: zids});
   }
+
 }
 
 module.exports = {

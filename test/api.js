@@ -36,7 +36,7 @@ describe('API', () => {
   describe('Crops', () => {
     var addedCrop = {
           name: "Test Crop",
-          type: "Test Vegatable",
+          type: "Test Vegetable",
           initDay: 1,
           initKc: 2,
           devDay: 3,
@@ -157,4 +157,78 @@ describe('API', () => {
         .end(done);
     });
   });
+
+  describe('Plantings', () => {
+    var crops;
+    var addedPlanting = {
+          zid: 3,
+          title: "Test Planting",
+          date: (new Date()).toString(),
+          age: 1,
+          mad: 50,
+          count: 2,
+          spacing: 12
+        };
+
+    it ('should get all crops', (done) => {
+      request(app)
+        .get('/api/crops/get')
+        .expect('Content-Type', /json/)
+        .expect((res) => {
+          crops = res.body;
+          addedPlanting.cid = crops[0].id;
+        })
+        .expect(200)
+        .end(done);
+    });
+
+    it ('should get all plantings', (done) => {
+      request(app)
+        .get('/api/plantings/get')
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(done);
+    });
+    it('should create a planting', (done) => {
+      request(app)
+        .post('/api/plantings/set')
+        .send(addedPlanting)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect((res) => {
+          addedPlanting.id = res.body.id;
+        })
+        .expect(200)
+        .end(done);
+    });
+    it('should update a planting', (done) => {
+      addedPlanting.title = "Updated Planting";
+      request(app)
+        .post('/api/plantings/set')
+        .send(addedPlanting)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect(200, {id: addedPlanting.id})
+        .end(done);
+    });
+    it ('should get a planting', (done) => {
+      request(app)
+        .get('/api/plantings/get')
+        .query({ id: `${addedPlanting.id}` })
+        .expect('Content-Type', /json/)
+        .expect(200, addedPlanting)
+        .end(done);
+    });
+    it('should delete a planting', (done) => {
+      addedPlanting.action = 'delete';
+      request(app)
+        .post('/api/plantings/set')
+        .send(addedPlanting)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect(200, {id: addedPlanting.id})
+        .end(done);
+    });
+  });
+
 });
