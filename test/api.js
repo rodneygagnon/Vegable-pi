@@ -6,6 +6,7 @@
  */
  const request = require('supertest');
  const expect = require('expect');
+ const moment = require('moment');
 
 var app = require('../server/app');
 
@@ -231,4 +232,21 @@ describe('API', () => {
     });
   });
 
+  describe('Events', () => {
+    it ('should get events from start to end', (done) => {
+      var start = new Date();
+      var end = new Date();
+
+      start.setDate(0);
+      end.setDate(32);
+
+      request(app)
+        .get('/api/events/get')
+        .query({ start: `${moment(start).format('YYYY-MM-DD')}`,
+                 end: `${moment(end).format('YYYY-MM-DD')}` })
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(done);
+    });
+  });
 });

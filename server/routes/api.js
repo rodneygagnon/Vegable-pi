@@ -106,9 +106,10 @@ router.route('/crops/set').post(function (req, res) {
   ********************/
 
  /**
-  * Returns Individual or list of events
-  * --- TODO TODO ---
-  * @param {pid} Planting Id
+  * Returns list of events
+  *
+  * @param {start} Start date
+  * @param {end} End date
   * @returns {plantings or plantings[]}
   */
  router.route('/events/get').get(function (req, res) {

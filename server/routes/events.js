@@ -18,7 +18,7 @@ router.get('/', function(req, res, next) {
   else {
     let zones = [];
     Zones.getZonesInstance((ZonesInstance) => {
-      ZonesInstance.getZones((zones) => {
+      ZonesInstance.getPlantingZones((zones) => {
         res.render('events', {title: 'Vegable', zones: zones});
       });
     });
