@@ -318,7 +318,7 @@
 
       function initTables() {
         $cntlZoneTable.bootstrapTable({
-            url: "/api/zones/getControl",
+            url: "/api/zones/get/control",
             columns: [
               {
                 field: 'name',
@@ -345,7 +345,7 @@
         });
 
         $openZoneTable.bootstrapTable({
-            url: "/api/zones/get",
+            url: "/api/zones/get/planting",
             icons: {
               detailOpen: 'fas fa-chevron-right',
               detailClose: 'fas fa-chevron-down'

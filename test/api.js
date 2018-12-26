@@ -9,8 +9,6 @@
 
 var app = require('../server/app');
 
-var addedCrop;
-
 describe('API', () => {
   describe('Settings', () => {
     it ('should get location', (done) => {
@@ -36,6 +34,21 @@ describe('API', () => {
   });
 
   describe('Crops', () => {
+    var addedCrop = {
+          name: "Test Crop",
+          type: "Test Vegatable",
+          initDay: 1,
+          initKc: 2,
+          devDay: 3,
+          devKc: 4,
+          midDay: 5,
+          midKc: 6,
+          lateDay: 7,
+          lateKc: 8,
+          totDay: 16,
+          totKc: 100
+        };
+
     it ('should get all crops', (done) => {
       request(app)
         .get('/api/crops/get')
@@ -43,42 +56,36 @@ describe('API', () => {
         .expect(200)
         .end(done);
     });
-
     it('should create a crop', (done) => {
       request(app)
         .post('/api/crops/set')
-        .send({ name: "Test Crop",
-                type: "Test Vegatable",
-                initDay: 1,
-                initKc: 2,
-                devDay: 3,
-                devKc: 4,
-                midDay: 5,
-                midKc: 6,
-                lateDay: 7,
-                lateKc: 8,
-                totDay: 9,
-                totKc: 10
-              })
+        .send(addedCrop)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .expect((res) => {
-          addedCrop = res.body;
+          addedCrop.id = res.body.id;
         })
         .expect(200)
         .end(done);
     });
-
+    it('should update a crop', (done) => {
+      addedCrop.name = "Updated Crop";
+      request(app)
+        .post('/api/crops/set')
+        .send(addedCrop)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect(200, {id: addedCrop.id})
+        .end(done);
+    });
     it ('should get a crop', (done) => {
       request(app)
         .get('/api/crops/get')
         .query({ id: `${addedCrop.id}` })
         .expect('Content-Type', /json/)
-        .expect((res) => {})
-        .expect(200)
+        .expect(200, addedCrop)
         .end(done);
     });
-
     it('should delete a crop', (done) => {
       addedCrop.action = 'delete';
       request(app)
@@ -86,10 +93,53 @@ describe('API', () => {
         .send(addedCrop)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
-        .expect((res) => {})
+        .expect(200, {id: addedCrop.id})
+        .end(done);
+    });
+  });
+
+  describe('Zones', () => {
+    var getZone;
+    var setZone;
+
+    it ('should get all zones', (done) => {
+      request(app)
+        .get('/api/zones/get')
+        .expect('Content-Type', /json/)
         .expect(200)
         .end(done);
     });
-
+    it ('should get planting zones', (done) => {
+      request(app)
+        .get('/api/zones/get/planting')
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(done);
+    });
+    it ('should get control zones', (done) => {
+      request(app)
+        .get('/api/zones/get/control')
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(done);
+    });
+    it ('should get a zone', (done) => {
+      request(app)
+        .get('/api/zones/get')
+        .query({ id: 3 })
+        .expect('Content-Type', /json/)
+        .expect((res) => {
+          getZone = res.body;
+        })
+        .expect(200)
+        .end(done);
+    });
+    it ('should set a zone', (done) => {
+      request(app)
+        .get('/api/zones/set')
+        .send(getZone)
+        .expect(200)
+        .end(done);
+    });
   });
 });

@@ -237,7 +237,7 @@ class Zones {
   }
 
   // Returns zones that are available for assignment
-  async getZones(callback) {
+  async getPlantingZones(callback) {
     callback(await this.getZonesByType(ZoneType.open));
   }
 

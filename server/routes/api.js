@@ -111,8 +111,7 @@ router.route('/events/get').get(function (req, res) {
   Events.getEventsInstance((EventsInstance) => {
     var events = [];
     EventsInstance.getEvents(parsedQs.start, parsedQs.end, (events) => {
-      res.statusCode = 200;
-      return res.json(events);
+      res.status(200).json(events);
     });
   });
 });
@@ -121,31 +120,57 @@ router.route('/plantings/get').get(function (req, res) {
   Plantings.getPlantingsInstance((PlantingsInstance) => {
     var plantings = [];
     PlantingsInstance.getAllPlantings((plantings) => {
-      res.statusCode = 200;
+      res.status(200).json(plantings);
       return res.json(plantings);
     });
   });
 });
 
-// Get all zones
+/****************
+ ** Zones APIs **
+ ****************/
+
+ /**
+  * Returns All Zones
+  *
+  * @returns {zones[]}
+  */
 router.route('/zones/get').get(function (req, res) {
+  Zones.getZonesInstance(async (ZonesInstance) => {
+    if (typeof req.query === 'undefined' ||
+        typeof req.query.id === 'undefined') {
+      res.status(200).json(await ZonesInstance.getAllZones());
+    } else {
+      var zone = await ZonesInstance.getZone(req.query.id);
+      res.status(zone != null ? 200 : 500).json(zone);
+    }
+  });
+});
+
+ /**
+  * Returns Planting Zones
+  *
+  * @returns {zones[]}
+  */
+router.route('/zones/get/planting').get(function (req, res) {
   Zones.getZonesInstance((ZonesInstance) => {
     var zones = [];
-    ZonesInstance.getZones((zones) => {
-      res.statusCode = 200;
-      return res.json(zones);
+    ZonesInstance.getPlantingZones((zones) => {
+      res.status(200).json(zones);
     });
   });
 });
 
-// Get all zones
-router.route('/zones/getControl').get(function (req, res) {
+/**
+ * Returns Control Zones
+ *
+ * @returns {zones[]}
+ */
+router.route('/zones/get/control').get(function (req, res) {
   Zones.getZonesInstance((ZonesInstance) => {
     var zones = [];
     ZonesInstance.getControlZones((zones) => {
-      console.log(`Zones(${zones.length})`);
-      res.statusCode = 200;
-      return res.json(zones);
+      res.status(200).json(zones);
     });
   });
 });
@@ -164,8 +189,7 @@ router.route('/weather/get').get(function (req, res) {
   Weather.getWeatherInstance((WeatherInstance) => {
     var error, conditions;
     WeatherInstance.getConditions((error, conditions) => {
-      res.statusCode = 200;
-      return res.json(conditions);
+      res.status(200).json(conditions);
     });
   });
 });
