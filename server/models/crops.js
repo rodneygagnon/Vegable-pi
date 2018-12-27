@@ -54,8 +54,6 @@ class Crops {
   async init(callback) {
     var cropCnt = await db.hlenAsync(dbKeys.dbCropsKey);
 
-    log.debug(`Crop Count(${dbKeys.dbCropsKey}): ` + cropCnt);
-
     // Create default crops if necessary
     if (cropCnt === 0) {
       var crops = [];

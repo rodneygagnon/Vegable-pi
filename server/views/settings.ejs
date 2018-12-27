@@ -182,6 +182,20 @@
                     <input class="form-control border-300 bg-light" type="text" placeholder="Your Zipcode" id="zip" name="zip" value="<%= config.zip %>" required=""/>
                   </div>
                 </div>
+                <div class="row mb-4">
+                  <div class="col">
+                    <label for="etzone" class="col-form-label">Evapotranspiration Reference (ETr) Zone</label>
+                    <select  class="selectpicker form-control" id="etzone" name="etzone">
+                      <%
+                         for(var i=0; i < etrs.length; i++) { 
+                           var selected = ( config.etzone === etrs[i].zone ) ? "selected" : "";
+                      
+                           %><option value="<%= etrs[i].zone %>" <%=selected %>><%=etrs[i].title %></option><%
+                         }
+                      %>
+                    </select>
+                  </div>
+                </div>  
                 <div class="d-flex">
                   <div class="ml-auto p-2"><button type="submit" class="btn btn-sm btn-dark">Save</button></div>
                 </div>

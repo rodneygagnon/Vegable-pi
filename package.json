@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "start": "node ./index.js",
-    "test": "mocha"
+    "test": "mocha",
+    "test-with-coverage": "nyc --reporter=text mocha"
   },
   "author": "",
   "license": "MIT",
@@ -40,6 +41,7 @@
     "expect": "^23.6.0",
     "mocha": "^5.2.0",
     "moment": "^2.23.0",
+    "nyc": "^13.1.0",
     "supertest": "^3.3.0"
   }
 }

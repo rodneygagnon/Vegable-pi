@@ -21,7 +21,9 @@ router.get('/', function(req, res, next) {
     Settings.getSettingsInstance((SettingsInstance) => {
       var config;
       SettingsInstance.getSettings((config) => {
-        res.render('settings', {title: 'Vegable', config: config});
+        SettingsInstance.getETrs((etrs) => {
+          res.render('settings', {title: 'Vegable', config: config, etrs: etrs});
+        });
       });
     });
   }
@@ -34,7 +36,8 @@ router.route('/location/set').post(function (req, res) {
     console.log(req.body);
 
     SettingsInstance.setLocation(req.body.address, req.body.city,
-                                  req.body.state, req.body.zip);
+                                  req.body.state, req.body.zip,
+                                  req.body.etzone);
 
     res.redirect('/settings');
   });

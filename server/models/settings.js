@@ -12,6 +12,7 @@ const config = require("../../config/config");
 const GeoLocation = require('../controllers/geolocation')
 
 const Crops = require('./crops');
+const ETr = require('./etr');
 
 const {db} = require("./db");
 const {dbKeys} = require("./db");
@@ -24,6 +25,7 @@ const settingsSchema = schema({
   zip: String,
   lat: Number,
   long: Number,
+  etzone: Number,
   mapboxKey: String,
   darkskyKey: String,
   zones: { type: Number, min: 0 },
@@ -38,6 +40,7 @@ var defaultSettings = { address : config.default_address,
                         zip : config.default_zip,
                         lat : config.default_lat,
                         long : config.default_long,
+                        etzone: config.default_etzone,
                         mapboxKey : config.default_mapbox_key,
                         darkskyKey : config.default_darksky_key,
                         zones : config.zones,
@@ -78,6 +81,11 @@ class Settings {
       this.crops = crops;
     });
 
+    // Initialize ETr
+    ETr.getETrInstance((etr) => {
+      this.etr = etr;
+    });
+
     callback();
   }
 
@@ -86,17 +94,24 @@ class Settings {
     callback(config);
   }
 
-  async getAllCrops(callback) {
-    await this.crops.getAllCrops((crops) => {
-      callback(crops);
+  async getETrs(callback) {
+    await this.etr.getETrs((etrs) => {
+      callback(etrs);
     });
   }
 
-  async setLocation(address, city, state, zip) {
+  // async getAllCrops(callback) {
+  //   await this.crops.getAllCrops((crops) => {
+  //     callback(crops);
+  //   });
+  // }
+
+  async setLocation(address, city, state, zip, etzone) {
     await this.setAddress(address);
     await this.setCity(city);
     await this.setState(state);
     await this.setZip(zip);
+    await this.setETZone(etzone);
 
     // Get/Set Lat/Long
     GeoLocation.getGeoLocationInstance(await this.getMapBoxKey(), (gGeoLocation) => {
@@ -142,6 +157,14 @@ class Settings {
   }
   async setZip(zip) {
     return await this.setHashKey('zip', zip);
+  }
+
+  // Get/Set etzone
+  async getETZone() {
+    return await this.getSetHashKey('etzone', defaultSettings.etzone);
+  }
+  async setETZone(etzone) {
+    return await this.setHashKey('etzone', etzone);
   }
 
   // Get/Set lat

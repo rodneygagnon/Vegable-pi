@@ -18,7 +18,8 @@ const dbKeys = {
   dbCropsKey: 'crops',
   dbEventsKey: 'events',
   dbPlantingsKey: 'plantings',
-  dbWeatherKey: 'weather'
+  dbWeatherKey: 'weather',
+  dbETrKey: 'etr'
 };
 
 bluebird.promisifyAll(redis);
