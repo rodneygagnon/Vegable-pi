@@ -148,10 +148,8 @@ class Events {
     callback(events);
   }
 
-
-  // Update a event. Create if it doesn't exist. Delete if action=='delete'
-  async updateEvent(event, action, callback) {
-    log.debug(`updateEvent: (${JSON.stringify(event)})`);
+  async setEvent(event) {
+    var eid = null;
 
     try {
       var validEvent = await eventSchema.validate(event);
@@ -161,84 +159,82 @@ class Events {
       validEvent.color = zone.color;
       validEvent.textColor = zone.textColor;
 
-      let validStart = (new Date(validEvent.start)).getTime() / 1000;
-      let savedEvent = null;
+      var validStart = (new Date(validEvent.start)).getTime() / 1000;
 
-      // id is set if we are updating/deleting a event, go find it
-      if (typeof event.id !== 'undefined' && event.id !== "") {
-        var eventCnt = await db.zcountAsync(dbKeys.dbEventsKey, '-inf', '+inf');
-        log.debug(`updateEvent(count): ${eventCnt}`);
+      if (typeof validEvent.id === 'undefined' || validEvent.id === "") {
+        // Create a new event id.
+        validEvent.id = uuidv4();
+      } else {
+        // Find and remove the old event
+        var removeEvent = await this.findEvent(validEvent.id);
 
-        var cnt = 0, start = 0;
-        var end = 20; // get 'end' per page
-        while (cnt < eventCnt && !savedEvent) {
-          var events = await db.zrangeAsync(dbKeys.dbEventsKey, start, end);
+        if (removeEvent) {
+          // Remove the event and the job from event queue.
+          // We'll add back an updated job if necessary
+          var job = await EventsQueue.getJob(removeEvent.id);
+          if (job)
+            job.remove();
 
-          for (var i = 0; i < events.length; i++) {
-            var event = JSON.parse(events[i]);
-            if (event.id === validEvent.id) {
-              savedEvent = event;
-              log.debug(`updateEvent(found): event(${JSON.stringify(savedEvent)})`);
-              break;
-            }
-          }
-
-          start = end;
-          end += end;
-          cnt += events.length;
+          await db.zremAsync(dbKeys.dbEventsKey, JSON.stringify(removeEvent));
         }
       }
 
-      if (savedEvent) {
-        // Remove the job from event queue. We'll add back an updated job if necessary
-        var job = await EventsQueue.getJob(savedEvent.id);
+      // Add the event and schedule a job
+      await db.zaddAsync(dbKeys.dbEventsKey, validStart, JSON.stringify(validEvent));
+      this.scheduleJob(validEvent);
+
+      eid = validEvent.id;
+
+    } catch (err) {
+      log.error(`setPlanting Failed to set planting: ${err}`);
+    }
+    return(eid);
+  }
+
+  async delEvent(event) {
+    var eid = null;
+
+    try {
+      var validEvent = await eventSchema.validate(event);
+      var removeEvent = await this.findEvent(validEvent.id);
+
+      if (removeEvent) {
+        // Remove the job from event queue
+        var job = await EventsQueue.getJob(removeEvent.id);
         if (job)
           job.remove();
 
-        var removeEvent = JSON.stringify(savedEvent);
+        await db.zremAsync(dbKeys.dbEventsKey, JSON.stringify(removeEvent));
 
-        if (action === 'delete') { // DELETE a event
-          log.debug(`updateEvent(delete): del old event(${removeEvent})`);
-          await db.zremAsync(dbKeys.dbEventsKey, removeEvent);
-
-        } else { // UPDATE an event
-          savedEvent.sid = validEvent.sid;
-          savedEvent.color = validEvent.color;
-          savedEvent.textColor = validEvent.textColor;
-          savedEvent.title = validEvent.title;
-          savedEvent.start = validEvent.start;
-          savedEvent.amt = validEvent.amt;
-          savedEvent.fertilize = validEvent.fertilize;
-          savedEvent.repeatDow = validEvent.repeatDow;
-          savedEvent.repeatEnd = validEvent.repeatEnd;
-
-          log.debug(`updateEvent(update): add new event(${JSON.stringify(savedEvent)})`);
-
-          var zcnt = await db.zaddAsync(dbKeys.dbEventsKey, validStart, JSON.stringify(savedEvent));
-          if (zcnt > 0) {
-            log.debug(`updateEvent(update): del old event(${removeEvent})`);
-
-            await db.zremAsync(dbKeys.dbEventsKey, removeEvent);
-            this.scheduleJob(savedEvent);
-          }
-        }
-
-      // CREATE a new event
-      } else {
-        log.debug(`updateEvent(create): validEvent(${JSON.stringify(validEvent)})`);
-
-        // Assign a uuidv
-        validEvent.id = uuidv4();
-
-        await db.zaddAsync(dbKeys.dbEventsKey, validStart, JSON.stringify(validEvent));
-
-        this.scheduleJob(validEvent);
+        eid = removeEvent.id;
       }
     } catch (err) {
-      log.error(`updateEvent Failed to save event: ${err}`);
+      log.error(`delEvent Failed to del planting: ${err}`);
     }
 
-    callback();
+    return(eid);
+  }
+
+  async findEvent(eid) {
+    var eventCnt = await db.zcountAsync(dbKeys.dbEventsKey, '-inf', '+inf');
+
+    var cnt = 0, start = 0;
+    var end = 20; // get 'end' per page
+    while (cnt < eventCnt) {
+      var events = await db.zrangeAsync(dbKeys.dbEventsKey, start, end);
+
+      for (var i = 0; i < events.length; i++) {
+        var event = JSON.parse(events[i]);
+        if (event.id === eid)
+          return(event);
+      }
+
+      start = end;
+      end += end;
+      cnt += events.length;
+    }
+
+    return(null);
   }
 
   async scheduleJob(event) {

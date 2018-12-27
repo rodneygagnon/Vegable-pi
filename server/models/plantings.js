@@ -138,7 +138,7 @@ class Plantings {
       zids.push(validPlanting.zid);
 
       if (typeof validPlanting.id === 'undefined' || validPlanting.id === "") {
-        // Create a new crop id.
+        // Create a new planting id.
         validPlanting.id = uuidv4();
       } else {
         // Find and remove the old planting

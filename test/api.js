@@ -233,6 +233,26 @@ describe('API', () => {
   });
 
   describe('Events', () => {
+    var addedEvent = {
+          sid: 3,
+          title: "Test Event",
+          start: (new Date()).toString(),
+          amt: 1,
+          fertilize: false,
+        };
+
+    it('should create an event', (done) => {
+      request(app)
+        .post('/api/events/set')
+        .send(addedEvent)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect((res) => {
+          addedEvent.id = res.body.id;
+        })
+        .expect(200)
+        .end(done);
+    });
     it ('should get events from start to end', (done) => {
       var start = new Date();
       var end = new Date();
@@ -244,6 +264,36 @@ describe('API', () => {
         .get('/api/events/get')
         .query({ start: `${moment(start).format('YYYY-MM-DD')}`,
                  end: `${moment(end).format('YYYY-MM-DD')}` })
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(done);
+    });
+    it('should update an event', (done) => {
+      addedEvent.title = "Updated Event";
+      request(app)
+        .post('/api/events/set')
+        .send(addedEvent)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect(200, {id: addedEvent.id})
+        .end(done);
+    });
+    it('should delete an event', (done) => {
+      addedEvent.action = 'delete';
+      request(app)
+        .post('/api/events/set')
+        .send(addedEvent)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect(200, {id: addedEvent.id})
+        .end(done);
+    });
+  });
+
+  describe('Weather', () => {
+    it ('should get current weather conditions', (done) => {
+      request(app)
+        .get('/api/weather/get')
         .expect('Content-Type', /json/)
         .expect(200)
         .end(done);

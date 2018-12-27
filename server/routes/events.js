@@ -27,12 +27,15 @@ router.get('/', function(req, res, next) {
 
 // create, update or delete an event
 router.route('/update').post(function (req, res) {
-  console.log(`Update Event: ${JSON.stringify(req.body)}`);
+  Events.getEventsInstance(async (EventsInstance) => {
+    var result;
 
-  Events.getEventsInstance((EventsInstance) => {
-    EventsInstance.updateEvent(req.body, req.body.action, () => {
-      res.redirect('/events');
-    });
+    if (req.body.action === 'delete')
+      result = await EventsInstance.delEvent(req.body);
+    else
+      result = await EventsInstance.setEvent(req.body);
+
+    res.redirect('/events');
   });
  });
 

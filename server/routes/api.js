@@ -110,6 +110,7 @@ router.route('/crops/set').post(function (req, res) {
   *
   * @param {start} Start date
   * @param {end} End date
+  *
   * @returns {plantings or plantings[]}
   */
  router.route('/events/get').get(function (req, res) {
@@ -124,6 +125,27 @@ router.route('/crops/set').post(function (req, res) {
    });
  });
 
+ /**
+  * Create, update or delete an event
+  *
+  * @param {event} Event
+  *
+  * @returns {id}
+  */
+ router.route('/events/set').post(function (req, res) {
+   Events.getEventsInstance(async (EventsInstance) => {
+     var result;
+
+     if (req.body.action === 'delete')
+       result = await EventsInstance.delEvent(req.body);
+     else
+       result = await EventsInstance.setEvent(req.body);
+
+     res.status(result !== null ? 200 : 500)
+        .json({ id: result });
+   });
+ });
+
 /********************
  ** Plantings APIs **
  ********************/
@@ -132,6 +154,7 @@ router.route('/crops/set').post(function (req, res) {
   * Returns Individual or list of plantings
   *
   * @param {pid} Planting Id
+  *
   * @returns {plantings or plantings[]}
   */
  router.route('/plantings/get').get(function (req, res) {
@@ -154,6 +177,7 @@ router.route('/crops/set').post(function (req, res) {
   * Create, update or delete a planting
   *
   * @param {planting} Planting
+  *
   * @returns {id}
   */
  router.route('/plantings/set').post(function (req, res) {
@@ -250,7 +274,15 @@ router.route('/zones/switch').post(function (req, res) {
   });
 });
 
-// service data call for skycon
+/******************
+ ** Weather APIs **
+ ******************/
+
+ /**
+  * Returns Current Conditions (for skycon)
+  *
+  * @returns {conditions}
+  */
 router.route('/weather/get').get(function (req, res) {
   Weather.getWeatherInstance((WeatherInstance) => {
     var error, conditions;
