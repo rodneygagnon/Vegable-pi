@@ -97,7 +97,7 @@ class ETr {
     callback(etrs);
   }
 
-  async getEtr(zone) {
+  async getETr(zone) {
     var etr = null;
     try {
       etr = JSON.parse(await db.hgetAsync(dbKeys.dbETrKey, zone));
@@ -105,6 +105,54 @@ class ETr {
       log.error(`getETr Failed to get etr: ${err}`);
     }
     return etr;
+  }
+
+  async getDailyETr(etzone, startDate, endDate) {
+    var dailyETr = [];
+    var etrZone = await this.getETr(etzone);
+
+    for (var day = startDate; day <= endDate; day.setDate(day.getDate() + 1)) {
+      switch (day.getMonth()) {
+        case 0:
+          dailyETr.push(etrZone.jan / 31);
+          break;
+        case 1:
+          dailyETr.push(etrZone.feb / 28);
+          break;
+        case 2:
+          dailyETr.push(etrZone.mar / 31);
+          break;
+        case 3:
+          dailyETr.push(etrZone.apr / 30);
+          break;
+        case 4:
+          dailyETr.push(etrZone.may / 31);
+          break;
+        case 5:
+          dailyETr.push(etrZone.jun / 30);
+          break;
+        case 6:
+          dailyETr.push(etrZone.jul / 31);
+          break;
+        case 7:
+          dailyETr.push(etrZone.aug / 30);
+          break;
+        case 8:
+          dailyETr.push(etrZone.sep / 30);
+          break;
+        case 9:
+          dailyETr.push(etrZone.oct / 31);
+          break;
+        case 10:
+          dailyETr.push(etrZone.nov / 30);
+          break;
+        case 11:
+          dailyETr.push(etrZone.dec / 31);
+          break;
+      }
+    }
+
+    return(dailyETr);
   }
 }
 

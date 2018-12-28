@@ -87,13 +87,12 @@ class Plantings {
   }
 
   // Calculate the cumulative ETc for the plantings in this zone between the given dates
-  // TODO: adjust the coefficients based on counts and spacing of crops
   async getETcByZone(zid, start, end, callback) {
     var dailyETc = 0;
     var totalDays = Math.round(Math.abs((end.getTime() - start.getTime())/(oneDay)));
 
     // Get daily weather for given date range
-    var dailyWeather = await this.weather.getWeather(start, end);
+    var dailyETo = await this.weather.getDailyETo(start, end);
 
     this.getPlantingsByZone(zid, (plantings) => {
         plantings.forEach(async (planting) => {
@@ -110,11 +109,12 @@ class Plantings {
           var midStage = devStage + crop.midDay;
 
           // For each day on the given range, accumulate the dailyETc using the ETo and Kc
+          // TODO: adjust the precision by acounting for crop density, canopy, shading, ...
           for (var day = 0; day < totalDays; day++) {
-            dailyETc += dailyWeather[day].eto *
-                          (age <= initStage ? crop.initKc :
+            dailyETc += dailyETo[day] *
+                          ((age <= initStage ? crop.initKc :
                             (age <= devStage ? crop.devKc :
-                              (age <= midStage ? crop.midKc : crop.lateKc)));
+                              (age <= midStage ? crop.midKc : crop.lateKc))) * planting.count);
             age++;
           }
         });

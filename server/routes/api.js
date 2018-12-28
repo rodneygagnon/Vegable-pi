@@ -50,7 +50,8 @@ router.route('/location/set').post(function (req, res) {
     SettingsInstance.setLocation( req.body.address,
                                   req.body.city,
                                   req.body.state,
-                                  req.body.zip);
+                                  req.body.zip,
+                                  req.body.etzone);
     res.status(200).end();
   });
  });

@@ -161,9 +161,17 @@ class Zones {
     try {
       ZoneQueue = await new Queue('ZoneQueue', {redis: {host: 'redis'}});
 
-      // Set Queue processor
+      // Set Queue processor to calculate the irr/fert demand
       ZoneQueue.process(async (job, done) => {
-        this.processJob(job, done);
+        log.debug(`ZoneQueue.process-ing @ ${new Date()}`);
+
+        // End date for processing is yesterday (last time we grabbed weather data)
+        var endDate = new Date();
+        endDate.setDate(endDate.getDate() - 1);
+
+        await this.scheduleEvents(endDate);
+
+        done();
       });
 
       // Create a job to calculate the irr/fert demand every morning
@@ -177,7 +185,7 @@ class Zones {
     callback();
   }
 
-  // Create irrigation/fertilization events as necessary
+  // Schedule irrigation/fertilization events as necessary
   //    1. Take available water (aw) ...
   //    2. Subtract depletion (ETc(day) = ETo (day) x Kc (Crop coefficient))
   //    3. If less than the Maximum Allowable Depletion (MAD)remains, create an event to
@@ -185,13 +193,7 @@ class Zones {
   //
   // (NOTE: calculations are still approximations and need vetting and measurements)
   //
-  async processJob(job, done) {
-    log.debug(`Zone::processJob @ ${new Date()}`);
-
-    // End date for processing is yesterday (last time we grabbed weather data)
-    var endDate = new Date();
-    endDate.setDate(endDate.getDate() - 1);
-
+  async scheduleEvents(endDate) {
     Plantings.getPlantingsInstance(async (plantingsInstance) => {
       try {
         var zones = await this.getAllZones();
@@ -201,24 +203,25 @@ class Zones {
             var fertilize = false;
 
             // Get the ETc since that last time we adjusted the soil
-            plantingsInstance.getETcByZone(zone.id, new Date(zone.adjusted), endDate, async (dailyETc) => {
+            plantingsInstance.getETcByZone(zone.id, new Date(zone.adjusted), endDate,
+              async (dailyETc) => {
               // Record the Depletion and check if the zone needs water
               // TODO: determine if the plant needs nutrients
 
               zone.aw -= dailyETc;
 
               // Create an irrigation event if necessary
-              if (zone.aw < (zone.swhc * zone.mad)) {
+              if (zone.aw < (zone.swhc * (zone.mad / 100))) {
                 var start = new Date();
                 var times = zone.start.split(':');
 
                 start.setHours(times[0]);
                 start.setMinutes(times[1]);
 
-                Events.getEventsInstance((events) => {
-                  events.updateEvent(/* event */ { sid: zone.id, title: `(auto) ${zone.name} Event`,
-                                                   start: start, amt: zone.swhc - zone.aw, fertilize: fertilize },
-                                     /* action */ "", () => {});
+                Events.getEventsInstance(async (events) => {
+                  await events.setEvent({ sid: zone.id, title: `(auto) ${zone.name} Event`,
+                                          start: start, amt: zone.swhc - zone.aw,
+                                          fertilize: fertilize });
                 });
               }
 
@@ -232,7 +235,6 @@ class Zones {
       } catch (err) {
         log.error(`Zone processJob error: ${err}`);
       }
-      done();
     });
   }
 

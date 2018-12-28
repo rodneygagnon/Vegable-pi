@@ -12,6 +12,7 @@ const request = require('request');
 const Queue = require("bull");
 
 const Settings = require('../models/settings');
+const ETr = require('../models/etr');
 
 const darkskyWeatherURL = 'https://api.darksky.net/forecast/';
 const cimisURL = 'http://et.water.ca.gov/api/data?appKey=';
@@ -70,8 +71,14 @@ class Weather {
         log.error(`WeatherInit: Failed to create WEATHER queue: ${err}`);
       }
 
-      callback();
+      // Initialize ETr
+      ETr.getETrInstance((etr) => {
+        this.etr = etr;
+
+        callback();
+      });
     });
+
   }
 
   async processJob(job, done) {
@@ -82,6 +89,8 @@ class Weather {
     log.debug(`processJob: Getting CIMIS @ (${d})`);
 
     var dateString = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    var dateScore = d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) +
+                                      ('0' + d.getDate()).slice(-2);
 
     this.getCimisConditions(dateString, async (error, conditions) => {
       if (error || typeof conditions.Data === 'undefined'
@@ -90,7 +99,6 @@ class Weather {
         // TODO: give our best guess by grabbing the previous day's conditions and storing as today's
       } else {
         // Add weather entry to Database
-        var dateScore = d.getTime();
         var cimisRecord = conditions.Data.Providers[0].Records[0];
         var weather = await weatherSchema.validate({ date: cimisRecord.Date,
                                                      eto: cimisRecord.DayAsceEto.Value,
@@ -107,10 +115,24 @@ class Weather {
     done();
   }
 
-  // Return the weather for a given date range
-  async getWeather(startDate, endDate) {
-    log.debug(`getWeather: Get stored CIMIS weather from (${startDate}) to (${endDate})`);
-    return(await db.zrangebyscoreAsync(dbKeys.dbWeatherKey, startDate.getTime(), endDate.getTime()));
+  // Return the ETo for a given date range.
+  // Default to ETr table if we don't have CIMIS data for particular day
+  async getDailyETo(startDate, endDate) {
+    var dailyETo = [];
+    var etzone = await this.config.getETZone();
+
+    var dailyETr = await this.etr.getDailyETr(etzone, new Date(startDate), new Date(endDate));
+
+    // For each day of the given range, push Cimis ETo or ETr if it doesn't exist
+    for (var i = 0, day = startDate; day <= endDate; i++, day.setDate(day.getDate() + 1)) {
+      var cimisDate = day.getFullYear() + ('0' + (day.getMonth() + 1)).slice(-2) +
+                                          ('0' + day.getDate()).slice(-2);
+      var cimisETo = await db.zrangebyscoreAsync(dbKeys.dbWeatherKey, cimisDate, cimisDate);
+
+      dailyETo.push(cimisETo !== null ? cimisETo : dailyETr[i]);
+    }
+
+    return(dailyETo);
   }
 
   // Get Conditions

@@ -219,7 +219,7 @@ class Settings {
         if (value)
           await db.hsetAsync(dbKeys.dbConfigKey, hashKey, value);
         else
-          log.debug(`setHashKey: Undefined value for ${hashKey}`);
+          log.error(`setHashKey: Undefined value for ${hashKey}`);
     } catch (error) {
         log.error(error);
     }
