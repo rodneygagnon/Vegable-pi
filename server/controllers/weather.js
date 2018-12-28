@@ -129,7 +129,10 @@ class Weather {
                                           ('0' + day.getDate()).slice(-2);
       var cimisETo = await db.zrangebyscoreAsync(dbKeys.dbWeatherKey, cimisDate, cimisDate);
 
-      dailyETo.push(cimisETo !== null ? cimisETo : dailyETr[i]);
+      if (cimisETo === null || cimisETo === "")
+        dailyETo.push(Number(cimisETo));
+      else
+        dailyETo.push(dailyETr[i]);
     }
 
     return(dailyETo);

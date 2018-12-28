@@ -78,8 +78,6 @@ class Plantings {
     // get all plantings for given zone
     var redisPlantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, zid, zid);
 
-    log.debug(`getPlantingsByZone: Zone(${zid}) Plantings(${redisPlantings.length})`);
-
     for (var i = 0; i < redisPlantings.length; i++)
       plantings[i] = await plantingSchema.validate(JSON.parse(redisPlantings[i]));
 
@@ -89,39 +87,40 @@ class Plantings {
   // Calculate the cumulative ETc for the plantings in this zone between the given dates
   async getETcByZone(zid, start, end, callback) {
     var dailyETc = 0;
-    var totalDays = Math.round(Math.abs((end.getTime() - start.getTime())/(oneDay)));
 
     // Get daily weather for given date range
-    var dailyETo = await this.weather.getDailyETo(start, end);
+    var dailyETo = await this.weather.getDailyETo(new Date(start), new Date(end));
 
-    this.getPlantingsByZone(zid, (plantings) => {
-        plantings.forEach(async (planting) => {
-          // Get the crop Kc's for this planting and calculate the age
-          // of the crop at the start of this range
-          var crop = await this.getCrop(planting.cid);
-          var plantingDate = new Date(planting.date);
-          var age = planting.age +
-                      Math.round(Math.abs((start.getTime() - plantingDate.getTime())/(oneDay)));
+    this.getPlantingsByZone(zid, async (plantings) => {
+      for (var i = 0; i < plantings.length; i++) {
+        var planting = plantings[i];
 
-          // Caclulate this crop stages in order to extract the appropriate Kc
-          var initStage = crop.initDay;
-          var devStage = initStage + crop.devDay;
-          var midStage = devStage + crop.midDay;
+        // Get the crop Kc's for this planting and calculate the age
+        // of the crop at the start of this range
+        var crop = await this.getCrop(planting.cid);
+        var plantingDate = new Date(planting.date);
+        var age = planting.age +
+                    Math.round(Math.abs((start.getTime() - plantingDate.getTime())/(oneDay)));
 
-          // For each day on the given range, accumulate the dailyETc using the ETo and Kc
-          // TODO: adjust the precision by acounting for crop density, canopy, shading, ...
-          for (var day = 0; day < totalDays; day++) {
-            dailyETc += dailyETo[day] *
-                          ((age <= initStage ? crop.initKc :
-                            (age <= devStage ? crop.devKc :
-                              (age <= midStage ? crop.midKc : crop.lateKc))) * planting.count);
-            age++;
-          }
-        });
+        // Caclulate this crop stages in order to extract the appropriate Kc
+        var initStage = crop.initDay;
+        var devStage = initStage + crop.devDay;
+        var midStage = devStage + crop.midDay;
+
+        // For each day on the given range, accumulate the dailyETc using the ETo and Kc
+        // TODO: adjust the precision by acounting for crop density, canopy, shading, ...
+        for (var day = 0; day < dailyETo.length; day++) {
+          dailyETc += dailyETo[day] *
+                        (age <= initStage ? crop.initKc :
+                          (age <= devStage ? crop.devKc :
+                            (age <= midStage ? crop.midKc : crop.lateKc)));
+          age++;
+        }
+      }
+
+      // Return the zone's ETc for the given date range
+      callback(dailyETc);
     });
-
-    // Return the zone's ETc for the given date range
-    callback(dailyETc);
   }
 
   async getCrop(cid) {
