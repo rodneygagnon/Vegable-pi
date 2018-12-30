@@ -4,6 +4,8 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+'use strict';
+
 const request = require('supertest');
 const expect = require('expect');
 const moment = require('moment');

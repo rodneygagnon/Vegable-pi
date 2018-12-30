@@ -4,6 +4,7 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
+'use strict';
 
 var app = require('../server/app');
 

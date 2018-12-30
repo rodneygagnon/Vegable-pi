@@ -47,7 +47,7 @@ class Weather {
 
       // Set Queue processor
       WeatherQueue.process(async (job, done) => {
-        this.processJob(job, done);
+        WeatherInstance.processJob(job, done);
       });
 
       // Get the weather every morning @ 3am
@@ -74,8 +74,7 @@ class Weather {
     this.getCimisConditions(dateString, async (error, conditions) => {
       if (error || typeof conditions.Data === 'undefined'
                 || typeof conditions.Data.Providers === 'undefined') {
-        log.error(`processJob: CIMIS error (${error}), Data (${conditions.Data}), Providers (${conditions.Data.Providers})`);
-        // TODO: give our best guess by grabbing the previous day's conditions and storing as today's
+        log.error(`Weather::process-ing(${dateString}): CIMIS error (${error}) or missing conditions (${JSON.stringify(conditions)}))`);
       } else {
         // Add weather entry to Database
         var cimisRecord = conditions.Data.Providers[0].Records[0];
