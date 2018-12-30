@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node ./index.js",
     "test": "mocha",
-    "test-with-coverage": "nyc --reporter=text mocha"
+    "docs": "documentation build ./server/routes/api.js -f md --shallow > docs/api.md"
   },
   "author": "",
   "license": "MIT",
@@ -38,6 +38,7 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
+    "documentation": "^9.1.1",
     "expect": "^23.6.0",
     "mocha": "^5.2.0",
     "moment": "^2.23.0",
