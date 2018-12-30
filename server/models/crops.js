@@ -33,25 +33,17 @@ const cropSchema = schema({
   totKc: Number
 });
 
-let CropsInstance;
+class Crops {
+  constructor() {
+    if (!Crops.CropsInstance) {
+      Crops.init();
 
-const getCropsInstance = async (callback) => {
-  if (CropsInstance) {
-    callback(CropsInstance);
-    return;
+      Crops.CropsInstance = this;
+    }
+    return Crops.CropsInstance;
   }
 
-  CropsInstance = await new Crops();
-  await CropsInstance.init(() => {
-    log.debug("*** Crops Initialized! ");
-    callback(CropsInstance);
-  })
-}
-
-class Crops {
-  constructor() {}
-
-  async init(callback) {
+  static async init() {
     var cropCnt = await db.hlenAsync(dbKeys.dbCropsKey);
 
     // Create default crops if necessary
@@ -73,7 +65,7 @@ class Crops {
           });
         });
     }
-    callback();
+    log.debug(`*** Crops Initialized!`);
   }
 
   async getCrops(callback) {
@@ -139,7 +131,9 @@ class Crops {
   }
 }
 
+const CropsInstance = new Crops();
+Object.freeze(CropsInstance);
+
 module.exports = {
-  CropsInstance,
-  getCropsInstance
-};
+  CropsInstance
+}

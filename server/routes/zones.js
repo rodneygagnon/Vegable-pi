@@ -7,9 +7,7 @@
 const express = require('express');
 const router = express.Router();
 
-const Zones = require('../models/zones');
-
-var ZonesInstance;
+const {ZonesInstance} = require('../models/zones');
 
 // GET home page
 router.get('/', function(req, res, next) {
@@ -23,19 +21,15 @@ router.get('/', function(req, res, next) {
 
 // update zone name, desc, flow info
 router.route('/update').post(function (req, res) {
-  Zones.getZonesInstance((ZonesInstance) => {
-    ZonesInstance.setZone(req.body, () => {
-      res.redirect('/zones');
-    });
+  ZonesInstance.setZone(req.body, () => {
+    res.redirect('/zones');
   });
 });
 
 // ad hoc turning on/off zones
 router.route('/enable/:id').post(function (req, res) {
-  Zones.getZonesInstance((ZonesInstance) => {
-    ZonesInstance.switchZone(req.params.id, () => {
-      res.redirect('/zones');
-    });
+  ZonesInstance.switchZone(req.params.id, () => {
+    res.redirect('/zones');
   });
 });
 

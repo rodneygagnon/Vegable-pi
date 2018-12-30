@@ -10,18 +10,12 @@ const router = express.Router();
 const url = require('url');
 const querystring = require('querystring');
 
-const Settings = require('../models/settings');
-const Crops = require('../models/crops');
-const Events = require('../models/events');
-const Plantings = require('../models/plantings');
-const Zones = require('../models/zones');
-const Weather = require('../controllers/weather');
-
-var SettingsInstance;
-var ZonesInstance;
-var CropsInstance;
-var EventsInstance;
-var PlantingsInstance;
+const {SettingsInstance} = require('../models/settings');
+const {CropsInstance} = require('../models/crops');
+const {EventsInstance} = require('../models/events');
+const {PlantingsInstance} = require('../models/plantings');
+const {ZonesInstance} = require('../models/zones');
+const {WeatherInstance} = require('../controllers/weather');
 
 /*******************
  ** Location APIs **
@@ -33,10 +27,8 @@ var PlantingsInstance;
  * @returns {location}
  */
 router.route('/location/get').get(function (req, res) {
-  Settings.getSettingsInstance((SettingsInstance) => {
-    SettingsInstance.getSettings((config) => {
-      res.status(200).json(config);
-    });
+  SettingsInstance.getSettings((config) => {
+    res.status(200).json(config);
   });
 });
 
@@ -46,14 +38,9 @@ router.route('/location/get').get(function (req, res) {
  * @param {location}
  */
 router.route('/location/set').post(function (req, res) {
-  Settings.getSettingsInstance((SettingsInstance) => {
-    SettingsInstance.setLocation( req.body.address,
-                                  req.body.city,
-                                  req.body.state,
-                                  req.body.zip,
-                                  req.body.etzone);
-    res.status(200).end();
-  });
+  SettingsInstance.setLocation( req.body.address, req.body.city,
+                                req.body.state, req.body.zip, req.body.etzone);
+  res.status(200).end();
  });
 
 /****************
@@ -66,20 +53,18 @@ router.route('/location/set').post(function (req, res) {
  * @param {cid} Crop Id
  * @returns {crop or crops[]}
  */
-router.route('/crops/get').get(function (req, res) {
-  Crops.getCropsInstance(async (CropsInstance) => {
-    if (typeof req.query === 'undefined' ||
-        typeof req.query.id === 'undefined') {
-      // Get all crops
-      var crops = [];
-      CropsInstance.getCrops((crops) => {
-        res.status(200).json(crops);
-      });
-    } else {
-      var crop = await CropsInstance.getCrop(req.query.id);
-      res.status(crop != null ? 200 : 500).json(crop);
-    }
-  });
+router.route('/crops/get').get(async function (req, res) {
+  if (typeof req.query === 'undefined' ||
+      typeof req.query.id === 'undefined') {
+    // Get all crops
+    var crops = [];
+    CropsInstance.getCrops((crops) => {
+      res.status(200).json(crops);
+    });
+  } else {
+    var crop = await CropsInstance.getCrop(req.query.id);
+    res.status(crop != null ? 200 : 500).json(crop);
+  }
 });
 
 /**
@@ -88,18 +73,16 @@ router.route('/crops/get').get(function (req, res) {
  * @param {crop} Crop
  * @returns {id}
  */
-router.route('/crops/set').post(function (req, res) {
-  Crops.getCropsInstance(async (CropsInstance) => {
-    var result;
+router.route('/crops/set').post(async function (req, res) {
+  var result;
 
-    if (req.body.action === 'delete')
-      result = await CropsInstance.delCrop(req.body.id);
-    else
-      result = await CropsInstance.setCrop(req.body);
+  if (req.body.action === 'delete')
+    result = await CropsInstance.delCrop(req.body.id);
+  else
+    result = await CropsInstance.setCrop(req.body);
 
-    res.status(result !== null ? 200 : 500)
-       .json({ id: result });
-  });
+  res.status(result !== null ? 200 : 500)
+     .json({ id: result });
  });
 
  /********************
@@ -115,14 +98,12 @@ router.route('/crops/set').post(function (req, res) {
   * @returns {plantings or plantings[]}
   */
  router.route('/events/get').get(function (req, res) {
-   let parsedUrl = url.parse(req.url);
-   let parsedQs = querystring.parse(parsedUrl.query);
+   var parsedUrl = url.parse(req.url);
+   var parsedQs = querystring.parse(parsedUrl.query);
 
-   Events.getEventsInstance((EventsInstance) => {
-     var events = [];
-     EventsInstance.getEvents(parsedQs.start, parsedQs.end, (events) => {
-       res.status(200).json(events);
-     });
+   var events = [];
+   EventsInstance.getEvents(parsedQs.start, parsedQs.end, (events) => {
+     res.status(200).json(events);
    });
  });
 
@@ -133,18 +114,21 @@ router.route('/crops/set').post(function (req, res) {
   *
   * @returns {id}
   */
- router.route('/events/set').post(function (req, res) {
-   Events.getEventsInstance(async (EventsInstance) => {
-     var result;
+ router.route('/events/set').post(async function (req, res) {
+   var result;
 
-     if (req.body.action === 'delete')
-       result = await EventsInstance.delEvent(req.body);
-     else
-       result = await EventsInstance.setEvent(req.body);
+   if (req.body.action === 'delete')
+     result = await EventsInstance.delEvent(req.body);
+   else {
+     var zone = await ZonesInstance.getZone(req.body.sid);
 
-     res.status(result !== null ? 200 : 500)
-        .json({ id: result });
-   });
+     req.body.color = zone.color;
+     req.body.textColor = zone.textColor;
+
+     result = await EventsInstance.setEvent(req.body);
+   }
+
+   res.status(result !== null ? 200 : 500).json({ id: result });
  });
 
 /********************
@@ -158,20 +142,18 @@ router.route('/crops/set').post(function (req, res) {
   *
   * @returns {plantings or plantings[]}
   */
- router.route('/plantings/get').get(function (req, res) {
-   Plantings.getPlantingsInstance(async (PlantingsInstance) => {
-     if (typeof req.query === 'undefined' ||
-         typeof req.query.id === 'undefined') {
-       // Get all plantings
-       var plantings = [];
-       PlantingsInstance.getAllPlantings((plantings) => {
-         res.status(200).json(plantings);
-       });
-     } else {
-       var planting = await PlantingsInstance.getPlanting(req.query.id);
-       res.status(planting != null ? 200 : 500).json(planting);
-     }
-   });
+ router.route('/plantings/get').get(async function (req, res) {
+   if (typeof req.query === 'undefined' ||
+       typeof req.query.id === 'undefined') {
+     // Get all plantings
+     var plantings = [];
+     PlantingsInstance.getAllPlantings((plantings) => {
+       res.status(200).json(plantings);
+     });
+   } else {
+     var planting = await PlantingsInstance.getPlanting(req.query.id);
+     res.status(planting != null ? 200 : 500).json(planting);
+   }
  });
 
  /**
@@ -181,23 +163,18 @@ router.route('/crops/set').post(function (req, res) {
   *
   * @returns {id}
   */
- router.route('/plantings/set').post(function (req, res) {
-   Plantings.getPlantingsInstance(async (PlantingsInstance) => {
-     var result;
+ router.route('/plantings/set').post(async function (req, res) {
+   var result;
 
-     if (req.body.action === 'delete')
-       result = await PlantingsInstance.delPlanting(req.body);
-     else
-       result = await PlantingsInstance.setPlanting(req.body);
+   if (req.body.action === 'delete')
+     result = await PlantingsInstance.delPlanting(req.body);
+   else
+     result = await PlantingsInstance.setPlanting(req.body);
 
-    // Tell the zone of a planting change
-     Zones.getZonesInstance((ZonesInstance) => {
-       ZonesInstance.updatePlantings(result.zids);
-     });
+   // Tell the zone of a planting change
+   await ZonesInstance.updatePlantings(result.zids);
 
-     res.status(result.zids !== null ? 200 : 500)
-        .json({ id: result.id });
-   });
+   res.status(result.zids !== null ? 200 : 500).json({ id: result.id });
   });
 
 /****************
@@ -209,16 +186,14 @@ router.route('/crops/set').post(function (req, res) {
   *
   * @returns {zones[]}
   */
-router.route('/zones/get').get(function (req, res) {
-  Zones.getZonesInstance(async (ZonesInstance) => {
-    if (typeof req.query === 'undefined' ||
-        typeof req.query.id === 'undefined') {
-      res.status(200).json(await ZonesInstance.getAllZones());
-    } else {
-      var zone = await ZonesInstance.getZone(req.query.id);
-      res.status(zone != null ? 200 : 500).json(zone);
-    }
-  });
+router.route('/zones/get').get(async function (req, res) {
+  if (typeof req.query === 'undefined' ||
+      typeof req.query.id === 'undefined') {
+    res.status(200).json(await ZonesInstance.getAllZones());
+  } else {
+    var zone = await ZonesInstance.getZone(req.query.id);
+    res.status(zone != null ? 200 : 500).json(zone);
+  }
 });
 
  /**
@@ -227,11 +202,9 @@ router.route('/zones/get').get(function (req, res) {
   * @returns {zones[]}
   */
 router.route('/zones/get/planting').get(function (req, res) {
-  Zones.getZonesInstance((ZonesInstance) => {
-    var zones = [];
-    ZonesInstance.getPlantingZones((zones) => {
-      res.status(200).json(zones);
-    });
+  var zones = [];
+  ZonesInstance.getPlantingZones((zones) => {
+    res.status(200).json(zones);
   });
 });
 
@@ -241,11 +214,9 @@ router.route('/zones/get/planting').get(function (req, res) {
  * @returns {zones[]}
  */
 router.route('/zones/get/control').get(function (req, res) {
-  Zones.getZonesInstance((ZonesInstance) => {
-    var zones = [];
-    ZonesInstance.getControlZones((zones) => {
-      res.status(200).json(zones);
-    });
+  var zones = [];
+  ZonesInstance.getControlZones((zones) => {
+    res.status(200).json(zones);
   });
 });
 
@@ -255,10 +226,8 @@ router.route('/zones/get/control').get(function (req, res) {
  * @returns {result}
  */
 router.route('/zones/set').post(function (req, res) {
-  Zones.getZonesInstance((ZonesInstance) => {
-    ZonesInstance.setZone(req.body, (err) => {
-      res.statusCode = (err === 0 ? 200 : 500);
-    });
+  ZonesInstance.setZone(req.body, (err) => {
+    res.statusCode = (err === 0 ? 200 : 500);
   });
 });
 
@@ -268,10 +237,8 @@ router.route('/zones/set').post(function (req, res) {
  * @returns {status}
  */
 router.route('/zones/switch').post(function (req, res) {
-  Zones.getZonesInstance((ZonesInstance) => {
-    ZonesInstance.switchZone(req.query.id, (status) => {
-      res.status(200).json({ status: status });
-    });
+  ZonesInstance.switchZone(req.query.id, (status) => {
+    res.status(200).json({ status: status });
   });
 });
 
@@ -285,11 +252,9 @@ router.route('/zones/switch').post(function (req, res) {
   * @returns {conditions}
   */
 router.route('/weather/get').get(function (req, res) {
-  Weather.getWeatherInstance((WeatherInstance) => {
-    var error, conditions;
-    WeatherInstance.getConditions((error, conditions) => {
-      res.status(200).json(conditions);
-    });
+  var error, conditions;
+  WeatherInstance.getConditions((error, conditions) => {
+    res.status(200).json(conditions);
   });
 });
 

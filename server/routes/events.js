@@ -7,8 +7,8 @@
 var express = require('express');
 var router = express.Router();
 
-const Events = require('../models/events');
-const Zones = require('../models/zones');
+const {EventsInstance} = require('../models/events');
+const {ZonesInstance} = require('../models/zones');
 
 // GET home page - send zones
 router.get('/', function(req, res, next) {
@@ -17,26 +17,22 @@ router.get('/', function(req, res, next) {
     res.redirect('/signin');
   else {
     let zones = [];
-    Zones.getZonesInstance((ZonesInstance) => {
-      ZonesInstance.getPlantingZones((zones) => {
-        res.render('events', {title: 'Vegable', zones: zones});
-      });
+    ZonesInstance.getPlantingZones((zones) => {
+      res.render('events', {title: 'Vegable', zones: zones});
     });
   }
 });
 
 // create, update or delete an event
-router.route('/update').post(function (req, res) {
-  Events.getEventsInstance(async (EventsInstance) => {
-    var result;
+router.route('/update').post(async function (req, res) {
+  var result;
 
-    if (req.body.action === 'delete')
-      result = await EventsInstance.delEvent(req.body);
-    else
-      result = await EventsInstance.setEvent(req.body);
+  if (req.body.action === 'delete')
+    result = await EventsInstance.delEvent(req.body);
+  else
+    result = await EventsInstance.setEvent(req.body);
 
-    res.redirect('/events');
-  });
+  res.redirect('/events');
  });
 
 module.exports = router;

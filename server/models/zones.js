@@ -6,16 +6,13 @@
  */
 'use strict';
 
-const Queue = require("bull");
-
 const {log} = require('../controllers/logger');
 
-const Settings = require('./settings');
-const Plantings = require("./plantings");
-const Events = require("./events");
+const {SettingsInstance} = require('./settings');
+const {PlantingsInstance} = require('./plantings');
 
 // OpenSprinker Controller
-const OSPi = require("../controllers/ospi");
+const {OSPiInstance} = require("../controllers/ospi");
 
 const {db} = require("./db");
 const {dbKeys} = require("./db");
@@ -29,16 +26,13 @@ const zonesSchema = schema({
   flowrate: { type: Number, min: 0.5 }, // gallons per hour
   irreff: { type: Number, min: 0 },     // Irrigation Efficiency %
   swhc: { type: Number, min: 0 },       // Soil Water Holding Capacity
-
   status: Boolean,                      // on/off
   start: String,                        // HH:mm - time to irrigate when needed
   started: { type: Number, min: 0 },    // ISO8601 - Irrigation started
-
-  recharged: String,                    // ISO8601 - Last Date the zone was recharged
-  adjusted: String,                     // ISO8601 - Last Date aw was adjusted for depletion
+  recharged: { type: Number, min: 0 },  // ISO8601 - Last Date the zone was recharged
+  adjusted: { type: Number, min: 0 },   // ISO8601 - Last Date aw was adjusted for depletion
   aw: { type: Number, min: 0 },         // Available Water (inches)
   mad: { type: Number, min: 0 },        // Max Allowable Depletion (MAD %)
-
   plantings: { type: Number, min: 0 },
 
   // Color coding for events in the schedule
@@ -78,164 +72,66 @@ const SoilWHC = { // Inches
 };
 Object.freeze(SoilWHC);
 
-// Bull/Redis Jobs Queue
-var ZoneQueue;
-
 let zoneEventColors = ['#538D9E', '#408093', '#2D7489', '#296A7D', '#255F71', '#215564', '#1D4A58', '#19404B'];
 let zoneTextColor = '#EBF2F4';
 
-let ZonesInstance;
-
-const getZonesInstance = async (callback) => {
-  if (ZonesInstance) {
-    callback(ZonesInstance);
-    return;
+class Zones {
+  constructor() {
+    if (!Zones.ZonesInstance) {
+      Zones.init();
+      Zones.ZonesInstance = this;
+    }
+    return Zones.ZonesInstance;
   }
 
-  ZonesInstance = await new Zones();
-
-  await ZonesInstance.init(() => {
-    log.debug(`*** Zones Initialized!`);
-    callback(ZonesInstance);
-  });
-}
-
-class Zones {
-  constructor() {}
-
-  async init(callback) {
+  static async init() {
     var zoneCount = await db.hlenAsync(dbKeys.dbZonesKey);
     if (!zoneCount) {
-      Settings.getSettingsInstance(async (settings) => {
-        zoneCount = await settings.getZones();
-        log.debug(`   ZoneInit Creating Zones(${dbKeys.dbZonesKey}): ${zoneCount}`);
+      zoneCount = await SettingsInstance.getZones();
+      log.debug(`*** Zone.init Creating Zones(${dbKeys.dbZonesKey}): ${zoneCount}`);
 
-        try {
-          var multi = db.multi();
-
-          // Fixed Zones (Master + Fertilizer)
-          await multi.hset(dbKeys.dbZonesKey, MasterZoneId, JSON.stringify({ id: MasterZoneId, name:'Master', area: 0,
-                                                                             type: ZoneType.control, flowrate: FlowRates.oneGPH,
-                                                                             irreff: IrrEff.drip, swhc: SoilWHC.medium, ib: 0, aw: 0, mad: 0,
-                                                                             status: false, start: 0, started: 0, recharged: 0, adjusted: 0,
-                                                                             plantings: 0, color: zoneEventColors[0], textColor: zoneTextColor
-                                                                           }));
-          await multi.hset(dbKeys.dbZonesKey, FertilizerZoneId, JSON.stringify({ id: FertilizerZoneId, name:'Fertilizer', area: 0,
-                                                                                type: ZoneType.control, flowrate: FlowRates.oneGPH,
-                                                                                irreff: IrrEff.drip, swhc: SoilWHC.medium, ib: 0, aw: 0, mad: 0,
-                                                                                status: false, start: 0, started: 0, recharged: 0, adjusted: 0,
-                                                                                plantings: 0, color: zoneEventColors[1], textColor: zoneTextColor
-                                                                              }));
-
-          for (var i = 3; i <= zoneCount; i++) {
-            var zone = { id: i, name:`Z0${i-2}`, area: 0, type: ZoneType.open,
-                         flowrate: FlowRates.oneGPH, irreff: IrrEff.drip, swhc: SoilWHC.medium,
-                         ib: 0, aw: 0, status: false, start: 0, started: 0, recharged: 0, adjusted: 0,
-                         plantings: 0, color: zoneEventColors[i-1], textColor: zoneTextColor };
-
-            await zonesSchema.validate(zone);
-
-            log.debug(`  Adding Zone(${i}): ` + JSON.stringify(zone));
-
-            await multi.hset(dbKeys.dbZonesKey, zone.id, JSON.stringify(zone));
-          }
-
-          await multi.execAsync((error, results) => {
-            if (error)
-              log.error(error);
-            else
-              log.debug(`ZoneInit multi.execAsync(): ${results}`)
-          });
-        } catch (err) {
-          log.error(`ZoneInit: ${JSON.stringify(err)}`);
-        }
-      });
-    }
-
-    OSPi.getOSPiInstance(zoneCount, async (ospi) => {
-        this.ospi = ospi;
-    });
-
-    // Create and start the queue that will create irrigation/fertigation events
-    // based on what is demanded by the crops planted in the zone
-    try {
-      ZoneQueue = await new Queue('ZoneQueue', {redis: {host: 'redis'}});
-
-      // Set Queue processor to calculate the irr/fert demand
-      ZoneQueue.process(async (job, done) => {
-        log.debug(`ZoneQueue.process-ing @ ${new Date()}`);
-
-        // End date for processing is yesterday (last time we grabbed weather data)
-        var endDate = new Date();
-        endDate.setDate(endDate.getDate() - 1);
-
-        await this.scheduleEvents(endDate);
-
-        done();
-      });
-
-      // Create a job to calculate the irr/fert demand every morning
-      ZoneQueue.add( { task: "Calculate zone irr/fert demand!"},
-                     { repeat: { cron: '15 3 * * *' }, removeOnComplete: true } );
-
-    } catch (err) {
-      log.error(`Failed to create ZONE queue: ${err}`);
-    }
-
-    callback();
-  }
-
-  // Schedule irrigation/fertilization events as necessary
-  //    1. Take available water (aw) ...
-  //    2. Subtract depletion (ETc(day) = ETo (day) x Kc (Crop coefficient))
-  //    3. If less than the Maximum Allowable Depletion (MAD)remains, create an event to
-  //       irrigate until soil is recharged to Field Capacity (swhc - water remaining after drainage)
-  //
-  // (NOTE: calculations are still approximations and need vetting and measurements)
-  //
-  async scheduleEvents(endDate) {
-    Plantings.getPlantingsInstance(async (plantingsInstance) => {
       try {
-        var zones = await this.getAllZones();
-        zones.forEach(async (zone) => {
-          // Only check zones with plantings
-          if (zone.plantings) {
-            var fertilize = false;
+        var multi = db.multi();
 
-            // Get the ETc since that last time we adjusted the soil
-            plantingsInstance.getETcByZone(zone.id, new Date(zone.adjusted), endDate,
-              async (dailyETc) => {
-              // Record the Depletion and check if the zone needs water
-              // TODO: determine if the plant needs nutrients
+        // Fixed Zones (Master + Fertilizer)
+        await multi.hset(dbKeys.dbZonesKey, MasterZoneId, JSON.stringify({ id: MasterZoneId, name:'Master', area: 0,
+                                                                           type: ZoneType.control, flowrate: FlowRates.oneGPH,
+                                                                           irreff: IrrEff.drip, swhc: SoilWHC.medium, aw: 0, mad: 100,
+                                                                           status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
+                                                                           plantings: 0, color: zoneEventColors[0], textColor: zoneTextColor
+                                                                         }));
+        await multi.hset(dbKeys.dbZonesKey, FertilizerZoneId, JSON.stringify({ id: FertilizerZoneId, name:'Fertilizer', area: 0,
+                                                                              type: ZoneType.control, flowrate: FlowRates.oneGPH,
+                                                                              irreff: IrrEff.drip, swhc: SoilWHC.medium, aw: 0, mad: 100,
+                                                                              status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
+                                                                              plantings: 0, color: zoneEventColors[1], textColor: zoneTextColor
+                                                                            }));
 
-              zone.aw -= dailyETc;
+        for (var i = 3; i <= zoneCount; i++) {
+          var zone = { id: i, name:`Z0${i-2}`, area: 0, type: ZoneType.open,
+                       flowrate: FlowRates.oneGPH, irreff: IrrEff.drip, swhc: SoilWHC.medium,
+                       mad: 100, aw: 0, status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
+                       plantings: 0, color: zoneEventColors[i-1], textColor: zoneTextColor };
 
-              // Create an irrigation event if necessary
-              if (zone.aw < (zone.swhc * (zone.mad / 100))) {
-                var start = new Date();
-                var times = zone.start.split(':');
+          await zonesSchema.validate(zone);
 
-                start.setHours(times[0]);
-                start.setMinutes(times[1]);
+          log.debug(`  Adding Zone(${i}): ` + JSON.stringify(zone));
 
-                Events.getEventsInstance(async (events) => {
-                  await events.setEvent({ sid: zone.id, title: `(auto) ${zone.name} Event`,
-                                          start: start, amt: zone.swhc - zone.aw,
-                                          fertilize: fertilize });
-                });
-              }
+          await multi.hset(dbKeys.dbZonesKey, zone.id, JSON.stringify(zone));
+        }
 
-              // Record that we've adjusted the zone up to now
-              zone.adjusted = new Date();
-
-              this.setZone(zone, () => {});
-            });
-          }
+        await multi.execAsync((error, results) => {
+          if (error)
+            log.error(error);
+          else
+            log.debug(`ZoneInit multi.execAsync(): ${results}`)
         });
       } catch (err) {
-        log.error(`Zone processJob error: ${err}`);
+        log.error(`ZoneInit: ${JSON.stringify(err)}`);
       }
-    });
+    }
+
+    log.debug(`*** Zones Initialized!`);
   }
 
   // Returns zones that are available for assignment
@@ -302,16 +198,19 @@ class Zones {
       saveZone.flowrate = inputZone.flowrate;
       saveZone.start = inputZone.start;
       saveZone.mad = inputZone.mad;
-      saveZone.plantings = inputZone.plantings;
+      if (typeof inputZone.adjusted !== 'undefined')
+        saveZone.adjusted = inputZone.adjusted;
+      if (typeof inputZone.plantings !== 'undefined')
+        saveZone.plantings = inputZone.plantings;
 
       let status = false, started = 0;
-      if (typeof inputZone.status != 'undefined')
+      if (typeof inputZone.status !== 'undefined')
         status = inputZone.status;
 
       // Switch zone on/off if status changed
       if (saveZone.status != status) {
         log.debug(`Zone status: ${status} ${new Date()}`);
-        await this.ospi.switchZone(saveZone.id, status);
+        await OSPiInstance.switchZone(saveZone.id, status);
       }
 
       if (status)
@@ -339,7 +238,7 @@ class Zones {
       zone.status = !zone.status;
 
       // Turn On/Off the zone
-      await this.ospi.switchStation(zone.id, zone.status);
+      await OSPiInstance.switchStation(zone.id, zone.status);
 
       if (zone.status)
         zone.started = Date.now();
@@ -360,33 +259,32 @@ class Zones {
 
   // Average the MAD and record the number of plantings in this zone
   async updatePlantings(zids) {
-    Plantings.getPlantingsInstance((plantingsInstance) => {
-      try {
-        zids.forEach(async (zid) => {
-          var zone = await this.getZone(zid);
+    try {
+      zids.forEach(async (zid) => {
+        var zone = await this.getZone(zid);
 
-          zone.mad = 0;
+        zone.mad = 0;
 
-          plantingsInstance.getPlantingsByZone(zid, async (plantings) => {
-            if (plantings.length) {
-              for (var i = 0; i < plantings.length; i++)
-                zone.mad += plantings[i].mad;
+        var plantings = await PlantingsInstance.getPlantingsByZone(zid);
+        if (plantings.length) {
+          for (var i = 0; i < plantings.length; i++)
+            zone.mad += plantings[i].mad;
 
-              zone.mad /= plantings.length;
-            }
-            zone.plantings = plantings.length;
+          zone.mad /= plantings.length;
+        }
+        zone.plantings = plantings.length;
 
-            this.setZone(zone, () => {});
-          }); // getPlantingByZone
-        }); // forEach zone
-      } catch (err) {
-        log.error(`updatePlantings Failed to update planting for zones(${zids}): ${err}`);
-      }
-    });
+        this.setZone(zone, () => {});
+      }); // forEach zone
+    } catch (err) {
+      log.error(`updatePlantings Failed to update planting for zones(${zids}): ${err}`);
+    }
   }
 }
 
+const ZonesInstance = new Zones();
+Object.freeze(ZonesInstance);
+
 module.exports = {
-  ZonesInstance,
-  getZonesInstance
-};
+  ZonesInstance
+}

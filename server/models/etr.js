@@ -34,25 +34,17 @@ const etrSchema = schema({
   tot: Number
 });
 
-let ETrInstance;
+class ETr {
+  constructor() {
+    if (!ETr.ETrInstance) {
+      ETr.init();
 
-const getETrInstance = async (callback) => {
-  if (ETrInstance) {
-    callback(ETrInstance);
-    return;
+      ETr.ETrInstance = this;
+    }
+    return ETr.ETrInstance;
   }
 
-  ETrInstance = await new ETr();
-  await ETrInstance.init(() => {
-    log.debug("*** ETrs Initialized! ");
-    callback(ETrInstance);
-  })
-}
-
-class ETr {
-  constructor() {}
-
-  async init(callback) {
+  static async init() {
     try {
       var etrCnt = await db.hlenAsync(dbKeys.dbETrKey);
 
@@ -77,7 +69,7 @@ class ETr {
       log.error(`ETr.init: failed to set ET reference table (${err})`);
     }
 
-    callback();
+    log.debug(`*** ETr Initialized!`);
   }
 
   async getETrs(callback) {
@@ -156,7 +148,9 @@ class ETr {
   }
 }
 
+const ETrInstance = new ETr();
+Object.freeze(ETrInstance);
+
 module.exports = {
-  ETrInstance,
-  getETrInstance
-};
+  ETrInstance
+}

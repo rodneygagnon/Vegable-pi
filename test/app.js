@@ -8,9 +8,9 @@
 var app = require('../server/app');
 
 var Api = require('./testAPI');
-var Weather = require('./testWeather');
+var Core = require('./testCore');
 
 describe('Vegable Tests', async () => {
   await Api.runTests(app);
-  await Weather.runTests();
+  await Core.runTests();
 });

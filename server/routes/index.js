@@ -7,10 +7,7 @@
 const express = require('express');
 const router = express.Router();
 
-const Users = require('../models/users');
-
-var ZonesInstance;
-var UsersInstance;
+const {UsersInstance} = require('../models/users');
 
 // GET home page
 router.get('/', function(req, res, next) {
@@ -36,11 +33,9 @@ router.get('/signout', function(req, res, next) {
 
 // POST handle new user registration
 router.post('/signup', function(req, res, next) {
-  Users.getUsersInstance((UsersInstance) => {
-    UsersInstance.updateUser(req.body, "" /* action */, (result) => {
-      // TODO: check result of new user registration before redirecting
-      res.redirect('/signin');
-    });
+  UsersInstance.updateUser(req.body, "" /* action */, (result) => {
+    // TODO: check result of new user registration before redirecting
+    res.redirect('/signin');
   });
 });
 

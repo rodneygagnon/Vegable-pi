@@ -8,12 +8,12 @@
 
 const {log} = require('../controllers/logger');
 
+const GeoLocation = require('../controllers/geolocation');
+
 const config = require("../../config/config");
-const GeoLocation = require('../controllers/geolocation')
 
-const Crops = require('./crops');
-const ETr = require('./etr');
-
+const {CropsInstance} = require('./crops');
+const {ETrInstance} = require('./etr');
 const {db} = require("./db");
 const {dbKeys} = require("./db");
 
@@ -32,8 +32,6 @@ const settingsSchema = schema({
   cimisKey: String
 });
 
-let SettingsInstance;
-
 var defaultSettings = { address : config.default_address,
                         city : config.default_city,
                         state : config.default_state,
@@ -47,25 +45,17 @@ var defaultSettings = { address : config.default_address,
                         cimisKey: config.cimis_key
                       };
 
-const getSettingsInstance = async (callback) => {
-  if (SettingsInstance) {
-    callback(SettingsInstance);
-    return;
-  }
-
-  SettingsInstance = await new Settings();
-  await SettingsInstance.init(() => {
-    log.debug("*** Settings Initialized! ");
-    callback(SettingsInstance);
-  })
-}
-
 class Settings {
   constructor() {
-    this.geolocation = null;
+    if (!Settings.SettingsInstance) {
+      Settings.init();
+
+      Settings.SettingsInstance = this;
+    }
+    return Settings.SettingsInstance;
   }
 
-  async init(callback) {
+  static async init() {
     var hlen = await db.hlenAsync(dbKeys.dbConfigKey);
     if (hlen === 0) { // key does not exist, store the default options
       try {
@@ -75,18 +65,7 @@ class Settings {
         log.error(error);
       }
     }
-
-    // Initialize crops
-    Crops.getCropsInstance((crops) => {
-      this.crops = crops;
-    });
-
-    // Initialize ETr
-    ETr.getETrInstance((etr) => {
-      this.etr = etr;
-    });
-
-    callback();
+    log.debug(`*** Settings Initialized!`);
   }
 
   async getSettings(callback) {
@@ -95,16 +74,10 @@ class Settings {
   }
 
   async getETrs(callback) {
-    await this.etr.getETrs((etrs) => {
+    await ETrInstance.getETrs((etrs) => {
       callback(etrs);
     });
   }
-
-  // async getAllCrops(callback) {
-  //   await this.crops.getAllCrops((crops) => {
-  //     callback(crops);
-  //   });
-  // }
 
   async setLocation(address, city, state, zip, etzone) {
     await this.setAddress(address);
@@ -226,7 +199,9 @@ class Settings {
   }
 }
 
+const SettingsInstance = new Settings();
+Object.freeze(SettingsInstance);
+
 module.exports = {
-  Settings,
-  getSettingsInstance
-};
+  SettingsInstance
+}

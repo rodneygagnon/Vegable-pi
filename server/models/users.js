@@ -11,12 +11,12 @@ const uuidv4 = require('uuid/v4');
 
 const {log} = require('../controllers/logger');
 
-const Settings = require('./settings');
+const {SettingsInstance} = require('./settings');
 
-const {db} = require("./db");
-const {dbKeys} = require("./db");
+const {db} = require('./db');
+const {dbKeys} = require('./db');
 
-const schema = require("schm");
+const schema = require('schm');
 const userSchema = schema({
   id: Number,
   name: String,
@@ -24,49 +24,33 @@ const userSchema = schema({
   password: String
 });
 
-let UsersInstance;
-
-const getUsersInstance = async (callback) => {
-  if (UsersInstance) {
-    callback(UsersInstance);
-    return;
-  }
-
-  UsersInstance = await new Users();
-  await UsersInstance.init(() => {
-    log.debug("*** Users Initialized! ");
-    callback(UsersInstance);
-  })
-}
-
 class Users {
   constructor() {
-    this.config = null;
+    if (!Users.UsersInstance) {
+      Users.init();
+
+      Users.UsersInstance = this;
+      log.debug("*** Users Initialized!");
+    }
+    return Users.UsersInstance;
   }
 
-  async init(callback) {
+  static async init() {
+    this.salt = bcrypt.genSaltSync(10);
 
-    Settings.getSettingsInstance(async (gSettings) => {
-      this.config = gSettings;
+    var userCount = await db.hlenAsync(dbKeys.dbUsersKey);
 
-      this.salt = bcrypt.genSaltSync(10);
+    // Create default user if necessary
+    if (userCount == 0) {
+      var user = {id: uuidv4(), name: await SettingsInstance.getDefaultUser(),
+                  email: await SettingsInstance.getDefaultEmail(),
+                  password: bcrypt.hashSync(await SettingsInstance.getDefaultPassword(), this.salt)};
 
-      var userCount = await db.hlenAsync(dbKeys.dbUsersKey);
+      if (!await db.hsetAsync(dbKeys.dbUsersKey, user.email, JSON.stringify(user)))
+        log.debug(`User Init: failed to add default user (${user})`);
 
-      // Create default user if necessary
-      if (userCount == 0) {
-        var user = {id: uuidv4(), name: await this.config.getDefaultUser(),
-                    email: await this.config.getDefaultEmail(),
-                    password: bcrypt.hashSync(await this.config.getDefaultPassword(), this.salt)};
-
-        if (!await db.hsetAsync(dbKeys.dbUsersKey, user.email, JSON.stringify(user)))
-          log.debug(`User Init: failed to add default user (${user})`);
-
-        userCount = await db.hlenAsync(dbKeys.dbUsersKey);
-      }
-
-      callback();
-    });
+      userCount = await db.hlenAsync(dbKeys.dbUsersKey);
+    }
   }
 
   async getUsers(callback) {
@@ -74,7 +58,7 @@ class Users {
 
     var redisUsers = await db.hvalsAsync(dbKeys.dbUsersKey);
     for (var i = 0; i < redisUsers.length; i++)
-      users[i] = await usersSchema.validate(JSON.parse(redisUsers[i]));
+      users[i] = await userSchema.validate(JSON.parse(redisUsers[i]));
 
     callback(users);
   }
@@ -174,7 +158,9 @@ class Users {
     }
 }
 
+const UsersInstance = new Users();
+Object.freeze(UsersInstance);
+
 module.exports = {
-  UsersInstance,
-  getUsersInstance
-};
+  UsersInstance
+}

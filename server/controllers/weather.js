@@ -11,8 +11,8 @@ const {log} = require('./logger');
 const request = require('request');
 const Queue = require("bull");
 
-const Settings = require('../models/settings');
-const ETr = require('../models/etr');
+const {SettingsInstance} = require('../models/settings');
+const {ETrInstance} = require('../models/etr');
 
 const darkskyWeatherURL = 'https://api.darksky.net/forecast/';
 const cimisURL = 'http://et.water.ca.gov/api/data?appKey=';
@@ -31,54 +31,33 @@ const weatherSchema = schema({
 // Bull/Redis Jobs Queue
 var WeatherQueue;
 
-let WeatherInstance;
-
-const getWeatherInstance = async (callback) => {
-  if (WeatherInstance) {
-    callback(WeatherInstance);
-    return;
-  }
-
-  WeatherInstance = await new Weather();
-  WeatherInstance.init(() => {
-    log.debug("*** Weather Initialized! ");
-    callback(WeatherInstance);
-  });
-}
-
 class Weather {
   constructor() {
-    this.config = null;
+    if (!Weather.WeatherInstance) {
+      Weather.init();
+
+      Weather.WeatherInstance = this;
+    }
+    return Weather.WeatherInstance;
   }
 
-  async init(callback) {
-    Settings.getSettingsInstance(async (settings) => {
-      this.config = settings;
+  static async init() {
+    try {
+    	WeatherQueue = new Queue('WeatherQueue', {redis: {host: 'redis'}});
 
-      try {
-      	WeatherQueue = new Queue('WeatherQueue', {redis: {host: 'redis'}});
-
-        // Set Queue processor
-        WeatherQueue.process(async (job, done) => {
-          this.processJob(job, done);
-        });
-
-        // Get the weather every morning @ 3am
-        WeatherQueue.add( {task: "Get Weather!"},
-                          { repeat: { cron: '0 3 * * *' }, removeOnComplete: true } );
-
-      } catch (err) {
-        log.error(`WeatherInit: Failed to create WEATHER queue: ${err}`);
-      }
-
-      // Initialize ETr
-      ETr.getETrInstance((etr) => {
-        this.etr = etr;
-
-        callback();
+      // Set Queue processor
+      WeatherQueue.process(async (job, done) => {
+        this.processJob(job, done);
       });
-    });
 
+      // Get the weather every morning @ 3am
+      WeatherQueue.add( {task: "Get Weather!"},
+                        { repeat: { cron: '0 3 * * *' }, removeOnComplete: true } );
+
+    } catch (err) {
+      log.error(`WeatherInit: Failed to create WEATHER queue: ${err}`);
+    }
+    log.debug(`*** Weather Initialized!`);
   }
 
   async processJob(job, done) {
@@ -119,9 +98,10 @@ class Weather {
   // Default to ETr table if we don't have CIMIS data for particular day
   async getDailyETo(startDate, endDate) {
     var dailyETo = [];
-    var etzone = await this.config.getETZone();
+    var etzone = await SettingsInstance.getETZone();
 
-    var dailyETr = await this.etr.getDailyETr(etzone, new Date(startDate), new Date(endDate));
+    //var dailyETr = await this.etr.getDailyETr(etzone, new Date(startDate), new Date(endDate));
+    var dailyETr = await ETrInstance.getDailyETr(etzone, new Date(startDate), new Date(endDate));
 
     // For each day of the given range, push Cimis ETo or ETr if it doesn't exist
     for (var i = 0, day = startDate; day <= endDate; i++, day.setDate(day.getDate() + 1)) {
@@ -141,8 +121,8 @@ class Weather {
   // Get Conditions
   async getConditions(callback)
   {
-    var url = darkskyWeatherURL + await this.config.getDarkSkyKey() + '/' +
-              await this.config.getLong() + ',' + await this.config.getLat();
+    var url = darkskyWeatherURL + await SettingsInstance.getDarkSkyKey() + '/' +
+              await SettingsInstance.getLong() + ',' + await SettingsInstance.getLat();
 
     request({
       url: url,
@@ -159,7 +139,7 @@ class Weather {
   // Get Conditions
   async getCimisConditions(targetDate, callback)
   {
-    var url = cimisURL + await this.config.getCimisKey() + '&targets=' + await this.config.getZip() +
+    var url = cimisURL + await SettingsInstance.getCimisKey() + '&targets=' + await SettingsInstance.getZip() +
               '&startDate=' + targetDate + '&endDate=' + targetDate;
 
     request({
@@ -176,7 +156,9 @@ class Weather {
 
 }
 
+const WeatherInstance = new Weather();
+Object.freeze(WeatherInstance);
+
 module.exports = {
-  Weather,
-  getWeatherInstance
-};
+  WeatherInstance
+}

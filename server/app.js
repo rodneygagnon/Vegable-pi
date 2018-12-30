@@ -25,34 +25,28 @@ const logger = require('morgan');
 const {log} = require('./controllers/logger');
 
 // Main Application Singleton
-const Vegable = require("./vegable");
+const {VegableInstance} = require("./vegable");
 
-var VegableInstance;
-
-// Initialize Vegable
-Vegable.getVegableInstance((VegableInstance) => {
-
-  // Initialize a local authentication strategy for now.
-  // TODO: Add strategies for Facebook, Twitter, ... and/or OpenId, www.okta.com
-  passport.use(new LocalStrategy(
-    function(username, password, callback) {
-      VegableInstance.validateUser(username, password, function(err, user) {
-        if (err) { return callback(err); }
-        if (!user) { return callback(null, false, { message: 'Incorrect username or password.' }); }
-        return callback(null, user);
-      });
-    }
-  ));
-
-  passport.serializeUser(function(user, callback) {
-    callback(null, user);
-  });
-
-  passport.deserializeUser(function(user, callback) {
-    VegableInstance.getUser(user.email, function (err, user) {
+// Initialize a local authentication strategy for now.
+// TODO: Add strategies for Facebook, Twitter, ... and/or OpenId, www.okta.com
+passport.use(new LocalStrategy(
+  function(username, password, callback) {
+    VegableInstance.validateUser(username, password, function(err, user) {
       if (err) { return callback(err); }
-      callback(null, user);
+      if (!user) { return callback(null, false, { message: 'Incorrect username or password.' }); }
+      return callback(null, user);
     });
+  }
+));
+
+passport.serializeUser(function(user, callback) {
+  callback(null, user);
+});
+
+passport.deserializeUser(function(user, callback) {
+  VegableInstance.getUser(user.email, function (err, user) {
+    if (err) { return callback(err); }
+    callback(null, user);
   });
 });
 

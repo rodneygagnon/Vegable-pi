@@ -6,15 +6,15 @@
  */
 'use strict';
 
-const {log} = require('../controllers/logger');
-
 const uuidv4 = require('uuid/v4');
 const Queue = require("bull");
 
-const Zones = require('./zones');
+const {log} = require('../controllers/logger');
 
 const {db} = require("./db");
 const {dbKeys} = require("./db");
+
+const {ZonesInstance} = require('./zones');
 
 const schema = require("schm");
 const eventSchema = schema({
@@ -22,7 +22,7 @@ const eventSchema = schema({
   sid: Number,                    // Zone ID
   title: String,
   start: String,                  // ISO8601
-  amt: { type: Number, min: 1 },  // inches of water to apply
+  amt: { type: Number, min: 0 },  // inches of water to apply
   fertilize: Boolean,             // fertigate?
   color: String,
   textColor: String,
@@ -36,25 +36,17 @@ const sqft_acre = 43560;
 // Bull/Redis Jobs Queue
 var EventsQueue;
 
-let EventsInstance;
+class Events {
+  constructor() {
+    if (!Events.EventsInstance) {
+      Events.init();
 
-const getEventsInstance = async (callback) => {
-  if (EventsInstance) {
-   callback(EventsInstance);
-   return;
+      Events.EventsInstance = this;
+    }
+    return Events.EventsInstance;
   }
 
-  EventsInstance = await new Events();
-  await EventsInstance.init(() => {
-   log.debug("*** Events Initialized! ");
-   callback(EventsInstance);
-  })
-}
-
-class Events {
-  constructor() {}
-
-  async init(callback) {
+  static async init() {
     try {
     	EventsQueue = new Queue('EventsQueue', {redis: {host: 'redis'}});
 
@@ -65,13 +57,7 @@ class Events {
     } catch (err) {
       log.error("Failed to create EVENTS queue: ", + err);
     }
-
-    // Manage Zones
-    Zones.getZonesInstance((zones) => {
-      this.zones = zones;
-    });
-
-    callback();
+    log.debug(`*** Events Initialized!`);
   }
 
   async getEvents(start, end, callback) {
@@ -153,17 +139,12 @@ class Events {
 
     try {
       var validEvent = await eventSchema.validate(event);
-      var zone = await this.zones.getZone(validEvent.sid);
-
-      // Set colors based on zone
-      validEvent.color = zone.color;
-      validEvent.textColor = zone.textColor;
-
       var validStart = (new Date(validEvent.start)).getTime() / 1000;
 
       if (typeof validEvent.id === 'undefined' || validEvent.id === "") {
         // Create a new event id.
         validEvent.id = uuidv4();
+        log.debug(`setEvent: new event ${validEvent.id}`);
       } else {
         // Find and remove the old event
         var removeEvent = await this.findEvent(validEvent.id);
@@ -171,10 +152,7 @@ class Events {
         if (removeEvent) {
           // Remove the event and the job from event queue.
           // We'll add back an updated job if necessary
-          var job = await EventsQueue.getJob(removeEvent.id);
-          if (job)
-            job.remove();
-
+          await this.delJob(removeEvent.id);
           await db.zremAsync(dbKeys.dbEventsKey, JSON.stringify(removeEvent));
         }
       }
@@ -186,7 +164,7 @@ class Events {
       eid = validEvent.id;
 
     } catch (err) {
-      log.error(`setPlanting Failed to set planting: ${err}`);
+      log.error(`setEvent Failed to set event: ${JSON.stringify(err)}`);
     }
     return(eid);
   }
@@ -200,10 +178,7 @@ class Events {
 
       if (removeEvent) {
         // Remove the job from event queue
-        var job = await EventsQueue.getJob(removeEvent.id);
-        if (job)
-          job.remove();
-
+        await this.delJob(removeEvent.id);
         await db.zremAsync(dbKeys.dbEventsKey, JSON.stringify(removeEvent));
 
         eid = removeEvent.id;
@@ -213,6 +188,12 @@ class Events {
     }
 
     return(eid);
+  }
+
+  async delJob(id) {
+    var job = await EventsQueue.getJob(id);
+    if (job)
+      job.remove();
   }
 
   async findEvent(eid) {
@@ -247,9 +228,9 @@ class Events {
       repeatEnd = new Date(event.start);
     } else {
       var start = new Date(event.start);
-      var dow = (Array.isArray(event.repeatDow) ? event.repeatDow.join(", ") : event.repeatDow);
+      var dow = (Array.isArray(event.repeatDow) ? event.repeatDow.join(",") : event.repeatDow);
 
-      repeatOpts = `{ cron: '${start.getMinutes()} ${start.getHours()} * * ${dow}'}`;
+      repeatOpts = { cron: `${start.getMinutes()} ${start.getHours()} * * ${dow}`};
       repeatEnd = new Date(event.repeatEnd);
     }
 
@@ -273,38 +254,55 @@ class Events {
   }
 
   async processJob(job, done) {
+    log.debug(`Events::process-ing job(${JSON.stringify(job)}`);
+
     var status;
+    var zone = await ZonesInstance.getZone(job.data.sid);
 
-    // Switch ON/OFF the station
-    this.zones.switchZone(job.data.sid, async (status) => {
-      log.debug(`processJob(switched ${status ? "on" : "off"}): Zone ID ${job.data.sid}`);
+    // If the job.id !== job.data.id (original event.id), then we created this job to turn the
+    // zone off at a specified time. If the station was turned off manually, log & do nothing.
+    if (job.id === job.data.id) {
+      // We are meant to turn the zone ON
+      if (!zone.status) {
+        // Switch ON the station and create a job to turn it off
+        ZonesInstance.switchZone(job.data.sid, async (status) => {
+          // Calculate irrigation time (minutes) to recharge the zone
+          // Irrigators Equation : Q x t = d x A
+          //   Q - flow rate (cfs)
+          //   t - time (hr)
+          //   d - depth (inches - adjusted for efficiency of irrigation system)
+          //   A - area (acres)
+          var irrTime = (((job.data.amt / zone.irreff) * (zone.area / sqft_acre)) / (zone.flowrate / gpm_cfs));
+          var nextJob = await EventsQueue.add(job.data, { jobId: uuidv4(),
+                                                          delay: irrTime * 3600000,
+                                                          removeOnComplete: true });
 
-      // If the zone is running, calculate its runtime and push a job back
-      // on the queue with the a delay (ms) to turn it off
-      if (status) {
-        // Calculate irrigation time (minutes) to recharge the zone
-        // Irrigators Equation : Q x t = d x A
-        //   Q - flow rate (cfs)
-        //   t - time (hr)
-        //   d - depth (inches - adjusted for efficiency of irrigation system)
-        //   A - area (acres)
-        var zone = await this.zones.getZone(job.data.sid);
-        var irrTime = (((job.data.amt / zone.irreff) * (zone.area / sqft_acre)) / (zone.flowrate / gpm_cfs));
-
-        // TODO: Store Job id in zone so we can remove it if the zone is turned off manually
-        var nextJob = await EventsQueue.add(job.data, { jobId: uuidv4(),
-                                                        delay: irrTime * 3600000,
-                                                        removeOnComplete: true });
-
-        log.debug(`processJob(add): ${JSON.stringify(nextJob)} delay (${irrTime} hr)`);
+          log.debug(`Events::process(1) zone ${zone.id} switched ${status === true ? 'ON' : 'OFF'}`);
+          done();
+        });
+      } else {
+        log.debug(`Events::process(1) zone ${zone.id} already ${zone.status === true ? 'ON' : 'OFF'}`);
+        done();
       }
-
-      done();
-    });
+    } else {
+      // We are meant to turn the zone OFF
+      if (zone.status) {
+        // Switch OFF the station and create a job to turn it off
+        ZonesInstance.switchZone(job.data.sid, async (status) => {
+          log.debug(`Events::process(1) zone ${zone.id} switched ${status === true ? 'ON' : 'OFF'}`);
+          done();
+        });
+      } else {
+        log.debug(`Events::process(2) zone ${zone.id} already ${zone.status === true ? 'ON' : 'OFF'}`);
+        done();
+      }
+    }
   }
 }
 
+const EventsInstance = new Events();
+Object.freeze(EventsInstance);
+
 module.exports = {
-   Events,
-   getEventsInstance
-};
+  EventsInstance
+}
