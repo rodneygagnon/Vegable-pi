@@ -25,7 +25,7 @@ const logger = require('morgan');
 const {log} = require('./controllers/logger');
 
 // Main Application Singleton
-const {VegableInstance} = require("./vegable");
+const {VegableInstance} = require("./controllers/vegable");
 
 // Initialize a local authentication strategy for now.
 // TODO: Add strategies for Facebook, Twitter, ... and/or OpenId, www.okta.com

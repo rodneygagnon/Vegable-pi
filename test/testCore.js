@@ -8,7 +8,11 @@
 
 const expect = require('expect');
 
-const {VegableInstance} = require('../server/vegable');
+// Controllers
+const {VegableInstance} = require('../server/controllers/vegable');
+const {WeatherInstance} = require('../server/controllers/weather');
+
+// Models
 const {SettingsInstance} = require('../server/models/settings');
 const {CropsInstance} = require('../server/models/crops');
 const {PlantingsInstance} = require('../server/models/plantings');
@@ -16,7 +20,6 @@ const {ETrInstance} = require('../server/models/etr');
 const {ZonesInstance} = require('../server/models/zones');
 const {EventsInstance} = require('../server/models/events');
 const {UsersInstance} = require('../server/models/users');
-const {WeatherInstance} = require('../server/controllers/weather');
 
 const sum = (total, num) => {
   return total + num;

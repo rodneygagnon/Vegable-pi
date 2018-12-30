@@ -9,15 +9,15 @@
 const Queue = require("bull");
 
 // Data Models
-const {SettingsInstance} = require("./models/settings");
-const {UsersInstance} = require("./models/users");
-const {EventsInstance} = require("./models/events");
-const {PlantingsInstance} = require("./models/plantings");
-const {ZonesInstance} = require("./models/zones");
+const {SettingsInstance} = require("../models/settings");
+const {UsersInstance} = require("../models/users");
+const {EventsInstance} = require("../models/events");
+const {PlantingsInstance} = require("../models/plantings");
+const {ZonesInstance} = require("../models/zones");
 
 // Controllers
-const {log} = require('./controllers/logger');
-const {WeatherInstance} = require("./controllers/weather");
+const {log} = require('./logger');
+const {WeatherInstance} = require("./weather");
 
 // Bull/Redis Jobs Queue
 var VegableQueue;
