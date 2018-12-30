@@ -1,15 +1,22 @@
-/*
- * Index Router
- *
- * @author: rgagnon
+/**
+ * @file Vegable WebApp Index Routes
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
+'use strict';
+
 const express = require('express');
 const router = express.Router();
 
 const {UsersInstance} = require('../models/users');
 
-// GET home page
+/**
+ * Route to render Index view
+ * @name index
+ * @function
+ * @returns {object} user - user
+ */
 router.get('/', function(req, res, next) {
   // Make sure the user is logged in
   if (typeof req.user === 'undefined')
@@ -19,19 +26,40 @@ router.get('/', function(req, res, next) {
   }
 });
 
-// GET sign in, up and out.
+/**
+ * Route to render Sign In view
+ * @name signin
+ * @function
+ */
 router.get('/signin', function(req, res, next) {
   res.render('signin');
 });
+
+/**
+ * Route to render Sign Up view
+ * @name signup
+ * @function
+ */
 router.get('/signup', function(req, res, next) {
   res.render('signup');
 });
+
+/**
+ * Route to sign out and redirect to Sign In view
+ * @name signout
+ * @function
+ */
 router.get('/signout', function(req, res, next) {
   req.logout();
   res.redirect('/signin');
 });
 
-// POST handle new user registration
+/**
+ * Route to handle user registration and redirect to Sign In view
+ * @name signup
+ * @function
+ * @param {object} user - user
+ */
 router.post('/signup', function(req, res, next) {
   UsersInstance.updateUser(req.body, "" /* action */, (result) => {
     // TODO: check result of new user registration before redirecting

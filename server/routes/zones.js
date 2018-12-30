@@ -1,15 +1,21 @@
-/*
- * Zones Router
- *
- * @author: rgagnon
+/**
+ * @file Vegable WebApp Zones Routes
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
+'use strict';
+
 const express = require('express');
 const router = express.Router();
 
 const {ZonesInstance} = require('../models/zones');
 
-// GET home page
+/**
+ * Route to render Zones view
+ * @name zones
+ * @function
+ */
 router.get('/', function(req, res, next) {
   // Make sure the user is logged in
   if (typeof req.user === 'undefined')
@@ -19,14 +25,25 @@ router.get('/', function(req, res, next) {
   }
 });
 
-// update zone name, desc, flow info
+/**
+ * Route to update a zone and redirect Zones view
+ * @name zones/update
+ * @function
+ * @param {object} crop - crop
+ * @param {string} action - _null_ or _delete_
+ */
 router.route('/update').post(function (req, res) {
   ZonesInstance.setZone(req.body, () => {
     res.redirect('/zones');
   });
 });
 
-// ad hoc turning on/off zones
+/**
+ * Route to turn on/off zones and redirect Zones view
+ * @name zones/enable
+ * @function
+ * @param {object} id - zone id
+ */
 router.route('/enable/:id').post(function (req, res) {
   ZonesInstance.switchZone(req.params.id, () => {
     res.redirect('/zones');

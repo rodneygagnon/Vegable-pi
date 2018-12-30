@@ -25,7 +25,7 @@ const {WeatherInstance} = require('../controllers/weather');
 
 /**
  * Route to get location information.
- * @name location/get
+ * @name api/location/get
  * @function
  * @returns {object} location - Address, City, State, Zip, ...
  */
@@ -39,7 +39,7 @@ router.route('/location/get').get(function (req, res) {
  * Route to set location information.
  * @name location/set
  * @function
- * @param {object} location - Address, City, State, Zip, ...
+ * @param {object} location - Address, City, State, Zip, ET Zone
  */
 router.route('/location/set').post(function (req, res) {
   SettingsInstance.setLocation( req.body.address, req.body.city,
@@ -53,7 +53,7 @@ router.route('/location/set').post(function (req, res) {
 
 /**
  * Route to get an individual or list of crops
- * @name crops/get
+ * @name api/crops/get
  * @function
  * @param {string} crop id - (optional) unique crop identifier
  * @returns {object} crop(s) - crop or crops[]
@@ -74,9 +74,10 @@ router.route('/crops/get').get(async function (req, res) {
 
 /**
  * Route to set a crop
- * @name crops/set
+ * @name api/crops/set
  * @function
  * @param {object} crop - crop
+ * @param {string} action - _null_ or _delete_
  * @returns {object} result - { id: _crop id_ }
  */
 router.route('/crops/set').post(async function (req, res) {
@@ -97,7 +98,7 @@ router.route('/crops/set').post(async function (req, res) {
 
 /**
  * Route to get events within a given date range
- * @name events/get
+ * @name api/events/get
  * @function
  * @param {date} start - start date
  * @param {date} end - end date
@@ -115,7 +116,7 @@ router.route('/events/get').get(function (req, res) {
 
 /**
  * Route to create, update or delete an event
- * @name events/set
+ * @name api/events/set
  * @function
  * @param {object} event - event to create, update or delete
  * @param {string} action - _null_ or _delete_
@@ -144,7 +145,7 @@ router.route('/events/set').post(async function (req, res) {
 
 /**
  * Route to get an individual or list of plantings
- * @name plantings/get
+ * @name api/plantings/get
  * @function
  * @param {string} planting id - (optional) unique planting identifier
  * @returns {object} planting(s) - planting or plantings[]
@@ -165,7 +166,7 @@ router.route('/plantings/get').get(async function (req, res) {
 
 /**
  * Route to create, update or delete an event
- * @name plantings/set
+ * @name api/plantings/set
  * @function
  * @param {object} planting - planting to create, update or delete
  * @param {string} action - _null_ or _delete_
@@ -191,7 +192,7 @@ router.route('/plantings/set').post(async function (req, res) {
 
 /**
  * Route to get all zones
- * @name zones/get
+ * @name api/zones/get
  * @function
  * @returns {array} zones - array of zones objects
  */
@@ -207,7 +208,7 @@ router.route('/zones/get').get(async function (req, res) {
 
 /**
  * Route to get planting zones
- * @name zones/get/planting
+ * @name api/zones/get/planting
  * @function
  * @returns {array} zones - array of zones objects
  */
@@ -220,7 +221,7 @@ router.route('/zones/get/planting').get(function (req, res) {
 
 /**
  * Route to get control zones
- * @name zones/get/control
+ * @name api/zones/get/control
  * @function
  * @returns {array} zones - array of zones objects
  */
@@ -233,7 +234,7 @@ router.route('/zones/get/control').get(function (req, res) {
 
 /**
  * Route to set a zone
- * @name zone/set
+ * @name api/zone/set
  * @function
  * @param {object} zone - zone to set
  */
@@ -245,7 +246,7 @@ router.route('/zones/set').post(function (req, res) {
 
 /**
  * Switch on/off a zone
- * @name zone/switch
+ * @name api/zone/switch
  * @function
  * @param {number} zone id - id of zone to turn on/off
  */
@@ -261,7 +262,7 @@ router.route('/zones/switch').post(function (req, res) {
 
 /**
  * Route to get weather conditions
- * @name weather/get
+ * @name api/weather/get
  * @function
  * @returns {object} conditions - current weather conditions
  */

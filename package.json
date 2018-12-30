@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node ./index.js",
     "test": "mocha",
-    "docs": "documentation build ./server/routes/api.js -f md --shallow > docs/api.md"
+    "docs": "documentation build ./server/routes/*.js -f md --shallow -o ./docs/routes.md"
   },
   "author": "",
   "license": "MIT",

@@ -1,16 +1,24 @@
-/*
- * Settings Router
- *
- * @author: rgagnon
+/**
+ * @file Vegable WebApp Settings Routes
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
+'use strict';
+
 var express = require('express');
 var router = express.Router();
 
 const {SettingsInstance} = require('../models/settings');
 const {CropsInstance} = require('../models/crops');
 
-// GET home page - send current config
+/**
+ * Route to render Settings view
+ * @name settings
+ * @function
+ * @returns {object} config - location configuration
+ * @returns {object} etrs - reference evapotranspiration zones
+ */
 router.get('/', function(req, res, next) {
   // Make sure the user is logged in
   if (typeof req.user === 'undefined')
@@ -25,7 +33,12 @@ router.get('/', function(req, res, next) {
   }
 });
 
-// set new config info
+/**
+ * Route to set location information and redirect Settings view
+ * @name settings/location/set
+ * @function
+ * @param {object} location - Address, City, State, Zip, ET Zone
+ */
 router.route('/location/set').post(function (req, res) {
   console.log(`Setting Location: `);
   console.log(req.body);
@@ -37,7 +50,13 @@ router.route('/location/set').post(function (req, res) {
   res.redirect('/settings');
 });
 
-// create, update or delete a crop
+/**
+ * Route to update a crop and redirect Settings view
+ * @name settings/crops/update
+ * @function
+ * @param {object} crop - crop
+ * @param {string} action - _null_ or _delete_
+ */
 router.route('/crops/update').post(async function (req, res) {
   var result;
 
