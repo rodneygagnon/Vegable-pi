@@ -6,9 +6,9 @@
  */
 'use strict';
 
-const {log} = require('../controllers/logger');
+const request = require('request');
 
-const GeoLocation = require('../controllers/geolocation');
+const {log} = require('../controllers/logger');
 
 const config = require("../../config/config");
 
@@ -16,6 +16,9 @@ const {CropsInstance} = require('./crops');
 const {ETrInstance} = require('./etr');
 const {db} = require("./db");
 const {dbKeys} = require("./db");
+
+const mapboxGeocodeURL = 'https://api.mapbox.com/geocoding/v5/mapbox.places/';
+const mapboxAccessKeyURL = '.json?access_token=';
 
 const schema = require("schm");
 const settingsSchema = schema({
@@ -79,6 +82,31 @@ class Settings {
     });
   }
 
+  // Get lat/long of given location
+  async getLatLong(address, city, state, zip, callback)
+  {
+    var latitude = 0;
+    var longitude = 0;
+
+    var location = encodeURIComponent(address + ',' + city + ',' + state + ',' + zip);
+    var url = mapboxGeocodeURL + location + mapboxAccessKeyURL +
+              defaultSettings.mapboxKey;
+
+    request({
+      url: url,
+      json: true
+    }, (error, response, body) => {
+      // TODO: Fleshout error handling
+      if (error) {
+        log.error('Unable to connect to GeoLocation Service');
+      } else {
+        latitude = body.features[0].geometry.coordinates[0];
+        longitude = body.features[0].geometry.coordinates[1];
+      }
+      callback(error, latitude, longitude);
+    });
+  }
+
   async setLocation(address, city, state, zip, etzone) {
     await this.setAddress(address);
     await this.setCity(city);
@@ -87,11 +115,9 @@ class Settings {
     await this.setETZone(etzone);
 
     // Get/Set Lat/Long
-    GeoLocation.getGeoLocationInstance(await this.getMapBoxKey(), (gGeoLocation) => {
-      gGeoLocation.getLatLong(address, city, state, zip, (error, latitude, longitude) => {
-        this.setLat(latitude);
-        this.setLong(longitude);
-      });
+    this.getLatLong(address, city, state, zip, (error, latitude, longitude) => {
+      this.setLat(latitude);
+      this.setLong(longitude);
     });
   }
 
