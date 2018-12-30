@@ -192,8 +192,10 @@ class Events {
 
   async delJob(id) {
     var job = await EventsQueue.getJob(id);
-    if (job)
+    if (job) {
+      log.debug(`delJob: job (${id}) deleted!`);
       job.remove();
+    }
   }
 
   async findEvent(eid) {
@@ -222,35 +224,30 @@ class Events {
     // Add event to the EventsQueue. Calculate when it should be processed next.
     var now = new Date();
 
-    var repeatEnd, repeatOpts;
+    var jobOpts = null, repeatOpts, delay;
     if (typeof event.repeatDow === 'undefined' || event.repeatDow === '7' /* none */) {
-      repeatOpts = {};
-      repeatEnd = new Date(event.start);
+      // Skip it if we are not repeating and the start time is in the past
+      delay = (new Date(event.start)).getTime() - now.getTime();
+      if (delay > 0)
+        jobOpts = { jobId: event.id, delay: delay, removeOnComplete: true };
     } else {
-      var start = new Date(event.start);
-      var dow = (Array.isArray(event.repeatDow) ? event.repeatDow.join(",") : event.repeatDow);
+      // Skip it if the repeat has expired
+      delay = (new Date(event.repeatEnd)).getTime() - now.getTime();
+      if (delay > 0) {
+        var start = new Date(event.start);
+        var dow = (Array.isArray(event.repeatDow) ? event.repeatDow.join(",") : event.repeatDow);
+        var repeatOpts = { cron: `${start.getMinutes()} ${start.getHours()} * * ${dow}`};
 
-      repeatOpts = { cron: `${start.getMinutes()} ${start.getHours()} * * ${dow}`};
-      repeatEnd = new Date(event.repeatEnd);
+        jobOpts = { jobId: event.id, delay: delay, repeat: repeatOpts, removeOnComplete: true };
+      }
     }
 
-    // Calculate when to process this job
-    var delay = repeatEnd.getTime() - now.getTime();
-    if (delay < 0) {
-      log.debug(`scheduleJob(skip): nothing to do, job has expired(${repeatEnd.toLocaleString()})`);
-      return;
+    if (jobOpts) {
+      log.debug(`Events::scheduleJob(add): event (${JSON.stringify(event)} jobOpts ${JSON.stringify(jobOpts)}`);
+      const job = await EventsQueue.add(event, jobOpts);
     } else {
-      log.debug(`scheduleJob(delay): (${delay}ms) process in ${delay/6000}min`);
+      log.debug(`Events::scheduleJob(skip): nothing to do, job has expired(${JSON.stringify(event)})`);
     }
-
-    log.debug(`scheduleJob(repeatOpts):${JSON.stringify(repeatOpts)}`);
-
-    const job = await EventsQueue.add(event, { jobId: event.id,
-                                               delay: delay,
-                                               repeat: repeatOpts,
-                                               removeOnComplete: true });
-
-    log.debug(`scheduleJob(add): ${JSON.stringify(job)}`);
   }
 
   async processJob(job, done) {

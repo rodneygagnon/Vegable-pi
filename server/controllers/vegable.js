@@ -1,8 +1,8 @@
-/*
- * Vegable Singleton
- *
- * @author: rgagnon
+/**
+ * @file Vegable Controller
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
 'use strict';
 
@@ -76,16 +76,19 @@ class Vegable {
   // (NOTE: calculations are still approximations and need vetting and measurements)
   //
   async scheduleEvents(endDate) {
-    var start = new Date();
     var eids = [];
+
+    // If events are created, they will run tomorrow at the zone's designated start time
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
     try {
       var zones = await ZonesInstance.getAllZones();
       for (var i = 0; i < zones.length; i++) {
         var zone = zones[i];
-        var times = zone.start.split(':');
-        start.setHours(times.length < 2 ? 0 : times[0]);
-        start.setMinutes(times.length < 2 ? 0 : times[1]);
+        var startTime = zone.start.split(':');
+        tomorrow.setHours(startTime.length < 2 ? 0 : startTime[0]);
+        tomorrow.setMinutes(startTime.length < 2 ? 0 : startTime[1]);
 
         // Only check zones with plantings
         if (zone.plantings) {
@@ -95,7 +98,7 @@ class Vegable {
              log.debug(`scheduleEvents: zone ${zone.id} never adjusted, recharging soil.`);
 
              eids.push(await EventsInstance.setEvent({ sid: zone.id, title: `(auto) ${zone.name} Event`,
-                                                       start: start.toString(), amt: zone.swhc,
+                                                       start: tomorrow.toString(), amt: zone.swhc,
                                                        fertilize: true }));
           } else {
             // TODO: determine if the plant needs nutrients
@@ -106,14 +109,14 @@ class Vegable {
             // Get the ETc since that last time we adjusted the soil
             var dailyETc = await PlantingsInstance.getETcByZone(zone.id, new Date(zone.adjusted), endDate);
             // Record the Depletion. Can't be less than 0
-            zone.aw = (zone.aw > dailyETc ? zone.aw - dailyETc : 0);
+            zone.availableWater = (zone.availableWater > dailyETc ? zone.availableWater - dailyETc : 0);
 
             // Create an irrigation event if the zone needs water
-            if (zone.aw < (zone.swhc * (zone.mad / 100))) {
-              log.debug(`scheduleEvents: zone ${zone.id} aw (${zone.aw}) dropped ${zone.mad}% below swhc ${zone.swhc}'`);
+            if (zone.availableWater < (zone.swhc * (zone.mad / 100))) {
+              log.debug(`scheduleEvents: zone ${zone.id} aw (${zone.availableWater}) dropped ${zone.mad}% below swhc ${zone.swhc}'`);
 
               eids.push(await EventsInstance.setEvent({ sid: zone.id, title: `(auto) ${zone.name} Event`,
-                                                        start: start.toString(), amt: zone.swhc - zone.aw,
+                                                        start: tomorrow.toString(), amt: zone.swhc - zone.availableWater,
                                                         fertilize: true }));
             }
           }

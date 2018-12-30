@@ -128,6 +128,70 @@ const runTests = () => {
 
     });
 
+    describe('Events', () => {
+      var today = new Date();
+      var yesterday = new Date();
+      var tomorrow = new Date();
+
+      yesterday.setDate(today.getDate() - 1);
+      tomorrow.setDate(today.getDate() + 1);
+
+      var addedEvent = {
+            sid: 3,
+            title: "Test Event",
+            amt: 1,
+            fertilize: false,
+          };
+
+      // Test single events
+      it(`should create and delete a single event for yesterday ${yesterday}`, async () => {
+        addedEvent.start = yesterday.toString();
+        addedEvent.id = await EventsInstance.setEvent(addedEvent);
+        expect(addedEvent.id).toBeDefined();
+        expect(await EventsInstance.delEvent(addedEvent)).toBe(addedEvent.id);
+        delete addedEvent.id;
+      });
+
+      it(`should create and delete a single event for tomorrow ${tomorrow}`, async () => {
+        addedEvent.start = tomorrow.toString();
+        addedEvent.id = await EventsInstance.setEvent(addedEvent);
+        expect(addedEvent.id).toBeDefined();
+        expect(await EventsInstance.delEvent(addedEvent)).toBe(addedEvent.id);
+        delete addedEvent.id;
+      });
+
+      // Test repeating events
+      it(`should create and delete a repeating event (1 day) for yesterday ${yesterday} that ends yesterday ${yesterday}`, async () => {
+        addedEvent.start = yesterday.toString();
+        addedEvent.repeatEnd = yesterday.toString();
+        addedEvent.repeat = 1; // only repeat on 1 day
+        addedEvent.id = await EventsInstance.setEvent(addedEvent);
+        expect(addedEvent.id).toBeDefined();
+        expect(await EventsInstance.delEvent(addedEvent)).toBe(addedEvent.id);
+        delete addedEvent.id;
+      });
+
+      it(`should create and delete a repeating event (few days) for yesterday ${yesterday} that ends tomorrow ${tomorrow}`, async () => {
+        addedEvent.start = yesterday.toString();
+        addedEvent.repeatEnd = tomorrow.toString();
+        addedEvent.repeat = [2, 4, 6]; // repeat on a few days
+        addedEvent.id = await EventsInstance.setEvent(addedEvent);
+        expect(addedEvent.id).toBeDefined();
+        expect(await EventsInstance.delEvent(addedEvent)).toBe(addedEvent.id);
+        delete addedEvent.id;
+      });
+
+      it(`should create and delete a repeating event (every day) for tomorrow ${tomorrow} that ends tomorrow ${tomorrow}`, async () => {
+        addedEvent.start = tomorrow.toString();
+        addedEvent.repeatEnd = tomorrow.toString();
+        addedEvent.repeat = [0, 1, 2, 4, 3, 4, 5, 6]; // repeat on all days
+        addedEvent.id = await EventsInstance.setEvent(addedEvent);
+        expect(addedEvent.id).toBeDefined();
+        expect(await EventsInstance.delEvent(addedEvent)).toBe(addedEvent.id);
+        delete addedEvent.id;
+      });
+    });
+
     describe('Zones', () => {
       var eids;
 

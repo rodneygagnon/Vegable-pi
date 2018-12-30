@@ -22,17 +22,17 @@ const zonesSchema = schema({
   id: Number,
   name: String,
   type: Number,
-  area: { type: Number, min: 0 },       // sq ft
-  flowrate: { type: Number, min: 0.5 }, // gallons per hour
-  irreff: { type: Number, min: 0 },     // Irrigation Efficiency %
-  swhc: { type: Number, min: 0 },       // Soil Water Holding Capacity
-  status: Boolean,                      // on/off
-  start: String,                        // HH:mm - time to irrigate when needed
-  started: { type: Number, min: 0 },    // ISO8601 - Irrigation started
-  recharged: { type: Number, min: 0 },  // ISO8601 - Last Date the zone was recharged
-  adjusted: { type: Number, min: 0 },   // ISO8601 - Last Date aw was adjusted for depletion
-  aw: { type: Number, min: 0 },         // Available Water (inches)
-  mad: { type: Number, min: 0 },        // Max Allowable Depletion (MAD %)
+  area: { type: Number, min: 0 },           // sq ft
+  flowrate: { type: Number, min: 0.5 },     // gallons per hour
+  irreff: { type: Number, min: 0 },         // Irrigation Efficiency %
+  swhc: { type: Number, min: 0 },           // Soil Water Holding Capacity
+  status: Boolean,                          // on/off
+  start: String,                            // HH:mm - time to irrigate when needed
+  started: { type: Number, min: 0 },        // ISO8601 - Irrigation started
+  recharged: { type: Number, min: 0 },      // ISO8601 - Last Date the zone was recharged
+  adjusted: { type: Number, min: 0 },       // ISO8601 - Last Date aw was adjusted for depletion
+  availableWater: { type: Number, min: 0 }, // Available Water (inches)
+  mad: { type: Number, min: 0 },            // Max Allowable Depletion (MAD %)
   plantings: { type: Number, min: 0 },
 
   // Color coding for events in the schedule
@@ -96,13 +96,13 @@ class Zones {
         // Fixed Zones (Master + Fertilizer)
         await multi.hset(dbKeys.dbZonesKey, MasterZoneId, JSON.stringify({ id: MasterZoneId, name:'Master', area: 0,
                                                                            type: ZoneType.control, flowrate: FlowRates.oneGPH,
-                                                                           irreff: IrrEff.drip, swhc: SoilWHC.medium, aw: 0, mad: 100,
+                                                                           irreff: IrrEff.drip, swhc: SoilWHC.medium, availableWater: 0, mad: 100,
                                                                            status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
                                                                            plantings: 0, color: zoneEventColors[0], textColor: zoneTextColor
                                                                          }));
         await multi.hset(dbKeys.dbZonesKey, FertilizerZoneId, JSON.stringify({ id: FertilizerZoneId, name:'Fertilizer', area: 0,
                                                                               type: ZoneType.control, flowrate: FlowRates.oneGPH,
-                                                                              irreff: IrrEff.drip, swhc: SoilWHC.medium, aw: 0, mad: 100,
+                                                                              irreff: IrrEff.drip, swhc: SoilWHC.medium, availableWater: 0, mad: 100,
                                                                               status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
                                                                               plantings: 0, color: zoneEventColors[1], textColor: zoneTextColor
                                                                             }));
@@ -110,7 +110,7 @@ class Zones {
         for (var i = 3; i <= zoneCount; i++) {
           var zone = { id: i, name:`Z0${i-2}`, area: 0, type: ZoneType.open,
                        flowrate: FlowRates.oneGPH, irreff: IrrEff.drip, swhc: SoilWHC.medium,
-                       mad: 100, aw: 0, status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
+                       mad: 100, availableWater: 0, status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
                        plantings: 0, color: zoneEventColors[i-1], textColor: zoneTextColor };
 
           await zonesSchema.validate(zone);
