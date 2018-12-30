@@ -1,5 +1,5 @@
 /**
- * Weather Tester
+ * Core Service Tester
  *
  * @author: rgagnon
  * @copyright 2018 vegable.io
@@ -9,17 +9,15 @@
 const expect = require('expect');
 
 // Controllers
-const {VegableInstance} = require('../server/controllers/vegable');
-const {WeatherInstance} = require('../server/controllers/weather');
+const {WeatherInstance} = require('../../server/controllers/weather');
 
 // Models
-const {SettingsInstance} = require('../server/models/settings');
-const {CropsInstance} = require('../server/models/crops');
-const {PlantingsInstance} = require('../server/models/plantings');
-const {ETrInstance} = require('../server/models/etr');
-const {ZonesInstance} = require('../server/models/zones');
-const {EventsInstance} = require('../server/models/events');
-const {UsersInstance} = require('../server/models/users');
+const {SettingsInstance} = require('../../server/models/settings');
+const {CropsInstance} = require('../../server/models/crops');
+const {ETrInstance} = require('../../server/models/etr');
+const {ZonesInstance} = require('../../server/models/zones');
+const {EventsInstance} = require('../../server/models/events');
+const {UsersInstance} = require('../../server/models/users');
 
 const sum = (total, num) => {
   return total + num;
@@ -30,21 +28,8 @@ const runTests = () => {
   var end = new Date(2018, 1, 15);  // Feb 15
   var expectedETr = /* jan 16-31*/ ((1.86 / 31) * 16) +
                     /* feb 1-15 */ ((2.24 / 28) * 15)
-  var dailyETo;
 
-  var crops;
-  var zone;
-  var plantingZone = 3;
-  var addedPlanting = {
-        zid: plantingZone,
-        title: "Test Planting",
-        date: start.toString(),
-        mad: 50,
-        count: 2,
-        spacing: 12
-      };
-
-  describe('Core Service', () => {
+  describe('Unit Tests', () => {
     describe('Users', () => {
       it ('should get all users', (done) => {
         UsersInstance.getUsers((usersdb) => {
@@ -74,56 +59,64 @@ const runTests = () => {
 
       it (`should get daily ETr for zone ${etzone} from ${start} to ${end}`, async () => {
         var dailyETr = await ETrInstance.getDailyETr(etzone, new Date(start), new Date(end));
-
         expect(dailyETr.length).toBe(31);
         expect(dailyETr.reduce(sum).toFixed(2)).toBe(String(expectedETr));
       });
+    });
 
-      it (`should get daily ETo for zone ${etzone} from ${start} to ${end}`, async () => {
-        dailyETo = await WeatherInstance.getDailyETo(new Date(start), new Date(end));
+    describe('Weather', () => {
+      it (`should get daily ETo for from ${start} to ${end}`, async () => {
+        var dailyETo = await WeatherInstance.getDailyETo(new Date(start), new Date(end));
         expect(dailyETo.length).toBe(31);
         expect(dailyETo.reduce(sum).toFixed(2)).toBe(String(expectedETr));
       });
-    });
 
-    describe('Plantings', () => {
-      it ('should get all crops', (done) => {
-        CropsInstance.getCrops((cropsdb) => {
-          expect(cropsdb).toBeDefined();
-          crops = cropsdb;
-          addedPlanting.cid = crops[0].id;
-          addedPlanting.age = crops[0].initDay + crops[0].devDay - 7; // ensure we span stages (dev & mid)
+      it ('should get conditions', (done) => {
+        WeatherInstance.getConditions((error, conditions) => {
+          expect(conditions).toBeDefined();
           done();
         });
       });
 
-      it('should create a planting', async () => {
-        var result = await PlantingsInstance.setPlanting(addedPlanting);
-
-        expect(result).toBeDefined();
-        addedPlanting.id = result.id;
-
-        // Tell the zone of a planting change
-        await ZonesInstance.updatePlantings(result.zids);
+      it ('should get CIMIS conditions', (done) => {
+        WeatherInstance.getCimisConditions('2018-01-01', (error, conditions) => {
+          expect(conditions).toBeDefined();
+          done();
+        });
       });
 
-      it (`should get daily ETc for all plantings in zone ${plantingZone} from ${start} to ${end}`, async () => {
-        var expectedETc = 0;
-        var age = addedPlanting.age;
-        var initStage = crops[0].initDay;
-        var devStage = initStage + crops[0].devDay;
-        var midStage = devStage + crops[0].midDay;
+    });
 
-        for (var day = 0; day < dailyETo.length; day++) {
-          expectedETc += dailyETo[day] *
-                          (age <= initStage ? crops[0].initKc :
-                            (age <= devStage ? crops[0].devKc :
-                              (age <= midStage ? crops[0].midKc : crops[0].lateKc)));
-          age++;
-        }
+    describe('Crops', () => {
+      var crops, crop;
 
-        var dailyETc = await PlantingsInstance.getETcByZone(plantingZone, new Date(start), new Date(end));
-        expect(dailyETc.toFixed(2)).toBe(expectedETc.toFixed(2));
+      it ('should get all crops', (done) => {
+        CropsInstance.getCrops((result) => {
+          expect(result).toBeDefined();
+          crops = result;
+          crop = crops[0];
+          done();
+        });
+      });
+
+      it ('should get a single crop', async () => {
+        expect(await CropsInstance.getCrop(crop.id)).toEqual(crop);
+      });
+
+      it ('should set a crop', async () => {
+        var cropId = crop.id;
+        crop.id = await CropsInstance.setCrop(crop);
+        expect(crop.id).toBe(cropId);
+      });
+
+      it ('should create a crop', async () => {
+        delete crop.id;
+        crop.id = await CropsInstance.setCrop(crop);
+        expect(crop.id).toBeDefined();
+      });
+
+      it ('should delete a crop', async () => {
+        expect(await CropsInstance.delCrop(crop.id)).toBe(crop.id);
       });
 
     });
@@ -193,36 +186,33 @@ const runTests = () => {
     });
 
     describe('Zones', () => {
-      var eids;
+      var zones, zone;
 
-      it(`should find that zone ${plantingZone} has a planting`, async () => {
-        zone = await ZonesInstance.getZone(plantingZone);
-        expect(zone).toBeDefined();
-        expect(zone.plantings).toBe(1);
+      it(`should get all zones`, async () => {
+        zones = await ZonesInstance.getAllZones();
+        expect(zones).toBeDefined();
       });
-
-      it(`should schedule an event for zone ${plantingZone}`, async () => {
-        eids = await VegableInstance.scheduleEvents(new Date());
-        expect(eids.length).toBe(1);
+      it(`should get control zones (2)`, (done) => {
+        ZonesInstance.getControlZones((zones) => {
+          expect(zones.length).toBe(2);
+          done();
+        });
       });
-
-      it(`should delete the events scheduled for zone ${plantingZone}`, async () => {
-        for (var i = 0; i < eids.length; i++) {
-          var event = await EventsInstance.findEvent(eids[i]);
-
-          expect(event).toBeDefined();
-          expect(await EventsInstance.delEvent(event)).toBe(eids[i]);
-        }
+      it(`should get planting zones (6)`, (done) => {
+        ZonesInstance.getPlantingZones((zones) => {
+          expect(zones.length).toBe(6);
+          done();
+        });
       });
-
-      it('should delete a planting', async () => {
-        var result = await PlantingsInstance.delPlanting(addedPlanting);
-
-        expect(result).toBeDefined();
-        expect(result.id).toBe(addedPlanting.id);
-
-        // Tell the zone of a planting change
-        await ZonesInstance.updatePlantings(result.zids);
+      it(`should get a zone`, async () => {
+        zone = await ZonesInstance.getZone(zones[0].id);
+        expect(zone.id).toBe(zones[0].id);
+      });
+      it(`should set a zone`, (done) => {
+        ZonesInstance.setZone(zone, () => {
+          // TODO: add setZone test for success/failure
+          done();
+        });
       });
 
     });

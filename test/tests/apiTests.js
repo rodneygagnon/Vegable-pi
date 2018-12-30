@@ -11,7 +11,7 @@ const expect = require('expect');
 const moment = require('moment');
 
 const runTests = async (app) => {
-  describe('API', () => {
+  describe('API Tests', () => {
     describe('Settings', () => {
       it ('should get location', (done) => {
         request(app)

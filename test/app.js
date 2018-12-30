@@ -8,10 +8,12 @@
 
 var app = require('../server/app');
 
-var Api = require('./testAPI');
-var Core = require('./testCore');
+var Unit = require('./tests/unitTests');
+var Function = require('./tests/functionalTests');
+var Api = require('./tests/apiTests');
 
 describe('Vegable Tests', async () => {
+  await Unit.runTests();
+  await Function.runTests();
   await Api.runTests(app);
-  await Core.runTests();
 });
