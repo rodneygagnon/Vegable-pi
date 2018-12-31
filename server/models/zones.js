@@ -9,6 +9,7 @@
 const {log} = require('../controllers/logger');
 
 const {SettingsInstance} = require('./settings');
+const {StatsInstance} = require('./stats');
 const {PlantingsInstance} = require('./plantings');
 
 // OpenSprinker Controller
@@ -39,6 +40,9 @@ const zonesSchema = schema({
   color: String,
   textColor: String
 });
+
+const min_per_hour = 60;
+const milli_per_hour = min_per_hour * 60000;
 
 const MasterZoneId = 1;
 const FertilizerZoneId = 2;
@@ -203,24 +207,28 @@ class Zones {
       if (typeof inputZone.plantings !== 'undefined')
         saveZone.plantings = inputZone.plantings;
 
-      let status = false, started = 0;
-      if (typeof inputZone.status !== 'undefined')
-        status = inputZone.status;
+      // if incoming status is defined and different than the current status,
+      // switch the zone and start/save stats
+      if (typeof inputZone.status !== 'undefined' &&
+                 saveZone.status !== inputZone.status) {
+        if (saveZone.status) {
+          // Save the stats
+          // TODO: keep track of fertilization
+          var fertilized = false;
+          var amount = ((Date.now() - saveZone.started) / milli_per_hour) * saveZone.flowrate;
+          StatsInstance.saveStats(saveZone.id, saveZone.started, Date.now(), amount, fertilized);
+          saveZone.started = 0;
+        } else {
+          // Start the stats
+          saveZone.started = Date.now();
+        }
 
-      // Switch zone on/off if status changed
-      if (saveZone.status != status) {
-        log.debug(`Zone status: ${status} ${new Date()}`);
-        await OSPiInstance.switchZone(saveZone.id, status);
+        await OSPiInstance.switchStation(saveZone.id, inputZone.status);
+        saveZone.status = inputZone.status;
+
+        log.debug(`setZone: switched zone (${inputZone.id}) status: ${inputZone.status}`);
       }
-
-      if (status)
-        started = Date.now();
-
-      saveZone.status = status;
-      saveZone.started = started;
-
       await db.hsetAsync(dbKeys.dbZonesKey, saveZone.id, JSON.stringify(saveZone));
-
     } catch (err) {
       log.error(`setZone(${zone.id}): ${JSON.stringify(err)}`);
     }
@@ -234,23 +242,28 @@ class Zones {
     try {
       zone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, zid));
 
+      if (zone.status) {
+        // Save the stats
+        // TODO: keep track of fertilization
+        // TODO: Find and remove job from queue if one exists, may need to store job id in zone record
+        var fertilized = false;
+        var amount = ((Date.now() - zone.started) / milli_per_hour) * zone.flowrate;
+        StatsInstance.saveStats(zone.id, zone.started, Date.now(), amount, fertilized);
+        zone.started = 0;
+      } else {
+        // Start the stats
+        zone.started = Date.now();
+      }
+
       // Switch the status
       zone.status = !zone.status;
 
       // Turn On/Off the zone
       await OSPiInstance.switchStation(zone.id, zone.status);
 
-      if (zone.status)
-        zone.started = Date.now();
-      else
-        // TODO: Record how much water was applied to the zone when switching OFF
-        // TODO: Find and remove job from queue if one exists, may need to store job id in zone record
-        zone.started = 0;
-
-      // Save the status
       await db.hsetAsync(dbKeys.dbZonesKey, zone.id, JSON.stringify(zone));
 
-      log.debug(`switchZone: ${zone.status ? "on" : "off"} zone(${zone.id})`);
+      log.debug(`switchZone: switched zone (${zone.id}) status: ${zone.status}`);
     } catch (err) {
       log.error(`switchZone: Failed to switch zone: ${err}`);
     }

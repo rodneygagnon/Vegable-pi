@@ -14,6 +14,7 @@ var redis = require('redis');
 const dbKeys = {
   dbConfigKey: 'config',
   dbZonesKey: 'zones',
+  dbStatsKey: 'stats_',   // stats by zone => statis_<zone id>
   dbUsersKey: 'users',
   dbCropsKey: 'crops',
   dbEventsKey: 'events',
