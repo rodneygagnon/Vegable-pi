@@ -32,10 +32,8 @@ class Stats {
       var validStats = await statsSchema.validate({ started: started, stopped: stopped,
                                                     amount: amount, fertilized: fertilized
                                                   });
-      var validStart = (new Date(validStats.started)).getTime() / 1000;
 
-      // Add the event and schedule a job
-      await db.zaddAsync(dbKeys.dbStatsKey + zid, validStart, JSON.stringify(validStats));
+      await db.zaddAsync(dbKeys.dbStatsKey + zid, started, JSON.stringify(validStats));
 
     } catch (err) {
       log.error(`saveStats Failed to save statistics: ${JSON.stringify(err)}`);
@@ -44,10 +42,8 @@ class Stats {
 
   async getStats(zid, start, end) {
     var stats = [];
-    var startRange = (new Date(start)).getTime() / 1000;
-    var endRange = (new Date(end)).getTime() / 1000;
 
-    var redisStats = await db.zrangebyscoreAsync(dbKeys.dbStatsKey + zid, startRange, endRange);
+    var redisStats = await db.zrangebyscoreAsync(dbKeys.dbStatsKey + zid, start, end);
     for (var i = 0; i < redisStats.length; i++)
       stats.push(await statsSchema.validate(JSON.parse(redisStats[i])));
 

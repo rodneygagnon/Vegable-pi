@@ -215,7 +215,7 @@ class Zones {
           // Save the stats
           // TODO: keep track of fertilization
           var fertilized = false;
-          var amount = ((Date.now() - saveZone.started) / milli_per_hour) * saveZone.flowrate;
+          var amount = Number((((Date.now() - zone.started) / milli_per_hour) * zone.flowrate).toFixed(2));
           StatsInstance.saveStats(saveZone.id, saveZone.started, Date.now(), amount, fertilized);
           saveZone.started = 0;
         } else {
@@ -247,7 +247,7 @@ class Zones {
         // TODO: keep track of fertilization
         // TODO: Find and remove job from queue if one exists, may need to store job id in zone record
         var fertilized = false;
-        var amount = ((Date.now() - zone.started) / milli_per_hour) * zone.flowrate;
+        var amount = Number((((Date.now() - zone.started) / milli_per_hour) * zone.flowrate).toFixed(2));
         StatsInstance.saveStats(zone.id, zone.started, Date.now(), amount, fertilized);
         zone.started = 0;
       } else {

@@ -231,7 +231,18 @@ const runTests = () => {
           done();
         });
       });
-
+      it ('should switch a zone ON', (done) => {
+        ZonesInstance.switchZone(zones[0].id, (status) => {
+          expect(status).toBe(true);
+          done();
+        });
+      });
+      it ('should switch a zone OFF', (done) => {
+        ZonesInstance.switchZone(zones[0].id, (status) => {
+          expect(status).toBe(false);
+          done();
+        });
+      });
     });
   });
 }

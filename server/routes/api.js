@@ -16,6 +16,7 @@ const {SettingsInstance} = require('../models/settings');
 const {CropsInstance} = require('../models/crops');
 const {EventsInstance} = require('../models/events');
 const {PlantingsInstance} = require('../models/plantings');
+const {StatsInstance} = require('../models/stats');
 const {ZonesInstance} = require('../models/zones');
 const {WeatherInstance} = require('../controllers/weather');
 
@@ -184,6 +185,28 @@ router.route('/plantings/set').post(async function (req, res) {
   await ZonesInstance.updatePlantings(result.zids);
 
   res.status(result.zids !== null ? 200 : 500).json({ id: result.id });
+});
+
+/*
+ * Stats APIs
+ */
+
+/**
+ * Route to get stats for a zone
+ * @name api/stats/get
+ * @function
+ * @param {number} zone id - zone id
+ * @returns {array} stats - array of stats objects
+ */
+router.route('/stats/get').get(async function (req, res) {
+  if (typeof req.query === 'undefined' || typeof req.query.zid === 'undefined' ||
+      typeof req.query.start === 'undefined' || typeof req.query.stop === 'undefined') {
+    res.status(400);
+    res.end();
+  } else {
+    res.status(200).json(await StatsInstance.getStats(req.query.zid, req.query.start,
+                                                      req.query.stop));
+  }
 });
 
 /*

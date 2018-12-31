@@ -161,6 +161,24 @@ const runTests = async (app) => {
       });
     });
 
+    describe('Stats', () => {
+      var today = new Date();
+      var yesterday = new Date();
+      var tomorrow = new Date();
+
+      yesterday.setDate(today.getDate() - 1);
+      tomorrow.setDate(today.getDate() + 1);
+
+      it ('should get stats for a zone between two dates', (done) => {
+        request(app)
+          .get('/api/stats/get')
+          .query({ zid: 3, start: yesterday.getTime(), stop: tomorrow.getTime() })
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(done);
+      });
+    });
+
     describe('Plantings', () => {
       var crops;
       var addedPlanting = {
