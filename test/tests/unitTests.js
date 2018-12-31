@@ -18,6 +18,7 @@ const {ETrInstance} = require('../../server/models/etr');
 const {ZonesInstance} = require('../../server/models/zones');
 const {EventsInstance} = require('../../server/models/events');
 const {UsersInstance} = require('../../server/models/users');
+const {StatsInstance} = require('../../server/models/stats');
 
 const sum = (total, num) => {
   return total + num;
@@ -28,6 +29,13 @@ const runTests = () => {
   var end = new Date(2018, 1, 15);  // Feb 15
   var expectedETr = /* jan 16-31*/ ((1.86 / 31) * 16) +
                     /* feb 1-15 */ ((2.24 / 28) * 15)
+
+  var today = new Date();
+  var yesterday = new Date();
+  var tomorrow = new Date();
+
+  yesterday.setDate(today.getDate() - 1);
+  tomorrow.setDate(today.getDate() + 1);
 
   describe('Unit Tests', () => {
     describe('Users', () => {
@@ -122,13 +130,6 @@ const runTests = () => {
     });
 
     describe('Events', () => {
-      var today = new Date();
-      var yesterday = new Date();
-      var tomorrow = new Date();
-
-      yesterday.setDate(today.getDate() - 1);
-      tomorrow.setDate(today.getDate() + 1);
-
       var addedEvent = {
             sid: 3,
             title: "Test Event",
@@ -182,6 +183,18 @@ const runTests = () => {
         expect(addedEvent.id).toBeDefined();
         expect(await EventsInstance.delEvent(addedEvent)).toBe(addedEvent.id);
         delete addedEvent.id;
+      });
+    });
+
+    describe('Stats', () => {
+      var zoneId = 0;
+
+      it(`should save stats for ${today}`, async () => {
+        await StatsInstance.saveStats(zoneId, today.getTime(), today.getTime(), 0, false);
+      });
+
+      it(`should get stats from ${yesterday} to ${tomorrow}`, async () => {
+        expect(await StatsInstance.getStats(zoneId, yesterday.getTime(), tomorrow.getTime())).toBeDefined();
       });
     });
 

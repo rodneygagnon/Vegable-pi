@@ -38,7 +38,7 @@ class Stats {
       await db.zaddAsync(dbKeys.dbStatsKey + zid, validStart, JSON.stringify(validStats));
 
     } catch (err) {
-      log.error(`savedStats Failed to save statistics: ${JSON.stringify(err)}`);
+      log.error(`saveStats Failed to save statistics: ${JSON.stringify(err)}`);
     }
   }
 
