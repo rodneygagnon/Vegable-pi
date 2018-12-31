@@ -47,7 +47,11 @@ class Stats {
     var startRange = (new Date(start)).getTime() / 1000;
     var endRange = (new Date(end)).getTime() / 1000;
 
-    return(await db.zrangebyscoreAsync(dbKeys.dbStatsKey, startRange, endRange));
+    var redisStats = await db.zrangebyscoreAsync(dbKeys.dbStatsKey + zid, startRange, endRange);
+    for (var i = 0; i < redisStats.length; i++)
+      stats.push(await statsSchema.validate(JSON.parse(redisStats[i])));
+
+    return(stats);
   }
 }
 

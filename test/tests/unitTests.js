@@ -188,13 +188,17 @@ const runTests = () => {
 
     describe('Stats', () => {
       var zoneId = 0;
+      var started = today.getTime();
+      var stopped = today.getTime();
 
       it(`should save stats for ${today}`, async () => {
-        await StatsInstance.saveStats(zoneId, today.getTime(), today.getTime(), 0, false);
+        await StatsInstance.saveStats(zoneId, started, stopped, 0, false);
       });
 
       it(`should get stats from ${yesterday} to ${tomorrow}`, async () => {
-        expect(await StatsInstance.getStats(zoneId, yesterday.getTime(), tomorrow.getTime())).toBeDefined();
+        var stats = await StatsInstance.getStats(zoneId, yesterday.getTime(), tomorrow.getTime());
+        expect(stats).toBeDefined();
+        expect(stats.length).toBeGreaterThan(0);
       });
     });
 

@@ -52,7 +52,7 @@ class Events {
 
       // Set Queue processor
       EventsQueue.process(async (job, done) => {
-        this.processJob(job, done);
+        EventsInstance.processJob(job, done);
       });
     } catch (err) {
       log.error("Failed to create EVENTS queue: ", + err);
