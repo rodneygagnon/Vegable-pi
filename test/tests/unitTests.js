@@ -1,5 +1,5 @@
 /**
- * Core Service Tester
+ * Unit Test Suite
  *
  * @author: rgagnon
  * @copyright 2018 vegable.io
@@ -24,7 +24,7 @@ const sum = (total, num) => {
   return total + num;
 }
 
-const runTests = () => {
+const runTests = (zoneId) => {
   var start = new Date(2018, 0, 16); // Jan 15
   var end = new Date(2018, 1, 15);  // Feb 15
   var expectedETr = /* jan 16-31*/ ((1.86 / 31) * 16) +
@@ -131,7 +131,7 @@ const runTests = () => {
 
     describe('Events', () => {
       var addedEvent = {
-            sid: 3,
+            sid: zoneId,
             title: "Test Event",
             amt: 1,
             fertilize: false,
@@ -200,6 +200,10 @@ const runTests = () => {
         expect(stats).toBeDefined();
         expect(stats.length).toBeGreaterThan(0);
       });
+
+      it(`should clear stats`, async () => {
+        await StatsInstance.clearStats(zoneId);
+      });
     });
 
     describe('Zones', () => {
@@ -225,11 +229,9 @@ const runTests = () => {
         zone = await ZonesInstance.getZone(zones[0].id);
         expect(zone.id).toBe(zones[0].id);
       });
-      it(`should set a zone`, (done) => {
-        ZonesInstance.setZone(zone, () => {
-          // TODO: add setZone test for success/failure
-          done();
-        });
+      it(`should set a zone`, async () => {
+        await ZonesInstance.setZone(zone);
+        // TODO: add setZone test for success/failure
       });
       it ('should switch a zone ON', (done) => {
         ZonesInstance.switchZone(zones[0].id, (status) => {

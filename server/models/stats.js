@@ -49,6 +49,10 @@ class Stats {
 
     return(stats);
   }
+
+  async clearStats(zid) {
+    await db.delAsync(dbKeys.dbStatsKey + zid);
+  }
 }
 
 const StatsInstance = new Stats();

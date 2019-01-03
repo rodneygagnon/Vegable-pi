@@ -209,6 +209,22 @@ router.route('/stats/get').get(async function (req, res) {
   }
 });
 
+/**
+ * Route to clear stats for a zone
+ * @name api/stats/clear
+ * @function
+ * @param {number} zone id - zone id
+ */
+router.route('/stats/clear').post(async function (req, res) {
+  if (typeof req.query === 'undefined' || typeof req.query.zid === 'undefined') {
+    res.status(400);
+  } else {
+    await StatsInstance.clearStats(req.query.zid);
+    res.status(200);
+  }
+  res.end();
+});
+
 /*
  * Zones APIs
  */
@@ -261,10 +277,9 @@ router.route('/zones/get/control').get(function (req, res) {
  * @function
  * @param {object} zone - zone to set
  */
-router.route('/zones/set').post(function (req, res) {
-  ZonesInstance.setZone(req.body, (err) => {
-    res.statusCode = (err === 0 ? 200 : 500);
-  });
+router.route('/zones/set').post(async function (req, res) {
+  await ZonesInstance.setZone(req.body);
+  res.statusCode = 200;
 });
 
 /**

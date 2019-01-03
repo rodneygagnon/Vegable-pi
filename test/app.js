@@ -13,7 +13,7 @@ var Function = require('./tests/functionalTests');
 var Api = require('./tests/apiTests');
 
 describe('Vegable Tests', async () => {
-  await Unit.runTests();
-  await Function.runTests();
-  await Api.runTests(app);
+ await Unit.runTests(3);
+ await Function.runTests(4);
+ await Api.runTests(app);
 });

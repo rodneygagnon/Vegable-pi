@@ -43,10 +43,14 @@ class Vegable {
         log.debug(`VegableQueue.process-ing @ ${new Date()}`);
 
         // End date for processing is yesterday (last time we grabbed weather data)
-        var endDate = new Date();
-        endDate.setDate(endDate.getDate() - 1);
+        var endProcessDate = new Date();
+        endProcessDate.setDate(endProcessDate.getDate() - 1);
 
-        var eids = await VegableInstance.scheduleEvents(endDate);
+        // If events are created, they will run tomorrow at the zone's designated start time
+        var nextScheduleDate = new Date();
+        nextScheduleDate.setDate(nextScheduleDate.getDate() + 1);
+
+        var eids = await VegableInstance.scheduleEvents(endProcessDate, nextScheduleDate);
 
         log.debug(`VegableQueue.process-ed & scheduled ${eids.length} events`);
 
@@ -75,20 +79,20 @@ class Vegable {
   //
   // (NOTE: calculations are still approximations and need vetting and measurements)
   //
-  async scheduleEvents(endDate) {
+  async scheduleEvents(endProcessDate, nextScheduleDate) {
     var eids = [];
 
-    // If events are created, they will run tomorrow at the zone's designated start time
-    var tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    log.debug(`Vegable: schedul-ing events(${new Date()})`);
+    log.debug(`                     endProcessDate (${endProcessDate})`);
+    log.debug(`                     nextScheduleDate (${nextScheduleDate})`);
 
     try {
       var zones = await ZonesInstance.getAllZones();
       for (var i = 0; i < zones.length; i++) {
         var zone = zones[i];
         var startTime = zone.start.split(':');
-        tomorrow.setHours(startTime.length < 2 ? 0 : startTime[0]);
-        tomorrow.setMinutes(startTime.length < 2 ? 0 : startTime[1]);
+        nextScheduleDate.setHours(startTime.length < 2 ? 0 : startTime[0]);
+        nextScheduleDate.setMinutes(startTime.length < 2 ? 0 : startTime[1]);
 
         // Only check zones with plantings
         if (zone.plantings) {
@@ -98,7 +102,7 @@ class Vegable {
              log.debug(`scheduleEvents: zone ${zone.id} never adjusted, recharging soil.`);
 
              eids.push(await EventsInstance.setEvent({ sid: zone.id, title: `(auto) ${zone.name} Event`,
-                                                       start: tomorrow.toString(), amt: zone.swhc,
+                                                       start: nextScheduleDate.toString(), amt: zone.swhc,
                                                        fertilize: true }));
           } else {
             // TODO: determine if the plant needs nutrients
@@ -107,7 +111,7 @@ class Vegable {
             log.debug(`scheduleEvents: zone ${zone.id} last adjusted @ ${zone.adjusted}`);
 
             // Get the ETc since that last time we adjusted the soil
-            var dailyETc = await PlantingsInstance.getETcByZone(zone.id, new Date(zone.adjusted), endDate);
+            var dailyETc = await PlantingsInstance.getETcByZone(zone.id, new Date(zone.adjusted), endProcessDate);
             // Record the Depletion. Can't be less than 0
             zone.availableWater = (zone.availableWater > dailyETc ? zone.availableWater - dailyETc : 0);
 
@@ -116,13 +120,13 @@ class Vegable {
               log.debug(`scheduleEvents: zone ${zone.id} aw (${zone.availableWater}) dropped ${zone.mad}% below swhc ${zone.swhc}'`);
 
               eids.push(await EventsInstance.setEvent({ sid: zone.id, title: `(auto) ${zone.name} Event`,
-                                                        start: tomorrow.toString(), amt: zone.swhc - zone.availableWater,
+                                                        start: nextScheduleDate.toString(), amt: zone.swhc - zone.availableWater,
                                                         fertilize: true }));
             }
           }
           // Record that we've adjusted the zone up to now
           zone.adjusted = Date.now();
-          ZonesInstance.setZone(zone, () => {});
+          await ZonesInstance.setZone(zone);
         }
       }
     } catch (err) {

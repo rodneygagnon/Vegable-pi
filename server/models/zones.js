@@ -25,8 +25,8 @@ const zonesSchema = schema({
   type: Number,
   area: { type: Number, min: 0 },           // sq ft
   flowrate: { type: Number, min: 0.5 },     // gallons per hour
-  irreff: { type: Number, min: 0 },         // Irrigation Efficiency %
-  swhc: { type: Number, min: 0 },           // Soil Water Holding Capacity
+  irreff: { type: Number, min: 0.5 },         // Irrigation Efficiency %
+  swhc: { type: Number, min: 0.5 },           // Soil Water Holding Capacity
   status: Boolean,                          // on/off
   start: String,                            // HH:mm - time to irrigate when needed
   started: { type: Number, min: 0 },        // ISO8601 - Irrigation started
@@ -40,6 +40,9 @@ const zonesSchema = schema({
   color: String,
   textColor: String
 });
+
+const gpm_cfs = 448.83;
+const sqft_acre = 43560;
 
 const min_per_hour = 60;
 const milli_per_hour = min_per_hour * 60000;
@@ -112,7 +115,7 @@ class Zones {
                                                                             }));
 
         for (var i = 3; i <= zoneCount; i++) {
-          var zone = { id: i, name:`Z0${i-2}`, area: 0, type: ZoneType.open,
+          var zone = { id: i, name:`Z0${i-2}`, area: 1, type: ZoneType.open,
                        flowrate: FlowRates.oneGPH, irreff: IrrEff.drip, swhc: SoilWHC.medium,
                        mad: 100, availableWater: 0, status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
                        plantings: 0, color: zoneEventColors[i-1], textColor: zoneTextColor };
@@ -190,7 +193,7 @@ class Zones {
     return zone;
   }
 
-  async setZone(zone, callback) {
+  async setZone(zone) {
     try {
       var inputZone = await zonesSchema.validate(zone);
       var saveZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, inputZone.id));
@@ -202,6 +205,8 @@ class Zones {
       saveZone.flowrate = inputZone.flowrate;
       saveZone.start = inputZone.start;
       saveZone.mad = inputZone.mad;
+      if (typeof inputZone.availableWater !== 'undefined')
+        saveZone.availableWater = inputZone.availableWater;
       if (typeof inputZone.adjusted !== 'undefined')
         saveZone.adjusted = inputZone.adjusted;
       if (typeof inputZone.plantings !== 'undefined')
@@ -232,8 +237,6 @@ class Zones {
     } catch (err) {
       log.error(`setZone(${zone.id}): ${JSON.stringify(err)}`);
     }
-
-    callback();
   }
 
   // Turn on/off a zone
@@ -249,6 +252,8 @@ class Zones {
         var fertilized = false;
         var amount = Number((((Date.now() - zone.started) / milli_per_hour) * zone.flowrate).toFixed(2));
         StatsInstance.saveStats(zone.id, zone.started, Date.now(), amount, fertilized);
+
+        zone.availableWater += ((((Date.now() - zone.started) / milli_per_hour) * (zone.flowrate / gpm_cfs)) / (zone.area / sqft_acre)) * zone.irreff;
         zone.started = 0;
       } else {
         // Start the stats
@@ -273,12 +278,15 @@ class Zones {
   // Average the MAD and record the number of plantings in this zone
   async updatePlantings(zids) {
     try {
-      zids.forEach(async (zid) => {
-        var zone = await this.getZone(zid);
+      for (var i = 0; i < zids.length; i++) {
+        var zone = await this.getZone(zids[i]);
+
+        if (zone === 'undefined' || zone === null)
+          throw(`Invalid zone id (${zids[i]})`);
 
         zone.mad = 0;
 
-        var plantings = await PlantingsInstance.getPlantingsByZone(zid);
+        var plantings = await PlantingsInstance.getPlantingsByZone(zids[i]);
         if (plantings.length) {
           for (var i = 0; i < plantings.length; i++)
             zone.mad += plantings[i].mad;
@@ -287,8 +295,8 @@ class Zones {
         }
         zone.plantings = plantings.length;
 
-        this.setZone(zone, () => {});
-      }); // forEach zone
+        await this.setZone(zone);
+      }
     } catch (err) {
       log.error(`updatePlantings Failed to update planting for zones(${zids}): ${err}`);
     }

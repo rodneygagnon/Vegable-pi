@@ -1,5 +1,5 @@
 /**
- * Vegable API Tester
+ * API Test Suite
  *
  * @author: rgagnon
  * @copyright 2018 vegable.io
@@ -174,6 +174,13 @@ const runTests = async (app) => {
           .get('/api/stats/get')
           .query({ zid: 3, start: yesterday.getTime(), stop: tomorrow.getTime() })
           .expect('Content-Type', /json/)
+          .expect(200)
+          .end(done);
+      });
+      it ('should clear stats for a zone', (done) => {
+        request(app)
+          .post('/api/stats/clear')
+          .query({ zid: 3 })
           .expect(200)
           .end(done);
       });

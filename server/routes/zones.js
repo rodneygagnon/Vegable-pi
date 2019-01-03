@@ -32,10 +32,9 @@ router.get('/', function(req, res, next) {
  * @param {object} crop - crop
  * @param {string} action - _null_ or _delete_
  */
-router.route('/update').post(function (req, res) {
-  ZonesInstance.setZone(req.body, () => {
-    res.redirect('/zones');
-  });
+router.route('/update').post(async function (req, res) {
+  await ZonesInstance.setZone(req.body)
+  res.redirect('/zones');
 });
 
 /**
