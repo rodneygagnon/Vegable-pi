@@ -9,11 +9,15 @@
 var app = require('../server/app');
 
 var Unit = require('./tests/unitTests');
-var Function = require('./tests/functionalTests');
+var Functional = require('./tests/functionalTests');
 var Api = require('./tests/apiTests');
 
+// Separating the zones to isolate testing
+const unitTestZoneId = 3;
+const functionalTestZoneId = 4;
+
 describe('Vegable Tests', async () => {
- await Unit.runTests(3);
- await Function.runTests(4);
+ await Unit.runTests(unitTestZoneId);
+ await Functional.runTests(functionalTestZoneId);
  await Api.runTests(app);
 });

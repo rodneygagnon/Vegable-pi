@@ -44,7 +44,8 @@ router.route('/update').post(async function (req, res) {
  * @param {object} id - zone id
  */
 router.route('/enable/:id').post(function (req, res) {
-  ZonesInstance.switchZone(req.params.id, () => {
+  // TODO: add ability to pass fertilize flag
+  ZonesInstance.switchZone(req.params.id, false, () => {
     res.redirect('/zones');
   });
 });

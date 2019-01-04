@@ -38,6 +38,78 @@ const runTests = (zoneId) => {
   tomorrow.setDate(today.getDate() + 1);
 
   describe('Unit Tests', () => {
+    describe('Settings', () => {
+      var address, city, state, zip, etzone, vegable_time, lat, long;
+      it ('should get address', async () => {
+        address = await SettingsInstance.getAddress();
+        expect(address).toBeDefined();
+      });
+      it ('should set address', async () => {
+        await SettingsInstance.setAddress(address);
+      });
+      it ('should get city', async () => {
+        city = await SettingsInstance.getCity();
+        expect(city).toBeDefined();
+      });
+      it ('should set city', async () => {
+        await SettingsInstance.setCity(city);
+      });
+      it ('should get state', async () => {
+        state = await SettingsInstance.getState();
+        expect(state).toBeDefined();
+      });
+      it ('should set state', async () => {
+        await SettingsInstance.setState(state);
+      });
+      it ('should get zip', async () => {
+        zip = await SettingsInstance.getZip();
+        expect(zip).toBeDefined();
+      });
+      it ('should set zip', async () => {
+        await SettingsInstance.setZip(zip);
+      });
+      it ('should get etzone', async () => {
+        etzone = await SettingsInstance.getETZone();
+        expect(etzone).toBeDefined();
+      });
+      it ('should set etzone', async () => {
+        await SettingsInstance.setETZone(etzone);
+      });
+      it ('should get vegable time', async () => {
+        vegable_time = await SettingsInstance.getVegableTime();
+        expect(vegable_time).toBeDefined();
+      });
+      it ('should set vegable time', async () => {
+        await SettingsInstance.setVegableTime(vegable_time);
+      });
+      it ('should get lat', async () => {
+        lat = await SettingsInstance.getLat();
+        expect(lat).toBeDefined();
+      });
+      it ('should set lat', async () => {
+        await SettingsInstance.setLat(lat);
+      });
+      it ('should get long', async () => {
+        long = await SettingsInstance.getLong()
+        expect(long).toBeDefined();
+      });
+      it ('should set long', async () => {
+        await SettingsInstance.setLong(long);
+      });
+      it ('should get zones', async () => {
+        expect(await SettingsInstance.getZones()).toBeDefined();
+      });
+      it ('should get mapbox key', async () => {
+        expect(await SettingsInstance.getMapBoxKey()).toBeDefined();
+      });
+      it ('should get dark sky key', async () => {
+        expect(await SettingsInstance.getDarkSkyKey()).toBeDefined();
+      });
+      it ('should get cimis key', async () => {
+        expect(await SettingsInstance.getCimisKey()).toBeDefined();
+      });
+    });
+
     describe('Users', () => {
       it ('should get all users', (done) => {
         UsersInstance.getUsers((usersdb) => {
@@ -208,6 +280,7 @@ const runTests = (zoneId) => {
 
     describe('Zones', () => {
       var zones, zone;
+      var masterZone, fertilizerZone;
 
       it(`should get all zones`, async () => {
         zones = await ZonesInstance.getAllZones();
@@ -233,15 +306,149 @@ const runTests = (zoneId) => {
         await ZonesInstance.setZone(zone);
         // TODO: add setZone test for success/failure
       });
-      it ('should switch a zone ON', (done) => {
-        ZonesInstance.switchZone(zones[0].id, (status) => {
+      it ('should switch a zone ON (w/out fertilizer)', (done) => {
+        ZonesInstance.switchZone(zoneId, false, async (status) => {
           expect(status).toBe(true);
+
+          // MasterZone should also be on
+          masterZone = await ZonesInstance.getMasterZone();
+          expect(masterZone.status).toBe(true);
+
           done();
         });
       });
-      it ('should switch a zone OFF', (done) => {
-        ZonesInstance.switchZone(zones[0].id, (status) => {
+      it ('should switch a zone OFF (w/out fertilizer)', (done) => {
+        ZonesInstance.switchZone(zoneId, false, async (status) => {
           expect(status).toBe(false);
+
+          // MasterZone should also turn off
+          masterZone = await ZonesInstance.getMasterZone();
+          expect(masterZone.status).toBe(false);
+
+          done();
+        });
+      });
+      it ('should switch a zone ON (w/ fertilizer)', (done) => {
+        ZonesInstance.switchZone(zoneId, true, async (status) => {
+          expect(status).toBe(true);
+
+          // MasterZone and Fertilizer should also be on
+          masterZone = await ZonesInstance.getMasterZone();
+          expect(masterZone.status).toBe(true);
+          fertilizerZone = await ZonesInstance.getFertilizerZone();
+          expect(fertilizerZone.status).toBe(true);
+
+          done();
+        });
+      });
+      it ('should switch a zone OFF (w/ fertilizer)', (done) => {
+        ZonesInstance.switchZone(zoneId, true, async (status) => {
+          expect(status).toBe(false);
+
+          // MasterZone and Fertilizer should also turn off
+          masterZone = await ZonesInstance.getMasterZone();
+          expect(masterZone.status).toBe(false);
+          fertilizerZone = await ZonesInstance.getFertilizerZone();
+          expect(fertilizerZone.status).toBe(false);
+
+          done();
+        });
+      });
+      it ('should switch Master and all other zones off', (done) => {
+        // Turn on a planting zone and make sure master is on
+        ZonesInstance.switchZone(zoneId, true, async (status) => {
+          expect(status).toBe(true);
+
+          // MasterZone and Fertilizer should also be on
+          masterZone = await ZonesInstance.getMasterZone();
+          expect(masterZone.status).toBe(true);
+          fertilizerZone = await ZonesInstance.getFertilizerZone();
+          expect(fertilizerZone.status).toBe(true);
+
+          // Turn off the master zone and make sure planting zone is off
+          ZonesInstance.switchZone(masterZone.id, false, async (status) => {
+            expect(status).toBe(false);
+
+            // Zone Id and Fertilizer should also be off
+            zone = await ZonesInstance.getZone(zoneId);
+            expect(zone.status).toBe(false);
+            fertilizerZone = await ZonesInstance.getFertilizerZone();
+            expect(fertilizerZone.status).toBe(false);
+
+            done();
+          });
+        });
+      });
+      it ('should switch zone off but leave master on', (done) => {
+        // Turn on a planting zone and make sure master is on
+        ZonesInstance.switchZone(zoneId, false, async (status) => {
+          expect(status).toBe(true);
+
+          masterZone = await ZonesInstance.getMasterZone();
+          expect(masterZone.status).toBe(true);
+
+          // Turn on another planting zone and make sure master is still on
+          ZonesInstance.switchZone(zoneId + 1, false, async (status) => {
+            expect(status).toBe(true);
+
+            masterZone = await ZonesInstance.getMasterZone();
+            expect(masterZone.status).toBe(true);
+
+            // Turn off first planting zone and make sure master is still on
+            ZonesInstance.switchZone(zoneId, false, async (status) => {
+              expect(status).toBe(false);
+
+              masterZone = await ZonesInstance.getMasterZone();
+              expect(masterZone.status).toBe(true);
+
+              // Turn off second planting zone and make sure master is now off
+              ZonesInstance.switchZone(zoneId + 1, false, async (status) => {
+                expect(status).toBe(false);
+
+                masterZone = await ZonesInstance.getMasterZone();
+                expect(masterZone.status).toBe(false);
+
+                done();
+              });
+            });
+          });
+        });
+      });
+      it ('should only switch Master on and off', (done) => {
+        ZonesInstance.switchZone(masterZone.id, true, async (status) => {
+          expect(status).toBe(true);
+
+          zones = await ZonesInstance.getZonesByStatus(true);
+          expect(zones.length).toBe(1);
+
+          ZonesInstance.switchZone(masterZone.id, false, async (status) => {
+            expect(status).toBe(false);
+            done();
+          });
+        });
+      });
+      it ('should only switch Fertilizer on and off', (done) => {
+        ZonesInstance.switchZone(fertilizerZone.id, true, async (status) => {
+          expect(status).toBe(true);
+
+          zones = await ZonesInstance.getZonesByStatus(true);
+          expect(zones.length).toBe(1);
+
+          ZonesInstance.switchZone(fertilizerZone.id, false, async (status) => {
+            expect(status).toBe(false);
+            done();
+          });
+        });
+      });
+      it ('should reset all planting zones to their original states', (done) => {
+        ZonesInstance.getPlantingZones(async (zones) => {
+          for (var i = 0; i < zones.length; i++) {
+            zone = zones[i];
+            zone.availableWater = 0;
+            zone.adjusted = 0;
+            await ZonesInstance.setZone(zone);
+            await StatsInstance.clearStats(zone.id);
+          }
           done();
         });
       });

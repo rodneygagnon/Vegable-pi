@@ -47,14 +47,17 @@ const sqft_acre = 43560;
 const min_per_hour = 60;
 const milli_per_hour = min_per_hour * 60000;
 
-const MasterZoneId = 1;
-const FertilizerZoneId = 2;
-
 const ZoneType = { // Master, Fertilizer, Open
   control: 0,
   open: 1
 };
 Object.freeze(ZoneType);
+
+const MasterZoneId = 1;
+const MasterZoneName = 'Master';
+
+const FertilizerZoneId = 2;
+const FertilizerZoneName = 'Fertilizer';
 
 // Irrigation Types and Rates and Types
 const FlowRates = { // Gallons per Hour
@@ -101,13 +104,13 @@ class Zones {
         var multi = db.multi();
 
         // Fixed Zones (Master + Fertilizer)
-        await multi.hset(dbKeys.dbZonesKey, MasterZoneId, JSON.stringify({ id: MasterZoneId, name:'Master', area: 0,
+        await multi.hset(dbKeys.dbZonesKey, MasterZoneId, JSON.stringify({ id: MasterZoneId, name:MasterZoneName, area: 0,
                                                                            type: ZoneType.control, flowrate: FlowRates.oneGPH,
                                                                            irreff: IrrEff.drip, swhc: SoilWHC.medium, availableWater: 0, mad: 100,
                                                                            status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
                                                                            plantings: 0, color: zoneEventColors[0], textColor: zoneTextColor
                                                                          }));
-        await multi.hset(dbKeys.dbZonesKey, FertilizerZoneId, JSON.stringify({ id: FertilizerZoneId, name:'Fertilizer', area: 0,
+        await multi.hset(dbKeys.dbZonesKey, FertilizerZoneId, JSON.stringify({ id: FertilizerZoneId, name:FertilizerZoneName, area: 0,
                                                                               type: ZoneType.control, flowrate: FlowRates.oneGPH,
                                                                               irreff: IrrEff.drip, swhc: SoilWHC.medium, availableWater: 0, mad: 100,
                                                                               status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
@@ -163,6 +166,30 @@ class Zones {
     return zonesByType;
   }
 
+  async getZonesByStatus(status) {
+    var zones = await this.getAllZones();
+
+    var zonesByStatus = [];
+    for (var i = 0; i < zones.length; i++) {
+      if (zones[i].status === status)
+        zonesByStatus.push(zones[i]);
+    }
+
+    return zonesByStatus;
+  }
+
+  async getZonesByTypeStatus(type, status) {
+    var zones = await this.getAllZones();
+
+    var zonesByTypeStatus = [];
+    for (var i = 0; i < zones.length; i++) {
+      if (zones[i].type === type && zones[i].status === status)
+        zonesByTypeStatus.push(zones[i]);
+    }
+
+    return zonesByTypeStatus;
+  }
+
   async getAllZones() {
     var zones = [];
 
@@ -180,8 +207,8 @@ class Zones {
     return zones;
   }
 
-  async getMasterZone() { await this.getZone(MasterZoneId); }
-  async getFertilizerZone() { await this.getZone(FertilizerZoneId); }
+  async getMasterZone() { return(await this.getZone(MasterZoneId)); }
+  async getFertilizerZone() { return(await this.getZone(FertilizerZoneId)); }
 
   async getZone(zid) {
     var zone = null;
@@ -239,40 +266,113 @@ class Zones {
     }
   }
 
-  // Turn on/off a zone
-  async switchZone(zid, callback) {
-    var zone;
+  /**
+   * Switch on/off irrigation zones
+   *
+   *  If the zone is a control zone
+   *    and is the Master zone and the Master zone is ON, switch all zones OFF
+   *    or is the Fertilizer zone, just switch it ON/OFF as requested
+   *  If the zone is a planting zone
+   *    1. We will need to also switch the Master and Fertilizer (zones)
+   *    2. If we are switching the zone off, only switch off the Master/Fertilizer
+   *       zone(s) if there are no other zones currently on
+   *
+   * @param   {number}    zid       id of the zone to turn on or off
+   * @param   {boolean}   fertilize whether or not to include fertilization
+   * @param   {callback}  callback
+   *
+   * @returns {boolean}   status    current status of zone
+   */
+  async switchZone(zid, fertilize, callback) {
     try {
-      zone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, zid));
+      var switchZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, zid));
 
-      if (zone.status) {
-        // Save the stats
-        // TODO: keep track of fertilization
-        // TODO: Find and remove job from queue if one exists, may need to store job id in zone record
-        var fertilized = false;
-        var amount = Number((((Date.now() - zone.started) / milli_per_hour) * zone.flowrate).toFixed(2));
-        StatsInstance.saveStats(zone.id, zone.started, Date.now(), amount, fertilized);
+      if (switchZone.type === ZoneType.control) {
+        if (switchZone.status) {
+          // zone is on. if master, turn everything off. other
+          if (switchZone.id === MasterZoneId) {
+            // turn everything OFF
+            var allActiveZones = await this.getZonesByStatus(true);
+            for (var i = 0; i < allActiveZones.length; i++) {
+              var zone = allActiveZones[i];
 
-        zone.availableWater += ((((Date.now() - zone.started) / milli_per_hour) * (zone.flowrate / gpm_cfs)) / (zone.area / sqft_acre)) * zone.irreff;
-        zone.started = 0;
+              // Save Planting Zone Stats
+              if (zone.type === ZoneType.open) {
+                var amount = Number((((Date.now() - zone.started) / milli_per_hour) * zone.flowrate).toFixed(2));
+                StatsInstance.saveStats(zone.id, zone.started, Date.now(), amount, fertilize);
+
+                zone.availableWater += ((((Date.now() - zone.started) / milli_per_hour) * (zone.flowrate / gpm_cfs)) / (zone.area / sqft_acre)) * zone.irreff;
+              }
+
+              if (zone.id === switchZone.id)
+                switchZone.status = false;
+              zone.status = false;
+              zone.started = 0;
+
+              await OSPiInstance.switchStation(zone.id, zone.status);
+              await db.hsetAsync(dbKeys.dbZonesKey, zone.id, JSON.stringify(zone));
+            } // For each zone
+          } else { // switch off the fertilizer zone
+            switchZone.status = false;
+            switchZone.started = 0;
+            await OSPiInstance.switchStation(switchZone.id, switchZone.status);
+            await db.hsetAsync(dbKeys.dbZonesKey, switchZone.id, JSON.stringify(switchZone));
+          }
+        } else {
+          // Switch on the control zone
+          switchZone.status = true;
+          switchZone.started = Date.now();
+          await OSPiInstance.switchStation(switchZone.id, switchZone.status);
+          await db.hsetAsync(dbKeys.dbZonesKey, switchZone.id, JSON.stringify(switchZone));
+        }
       } else {
-        // Start the stats
-        zone.started = Date.now();
+        if (switchZone.status) {
+          // Save Planting Zone Stats
+          var amount = Number((((Date.now() - switchZone.started) / milli_per_hour) * switchZone.flowrate).toFixed(2));
+          StatsInstance.saveStats(switchZone.id, switchZone.started, Date.now(), amount, fertilize);
+
+          switchZone.availableWater += ((((Date.now() - switchZone.started) / milli_per_hour) * (switchZone.flowrate / gpm_cfs)) / (switchZone.area / sqft_acre)) * switchZone.irreff;
+
+          // Switch OFF a planting zone
+          switchZone.status = false;
+          switchZone.started = 0;
+
+          await OSPiInstance.switchStation(switchZone.id, switchZone.status);
+          await db.hsetAsync(dbKeys.dbZonesKey, switchZone.id, JSON.stringify(switchZone));
+
+        } else {
+          // Switch ON the planting zone
+          switchZone.status = true;
+          switchZone.started = Date.now();
+          await OSPiInstance.switchStation(switchZone.id, switchZone.status);
+          await db.hsetAsync(dbKeys.dbZonesKey, switchZone.id, JSON.stringify(switchZone));
+        }
+
+        var activePlantingZones = await this.getZonesByTypeStatus(ZoneType.open, true);
+
+        // Switch on/off Master(Fertilizer) zone(s) if no other planting zone is on
+        if ((switchZone.status && activePlantingZones.length === 1) ||
+            (!switchZone.status && activePlantingZones.length === 0)) {
+          var controlZone;
+          if (fertilize) {
+            controlZone = await this.getFertilizerZone();
+            controlZone.status = switchZone.status;
+            controlZone.started = switchZone.started;
+            await OSPiInstance.switchStation(controlZone.id, controlZone.status);
+            await db.hsetAsync(dbKeys.dbZonesKey, controlZone.id, JSON.stringify(controlZone));
+          }
+
+          controlZone = await this.getMasterZone();
+          controlZone.status = switchZone.status;
+          controlZone.started = switchZone.started;
+          await OSPiInstance.switchStation(controlZone.id, controlZone.status);
+          await db.hsetAsync(dbKeys.dbZonesKey, controlZone.id, JSON.stringify(controlZone));
+        }
       }
-
-      // Switch the status
-      zone.status = !zone.status;
-
-      // Turn On/Off the zone
-      await OSPiInstance.switchStation(zone.id, zone.status);
-
-      await db.hsetAsync(dbKeys.dbZonesKey, zone.id, JSON.stringify(zone));
-
-      log.debug(`switchZone: switched zone (${zone.id}) status: ${zone.status}`);
     } catch (err) {
       log.error(`switchZone: Failed to switch zone: ${err}`);
     }
-    callback(zone.status);
+    callback(switchZone.status);
   }
 
   // Average the MAD and record the number of plantings in this zone

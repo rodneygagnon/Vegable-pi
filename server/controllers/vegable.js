@@ -8,20 +8,22 @@
 
 const Queue = require("bull");
 
-// Data Models
 const {SettingsInstance} = require("../models/settings");
 const {UsersInstance} = require("../models/users");
 const {EventsInstance} = require("../models/events");
 const {PlantingsInstance} = require("../models/plantings");
 const {ZonesInstance} = require("../models/zones");
 
-// Controllers
 const {log} = require('./logger');
 const {WeatherInstance} = require("./weather");
 
-// Bull/Redis Jobs Queue
+/** Bull/Redis Jobs Queue to hold daily recurring job to evaluate depletions */
 var VegableQueue;
 
+/**
+ * A singleton class to determine when to schedule irrigation/fertigation events
+ * @class
+ */
 class Vegable {
   constructor() {
     if (!Vegable.VegableInstance) {
@@ -31,10 +33,15 @@ class Vegable {
     return Vegable.VegableInstance;
   }
 
-  // Initialize the Vegable service
+  /**
+   * Initialize the Vegable service
+   *
+   * Create and start the queue that will create irrigation/fertigation events
+   * based on what is demanded by the crops planted in the zone. It will run
+   * once a day at the time configured in Settings
+   *
+   */
   static async init() {
-    // Create and start the queue that will create irrigation/fertigation events
-    // based on what is demanded by the crops planted in the zone
     try {
       VegableQueue = await new Queue('VegableQueue', {redis: {host: 'redis'}});
 
@@ -58,8 +65,13 @@ class Vegable {
       });
 
       // Create a job to calculate the irr/fert demand every morning
+      var vegableTime = (await SettingsInstance.getVegableTime()).split(':');
+      var crontab = `${vegableTime[1]} ${vegableTime[0]} * * *`;
+
+      log.debug(`VegableQueue process schedule ${vegableTime} - ${crontab}`);
+
       VegableQueue.add( { task: "Calculate zone irr/fert demand!"},
-                        { repeat: { cron: '15 3 * * *' }, removeOnComplete: true } );
+                        { repeat: { cron: crontab }, removeOnComplete: true } );
 
     } catch (err) {
       log.error(`Failed to create VEGABLE queue: ${err}`);
@@ -67,24 +79,27 @@ class Vegable {
     log.debug("*** Vegable Initialized!");
   }
 
-  // Schedule irrigation/fertilization events as necessary
-  //  If the zone was never adjusted and there are plantings
-  //    1. Recharge to SWHC
-  //    2. Record adjustment
-  //  else
-  //    1. Take available water (aw) ...
-  //    2. Subtract depletion (ETc(day) = ETo (day) x Kc (Crop coefficient))
-  //    3. If less than the Maximum Allowable Depletion (MAD)remains, create an event to
-  //       irrigate until soil is recharged to Field Capacity (swhc - water remaining after drainage)
-  //
-  // (NOTE: calculations are still approximations and need vetting and measurements)
-  //
+  /**
+   * Schedule irrigation/fertilization events as necessary
+   *
+   *  If the zone was never adjusted and there are plantings
+   *    1. Recharge to the zone's soil water holding capacity (swhc)
+   *    2. Record adjustment
+   *  else
+   *    1. Subtract depletion (ETc(day) = ETo (day) x Kc (Crop coefficient)) since
+   *       the last time the zone was adjusted until endProcessDate from available water (availableWater)
+   *    2. If the available water is less than the Maximum Allowable Depletion (MAD), create an event to
+   *       irrigate until soil is recharged to Field Capacity (swhc - water remaining after drainage)
+   *
+   * (NOTE: calculations are still approximations and need vetting and measurements)
+   *
+   * @param   {date}  endProcessDate   end date to process depletions
+   * @param   {date}  nextScheduleDate the day/time to schedule an event (if necessary)
+   *
+   * @returns {array} eids             array of event id's that were created
+   */
   async scheduleEvents(endProcessDate, nextScheduleDate) {
     var eids = [];
-
-    log.debug(`Vegable: schedul-ing events(${new Date()})`);
-    log.debug(`                     endProcessDate (${endProcessDate})`);
-    log.debug(`                     nextScheduleDate (${nextScheduleDate})`);
 
     try {
       var zones = await ZonesInstance.getAllZones();
@@ -96,19 +111,14 @@ class Vegable {
 
         // Only check zones with plantings
         if (zone.plantings) {
-          log.debug(`scheduleEvents: checking zone ${zone.id}'s plantings`);
           if (typeof zone.adjusted === 'undefined' || zone.adjusted === 0) {
              // we'll include a first dose of nutrients
-             log.debug(`scheduleEvents: zone ${zone.id} never adjusted, recharging soil.`);
-
              eids.push(await EventsInstance.setEvent({ sid: zone.id, title: `(auto) ${zone.name} Event`,
                                                        start: nextScheduleDate.toString(), amt: zone.swhc,
                                                        fertilize: true }));
           } else {
             // TODO: determine if the plant needs nutrients
             var fertilize = false;
-
-            log.debug(`scheduleEvents: zone ${zone.id} last adjusted @ ${zone.adjusted}`);
 
             // Get the ETc since that last time we adjusted the soil
             var dailyETc = await PlantingsInstance.getETcByZone(zone.id, new Date(zone.adjusted), endProcessDate);
@@ -117,11 +127,9 @@ class Vegable {
 
             // Create an irrigation event if the zone needs water
             if (zone.availableWater < (zone.swhc * (zone.mad / 100))) {
-              log.debug(`scheduleEvents: zone ${zone.id} aw (${zone.availableWater}) dropped ${zone.mad}% below swhc ${zone.swhc}'`);
-
               eids.push(await EventsInstance.setEvent({ sid: zone.id, title: `(auto) ${zone.name} Event`,
                                                         start: nextScheduleDate.toString(), amt: zone.swhc - zone.availableWater,
-                                                        fertilize: true }));
+                                                        fertilize: fertilize }));
             }
           }
           // Record that we've adjusted the zone up to now

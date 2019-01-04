@@ -289,7 +289,8 @@ router.route('/zones/set').post(async function (req, res) {
  * @param {number} zone id - id of zone to turn on/off
  */
 router.route('/zones/switch').post(function (req, res) {
-  ZonesInstance.switchZone(req.query.id, (status) => {
+  // TODO: add ability to pass fertilize flag
+  ZonesInstance.switchZone(req.query.id, false, (status) => {
     res.status(200).json({ status: status });
   });
 });

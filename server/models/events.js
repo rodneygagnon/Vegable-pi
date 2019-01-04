@@ -262,7 +262,7 @@ class Events {
       // We are meant to turn the zone ON
       if (!zone.status) {
         // Switch ON the station and create a job to turn it off
-        ZonesInstance.switchZone(job.data.sid, async (status) => {
+        ZonesInstance.switchZone(job.data.sid, job.data.fertilize, async (status) => {
           // Calculate irrigation time (minutes) to recharge the zone
           // Irrigators Equation : Q x t = d x A
           //   Q - flow rate (cfs)
@@ -285,7 +285,7 @@ class Events {
       // We are meant to turn the zone OFF
       if (zone.status) {
         // Switch OFF the station and create a job to turn it off
-        ZonesInstance.switchZone(job.data.sid, async (status) => {
+        ZonesInstance.switchZone(job.data.sid, job.data.fertilize, async (status) => {
           log.debug(`Events::process(1) zone ${zone.id} switched ${status === true ? 'ON' : 'OFF'}`);
           done();
         });

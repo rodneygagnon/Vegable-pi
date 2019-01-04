@@ -1,8 +1,8 @@
 /**
- * Stats Singleton
- *
- * @author: rgagnon
+ * @file Statistics Singleton
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
 'use strict';
 
@@ -19,6 +19,10 @@ const statsSchema = schema({
   fertilized: Boolean
 });
 
+/**
+ * A singleton class to handle stats
+ * @class
+ */
 class Stats {
   constructor() {
     if (!Stats.StatsInstance) {

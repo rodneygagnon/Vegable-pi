@@ -1,8 +1,8 @@
 /**
- * Service Configuration Singleton
- *
- * @author: rgagnon
+ * @file Settings Model
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
 'use strict';
 
@@ -29,6 +29,7 @@ const settingsSchema = schema({
   lat: Number,
   long: Number,
   etzone: Number,
+  vegable_time: String,
   mapboxKey: String,
   darkskyKey: String,
   zones: { type: Number, min: 0 },
@@ -42,12 +43,17 @@ var defaultSettings = { address : config.default_address,
                         lat : config.default_lat,
                         long : config.default_long,
                         etzone: config.default_etzone,
+                        vegable_time: config.default_vegable_time,
                         mapboxKey : config.default_mapbox_key,
                         darkskyKey : config.default_darksky_key,
                         zones : config.zones,
                         cimisKey: config.cimis_key
                       };
 
+/**
+ * A singleton class to get and set system settings
+ * @class
+ */
 class Settings {
   constructor() {
     if (!Settings.SettingsInstance) {
@@ -58,6 +64,11 @@ class Settings {
     return Settings.SettingsInstance;
   }
 
+  /**
+   * Initialize the settings
+   *
+   * Initialize settings to the defaults
+   */
   static async init() {
     var hlen = await db.hlenAsync(dbKeys.dbConfigKey);
     if (hlen === 0) { // key does not exist, store the default options
@@ -164,6 +175,14 @@ class Settings {
   }
   async setETZone(etzone) {
     return await this.setHashKey('etzone', etzone);
+  }
+
+  // Get/Set vegable_time
+  async getVegableTime() {
+    return await this.getSetHashKey('vegable_time', defaultSettings.vegable_time);
+  }
+  async setVegableTime(vegable_time) {
+    return await this.setHashKey('vegable_time', vegable_time);
   }
 
   // Get/Set lat

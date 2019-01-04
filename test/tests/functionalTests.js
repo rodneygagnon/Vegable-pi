@@ -41,6 +41,7 @@ const runTests = (testZoneId) => {
 
   var crops;
 
+  var masterZone, fertilizerZone;
   var testZone, origZoneStart;
   var testPlanting = {
         zid: testZoneId,
@@ -160,6 +161,10 @@ const runTests = (testZoneId) => {
         setTimeout(async () => {
           testZone = await ZonesInstance.getZone(testZoneId);
           expect(testZone.status).toBe(true);
+          masterZone = await ZonesInstance.getMasterZone();
+          expect(masterZone.status).toBe(true);
+          fertilizerZone = await ZonesInstance.getFertilizerZone();
+          expect(fertilizerZone.status).toBe(true);
           done();
         }, eventStarted);
       });
@@ -175,6 +180,10 @@ const runTests = (testZoneId) => {
           testZone = await ZonesInstance.getZone(testZoneId);
           expect(testZone.availableWater.toFixed(2)).toBe(testZone.swhc.toFixed(2));
           expect(testZone.status).toBe(false);
+          masterZone = await ZonesInstance.getMasterZone();
+          expect(masterZone.status).toBe(false);
+          fertilizerZone = await ZonesInstance.getFertilizerZone();
+          expect(fertilizerZone.status).toBe(false);
           done();
         }, eventEnded);
       });
@@ -241,6 +250,10 @@ const runTests = (testZoneId) => {
         setTimeout(async () => {
           testZone = await ZonesInstance.getZone(testZoneId);
           expect(testZone.status).toBe(true);
+          masterZone = await ZonesInstance.getMasterZone();
+          expect(masterZone.status).toBe(true);
+          fertilizerZone = await ZonesInstance.getFertilizerZone();
+          expect(fertilizerZone.status).toBe(false);
           done();
         }, eventStarted);
       });
@@ -256,6 +269,10 @@ const runTests = (testZoneId) => {
           testZone = await ZonesInstance.getZone(testZoneId);
           expect(testZone.availableWater.toFixed(2)).toBe(testZone.swhc.toFixed(2));
           expect(testZone.status).toBe(false);
+          masterZone = await ZonesInstance.getMasterZone();
+          expect(masterZone.status).toBe(false);
+          fertilizerZone = await ZonesInstance.getFertilizerZone();
+          expect(fertilizerZone.status).toBe(false);
           done();
         }, eventEnded);
       });
