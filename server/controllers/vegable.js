@@ -132,8 +132,8 @@ class Vegable {
                                                         fertilize: fertilize }));
             }
           }
-          // Record that we've adjusted the zone up to now
-          zone.adjusted = Date.now();
+          // Record that we've adjusted the zone up to endProcessDate
+          zone.adjusted = endProcessDate.getTime();
           await ZonesInstance.setZone(zone);
         }
       }

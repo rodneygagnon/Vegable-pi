@@ -184,7 +184,7 @@ class Events {
         eid = removeEvent.id;
       }
     } catch (err) {
-      log.error(`delEvent Failed to del planting: ${err}`);
+      log.error(`delEvent Failed to del event: ${err}`);
     }
 
     return(eid);
