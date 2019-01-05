@@ -60,7 +60,7 @@ class OSPi {
 
       this.OSPiSRLatch.writeSync(OSPiConfig.Status.ON);
 
-      this.applyStationBitmask();
+      OSPiInstance.applyStationBitmask();
 
       // pull shift register OD LOW to ENABLE output
       this.OSPiSROutputDisable.writeSync(OSPiConfig.Status.OFF);

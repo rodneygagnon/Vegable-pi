@@ -3,7 +3,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile-test
+      dockerfile: Dockerfile-pi
     command: ["npm", "test"]
     environment:
       - NODE_ENV=development
@@ -11,13 +11,17 @@ services:
       - RHOST=redis
     ports:
       - 3001:3001
+    volumes:
+      - "/sys:/sys"
+    devices:
+      - "/dev/gpiomem:/dev/gpiomem"
     networks:
       - redis-net
     depends_on:
       - redis
 
   redis:
-    image: redis
+    image: arm32v7/redis
     command: ["redis-server"]
     hostname: redis
     ports:

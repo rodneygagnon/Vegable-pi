@@ -7,7 +7,6 @@
 'use strict';
 
 const expect = require('expect');
-var sinon = require('sinon');
 
 // Controllers
 const {VegableInstance} = require('../../server/controllers/vegable');

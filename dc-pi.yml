@@ -1,0 +1,39 @@
+version: '2'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile-pi
+    command: ["npm", "start"]
+    environment:
+      - NODE_ENV=production
+      - DEBUG=vegable:*
+      - RHOST=redis
+    ports:
+      - 3001:3001
+    volumes:
+      - "/sys:/sys"
+    devices:
+      - "/dev/gpiomem:/dev/gpiomem"
+    networks:
+      - redis-net
+    depends_on:
+      - redis
+
+  redis:
+    image: arm32v7/redis
+    command: ["redis-server"]
+    hostname: redis
+    ports:
+      - 6379:6379
+    networks:
+      - redis-net
+    volumes:
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-data:/data
+
+networks:
+  redis-net:
+
+volumes:
+  redis-data:

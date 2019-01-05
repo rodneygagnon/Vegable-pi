@@ -1,7 +1,9 @@
 version: '2'
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-mac
     command: ["npm", "start"]
     environment:
       - NODE_ENV=production
@@ -9,17 +11,13 @@ services:
       - RHOST=redis
     ports:
       - 3001:3001
-    volumes:
-      - "/sys:/sys"
-    devices:
-      - "/dev/gpiomem:/dev/gpiomem"
     networks:
       - redis-net
     depends_on:
       - redis
 
   redis:
-    image: arm32v7/redis:4.0.11
+    image: redis
     command: ["redis-server"]
     hostname: redis
     ports:
