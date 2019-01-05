@@ -1,9 +1,6 @@
 version: '2'
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile-pi
     image: vegable-pi
     command: ["npm", "start"]
     restart: always
