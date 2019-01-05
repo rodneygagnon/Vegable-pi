@@ -4,7 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-pi
+    image: vegable-pi
     command: ["npm", "start"]
+    restart: always
     environment:
       - NODE_ENV=production
       - DEBUG=vegable:*
@@ -23,6 +25,7 @@ services:
   redis:
     image: arm32v7/redis
     command: ["redis-server"]
+    restart: always
     hostname: redis
     ports:
       - 6379:6379

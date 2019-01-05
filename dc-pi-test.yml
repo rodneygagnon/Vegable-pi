@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-pi
+    image: vegable-pi
     command: ["npm", "test"]
     environment:
       - NODE_ENV=development
