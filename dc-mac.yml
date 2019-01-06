@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-mac
-    image: vegable-mac
+    image: vegable/vegable-mac
     command: ["npm", "start"]
     environment:
       - NODE_ENV=production
