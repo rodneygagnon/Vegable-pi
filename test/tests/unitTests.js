@@ -145,26 +145,76 @@ const runTests = (zoneId) => {
     });
 
     describe('Weather', () => {
+      var weatherData = { eto: 1, solar: 2, wind: 3, precip: 4,
+                          precipProb: 5, tempHi: 6, tempLo: 7, humidity: 8
+                        }
+
+      before (async () => {
+        await WeatherInstance.clearWeatherData();
+      });
+
       it (`should get daily ETo for from ${start} to ${end}`, async () => {
         var dailyETo = await WeatherInstance.getDailyETo(new Date(start), new Date(end));
         expect(dailyETo.length).toBe(31);
         expect(dailyETo.reduce(sum).toFixed(2)).toBe(String(expectedETr));
       });
 
-      it ('should get conditions', (done) => {
-        WeatherInstance.getConditions((error, conditions) => {
+      it ('should get current conditions', (done) => {
+        WeatherInstance.getCurrentConditions((error, conditions) => {
           expect(conditions).toBeDefined();
           done();
         });
       });
 
-      it ('should get CIMIS conditions', (done) => {
-        WeatherInstance.getCimisConditions('2018-01-01', (error, conditions) => {
+      it ('should get DarkSky conditions from yesterday', (done) => {
+        WeatherInstance.getDarkSkyConditions(yesterday, (conditions) => {
           expect(conditions).toBeDefined();
           done();
         });
       });
 
+      it ('should get CIMIS conditions from yesterday', function (done) {
+        this.timeout(3 * 1000);
+
+        WeatherInstance.getCimisConditions(yesterday, (conditions) => {
+          expect(conditions).toBeDefined();
+          done();
+        });
+      });
+
+      it ('should get/set complete conditions for yesterday', function (done) {
+        this.timeout(3 * 1000);
+
+        WeatherInstance.getWeatherData(yesterday, (conditions) => {
+          expect(conditions).toBeDefined();
+          expect(conditions.date).toBeDefined();
+          expect(conditions.eto).toBeDefined();
+          expect(conditions.solar).toBeDefined();
+          expect(conditions.wind).toBeDefined();
+          expect(conditions.precip).toBeDefined();
+          expect(conditions.tempHi).toBeDefined();
+          expect(conditions.tempLo).toBeDefined();
+          expect(conditions.humidity).toBeDefined();
+          done();
+        });
+      });
+
+      it ('should set weather conditions for today', async () => {
+        var conditions =  await WeatherInstance.setConditions(today, weatherData);
+        expect(conditions).toBeDefined();
+      });
+
+      it ('should get weather conditions from yesterday to tomorrow', async () => {
+        var dayBeforeYesterday = new Date(yesterday);
+        dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 1);
+        var conditions =  await WeatherInstance.getConditions(dayBeforeYesterday, tomorrow);
+        expect(conditions).toBeDefined();
+        expect(conditions.length).toBe(2);
+      });
+
+      after (async () => {
+        await WeatherInstance.clearWeatherData();
+      });
     });
 
     describe('Crops', () => {

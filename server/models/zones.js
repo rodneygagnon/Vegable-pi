@@ -25,8 +25,8 @@ const zonesSchema = schema({
   type: Number,
   area: { type: Number, min: 0 },           // sq ft
   flowrate: { type: Number, min: 0.5 },     // gallons per hour
-  irreff: { type: Number, min: 0.5 },         // Irrigation Efficiency %
-  swhc: { type: Number, min: 0.5 },           // Soil Water Holding Capacity
+  irreff: { type: Number, min: 0.5 },       // Irrigation Efficiency %
+  swhc: { type: Number, min: 0.5 },         // Soil Water Holding Capacity
   status: Boolean,                          // on/off
   start: String,                            // HH:mm - time to irrigate when needed
   started: { type: Number, min: 0 },        // ISO8601 - Irrigation started

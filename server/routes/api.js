@@ -307,7 +307,7 @@ router.route('/zones/switch').post(function (req, res) {
  */
 router.route('/weather/get').get(function (req, res) {
   var error, conditions;
-  WeatherInstance.getConditions((error, conditions) => {
+  WeatherInstance.getCurrentConditions((error, conditions) => {
     res.status(200).json(conditions);
   });
 });

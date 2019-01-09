@@ -105,37 +105,53 @@ class Vegable {
       var zones = await ZonesInstance.getAllZones();
       for (var i = 0; i < zones.length; i++) {
         var zone = zones[i];
-        var startTime = zone.start.split(':');
-        nextScheduleDate.setHours(startTime.length < 2 ? 0 : startTime[0]);
-        nextScheduleDate.setMinutes(startTime.length < 2 ? 0 : startTime[1]);
+        var precip, etc, waterDelta;
 
-        // Only check zones with plantings
-        if (zone.plantings) {
-          if (typeof zone.adjusted === 'undefined' || zone.adjusted === 0) {
-             // we'll include a first dose of nutrients
-             eids.push(await EventsInstance.setEvent({ sid: zone.id, title: `(auto) ${zone.name} Event`,
-                                                       start: nextScheduleDate.toString(), amt: zone.swhc,
-                                                       fertilize: true }));
-          } else {
-            // TODO: determine if the plant needs nutrients
-            var fertilize = false;
+        // If this zone was never adjusted, we'll get the last 10 days
+        // to guess-timate is current available water.
+        // TODO: this is a crude approximation. needs improvement
+        if (!zone.adjusted) {
+          var startProcessDate = new Date(endProcessDate);
+          startProcessDate.setDate(startProcessDate.getDate() - 10);
 
-            // Get the ETc since that last time we adjusted the soil
-            var dailyETc = await PlantingsInstance.getETcByZone(zone.id, new Date(zone.adjusted), endProcessDate);
-            // Record the Depletion. Can't be less than 0
-            zone.availableWater = (zone.availableWater > dailyETc ? zone.availableWater - dailyETc : 0);
-
-            // Create an irrigation event if the zone needs water
-            if (zone.availableWater < (zone.swhc * (zone.mad / 100))) {
-              eids.push(await EventsInstance.setEvent({ sid: zone.id, title: `(auto) ${zone.name} Event`,
-                                                        start: nextScheduleDate.toString(), amt: zone.swhc - zone.availableWater,
-                                                        fertilize: fertilize }));
-            }
-          }
-          // Record that we've adjusted the zone up to endProcessDate
-          zone.adjusted = endProcessDate.getTime();
-          await ZonesInstance.setZone(zone);
+          precip = await WeatherInstance.getPrecip(startProcessDate, endProcessDate);
+          etc = await PlantingsInstance.getETcByZone(zone.id, startProcessDate, endProcessDate);
+        } else {
+          precip = await WeatherInstance.getPrecip(new Date(zone.adjusted), endProcessDate);
+          etc = await PlantingsInstance.getETcByZone(zone.id, new Date(zone.adjusted), endProcessDate);
         }
+
+        // Soil water change
+        waterDelta = precip - etc;
+
+        if (waterDelta >= 0)
+          zone.availableWater = ((zone.availableWater + waterDelta) > zone.swhc ? zone.swhc : zone.availableWater + waterDelta)
+        else
+          zone.availableWater = ((zone.availableWater + waterDelta) < 0 ? 0 : zone.availableWater + waterDelta)
+
+        // If zone has plantings, schedule event if necessary
+        if (zone.plantings) {
+          var startTime = zone.start.split(':');
+          nextScheduleDate.setHours(startTime.length < 2 ? 0 : startTime[0]);
+          nextScheduleDate.setMinutes(startTime.length < 2 ? 0 : startTime[1]);
+
+          // TODO: determine if the plant needs nutrients. Currently defaults to only on first time
+          var fertilize = false;
+          if (!zone.adjusted)
+            fertilize = true;
+
+          // Create an irrigation event if the zone needs water
+          if (zone.availableWater < (zone.swhc * (zone.mad / 100))) {
+            eids.push(await EventsInstance.setEvent({ sid: zone.id, title: `(auto) ${zone.name} Event`,
+                                                      start: nextScheduleDate.toString(),
+                                                      amt: zone.swhc - zone.availableWater,
+                                                      fertilize: fertilize }));
+          }
+        }
+
+        // Record that we've adjusted the zone up to endProcessDate
+        zone.adjusted = endProcessDate.getTime();
+        await ZonesInstance.setZone(zone);
       }
     } catch (err) {
       log.error(`Vegable scheduleEvents error: ${err}`);

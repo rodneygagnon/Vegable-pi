@@ -22,10 +22,15 @@ const {dbKeys} = require("../models/db");
 
 const schema = require("schm");
 const weatherSchema = schema({
-  date: String,   // yyyy-mm-dd
-  eto: Number,    // evapotranspiration (inches)
-  solar: Number,  // Solar Radiation (Ly/Day)
-  wind: Number    // Avg Wind Speed (mph)
+  date: String,       // YYYYMMDD
+  eto: Number,        // (CIMIS) evapotranspiration (inches)
+  solar: Number,      // (CIMIS) Solar Radiation (Ly/Day)
+  wind: Number,       // (DARKSKY) Wind Speed (mph)
+  precip: Number,     // (DARKSKY) Rain (inches)
+  precipProb: Number, // (DARKSKY)
+  tempHi: Number,     // (DARKSKY) ˚F
+  tempLo: Number,     // (DARKSKY) ˚F
+  humidity: Number    // (DARKSKY)
 });
 
 // Bull/Redis Jobs Queue
@@ -62,35 +67,88 @@ class Weather {
 
   async processJob(job, done) {
     // Get yesterday's date
-    var d = new Date();
-    d.setDate(d.getDate() - 1);
+    var yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
 
-    log.debug(`processJob: Getting CIMIS @ (${d})`);
+    log.debug(`processJob: Getting Weather Conditions @ (${yesterday})`);
 
-    var dateString = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
-    var dateScore = d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) +
-                                      ('0' + d.getDate()).slice(-2);
-
-    this.getCimisConditions(dateString, async (error, conditions) => {
-      if (error || typeof conditions.Data === 'undefined'
-                || typeof conditions.Data.Providers === 'undefined') {
-        log.error(`Weather::process-ing(${dateString}): CIMIS error (${error}) or missing conditions (${JSON.stringify(conditions)}))`);
-      } else {
-        // Add weather entry to Database
-        var cimisRecord = conditions.Data.Providers[0].Records[0];
-        var weather = await weatherSchema.validate({ date: cimisRecord.Date,
-                                                     eto: cimisRecord.DayAsceEto.Value,
-                                                     solar: cimisRecord.DaySolRadAvg.Value,
-                                                     wind: cimisRecord.DayWindSpdAvg.Value });
-
-        var zcnt = await db.zaddAsync(dbKeys.dbWeatherKey, dateScore, JSON.stringify(weather));
-        if (zcnt > 0) {
-          log.debug(`processJob: CIMIS conditions (${dateScore}) : ${JSON.stringify(weather)}`);
-        }
-      }
+    this.getWeatherData(yesterday, (weatherData) => {
+      log.debug(`processJob: Weather Conditions (${yesterday}) : ${JSON.stringify(weatherData)}`);
     });
 
     done();
+  }
+
+  async getWeatherData(targetDate, callback) {
+    this.getDarkSkyConditions(targetDate, async (darkSkyData) => {
+      this.getCimisConditions(targetDate, async (cimisData) => {
+
+        // Add weather entry to Database
+        var weatherData = {
+          eto: (cimisData !== null ? cimisData.DayAsceEto.Value : 0),
+          solar: (cimisData !== null ? cimisData.DaySolRadAvg.Value : 0),
+          wind: (darkSkyData !== null ? darkSkyData.windSpeed : 0),
+          precip: (darkSkyData !== null ? (darkSkyData.precipIntensity * 24) : 0),
+          precipProb: (darkSkyData !== null ? darkSkyData.precipProbability : 0),
+          tempHi: (darkSkyData !== null ? darkSkyData.temperatureHigh : 0),
+          tempLo: (darkSkyData !== null ? darkSkyData.temperatureLow : 0),
+          humidity: (darkSkyData !== null ? darkSkyData.humidity : 0)
+        }
+
+        callback(await this.setConditions(targetDate, weatherData));
+      });
+    });
+  }
+
+  async setConditions(targetDate, weatherData) {
+    var dateScore = targetDate.getFullYear() + ('0' + (targetDate.getMonth() + 1)).slice(-2) +
+                                               ('0' + targetDate.getDate()).slice(-2);
+
+    weatherData.date = dateScore;
+    try {
+      var weather = await weatherSchema.validate(weatherData);
+
+      var zcnt = await db.zaddAsync(dbKeys.dbWeatherKey, dateScore, JSON.stringify(weather));
+      if (zcnt > 0) {
+        log.debug(`setWeatherConditions: (${dateScore}) : ${JSON.stringify(weather)}`);
+      }
+
+      return(weather);
+    } catch (err) {
+      log.error(`setWeatherConditions: error setting conditions (${err})`);
+    }
+    return(null);
+  }
+
+  // Return the total precipitation for a given date range.
+  // NOTE: Leading '(' excludes the score from the results
+  async getConditions(startDate, endDate) {
+    var startScore = '(' + startDate.getFullYear() + ('0' + (startDate.getMonth() + 1)).slice(-2) +
+                                               ('0' + startDate.getDate()).slice(-2);
+    var endScore = endDate.getFullYear() + ('0' + (endDate.getMonth() + 1)).slice(-2) +
+                                           ('0' + endDate.getDate()).slice(-2);
+
+    var redisWeather = await db.zrangebyscoreAsync(dbKeys.dbWeatherKey, startScore, endScore);
+
+    var weather = [];
+    for (var i = 0; i < redisWeather.length; i++)
+      weather.push(await weatherSchema.validate(JSON.parse(redisWeather[i])));
+
+    return(weather);
+  }
+
+  // ONLY used for testing
+  async clearWeatherData(targetDate) {
+    await db.delAsync(dbKeys.dbWeatherKey);
+  }
+
+  async getPrecip(startDate, endDate) {
+    var weather = await this.getConditions(startDate, endDate);
+
+    var precip = 0;
+    for (var i = 0; i < weather.length; i++)
+      precip += weather[i].precip;
+    return(precip);
   }
 
   // Return the ETo for a given date range.
@@ -98,8 +156,6 @@ class Weather {
   async getDailyETo(startDate, endDate) {
     var dailyETo = [];
     var etzone = await SettingsInstance.getETZone();
-
-    //var dailyETr = await this.etr.getDailyETr(etzone, new Date(startDate), new Date(endDate));
     var dailyETr = await ETrInstance.getDailyETr(etzone, new Date(startDate), new Date(endDate));
 
     // For each day of the given range, push Cimis ETo or ETr if it doesn't exist
@@ -117,8 +173,17 @@ class Weather {
     return(dailyETo);
   }
 
+  async getETo(startDate, endDate) {
+    var dailyETo = await this.getDailyETo(startDate, endDate);
+
+    var eto = 0;
+    for (var i = 0; i < dailyETo.length; i++)
+      eto += dailyETo[i].eto;
+    return(eto);
+  }
+
   // Get Conditions
-  async getConditions(callback)
+  async getCurrentConditions(callback)
   {
     var url = darkskyWeatherURL + await SettingsInstance.getDarkSkyKey() + '/' +
               await SettingsInstance.getLong() + ',' + await SettingsInstance.getLat();
@@ -136,20 +201,48 @@ class Weather {
   }
 
   // Get Conditions
-  async getCimisConditions(targetDate, callback)
+  async getDarkSkyConditions(targetDate, callback)
   {
-    var url = cimisURL + await SettingsInstance.getCimisKey() + '&targets=' + await SettingsInstance.getZip() +
-              '&startDate=' + targetDate + '&endDate=' + targetDate;
+    var url = darkskyWeatherURL + await SettingsInstance.getDarkSkyKey() + '/' +
+              await SettingsInstance.getLong() + ',' + await SettingsInstance.getLat() + ',' +
+              Math.round(targetDate.getTime() / 1000) + '?exclude=[currently,hourly]';
 
     request({
       url: url,
       json: true
     }, (error, response, body) => {
-      // TODO: Fleshout error handling
-      if (error)
-        log.error(`getCimisConditions: ${error}`);
+      var darkSkyData = null;
 
-      callback(error, body);
+      if (error || response.statusCode !== 200) {
+        log.error(`getDarkSkyConditions(${targetDate}): error (${error}) response (${JSON.stringify(response)})`);
+      } else {
+        darkSkyData = body.daily.data[0]
+      }
+
+      callback(darkSkyData);
+    });
+  }
+
+  // Get Conditions
+  async getCimisConditions(targetDate, callback)
+  {
+    var dateString = targetDate.getFullYear() + '-' + (targetDate.getMonth() + 1) + '-' + targetDate.getDate();
+    var url = cimisURL + await SettingsInstance.getCimisKey() + '&targets=' + await SettingsInstance.getZip() +
+              '&startDate=' + dateString + '&endDate=' + dateString;
+
+    request({
+      url: url,
+      json: true
+    }, (error, response, body) => {
+      var cimisData = null;
+
+      if (error || response.statusCode !== 200) {
+        log.error(`getCimisConditions(${targetDate}): error (${error}) response (${JSON.stringify(response)})`);
+      } else {
+        cimisData = body.Data.Providers[0].Records[0];
+      }
+
+      callback(cimisData);
     });
   }
 

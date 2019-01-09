@@ -251,7 +251,7 @@ class Events {
   }
 
   async processJob(job, done) {
-    log.debug(`Events::process-ing job(${JSON.stringify(job)}`);
+    log.debug(`Events::process-ing job(${job.id}`);
 
     var status;
     var zone = await ZonesInstance.getZone(job.data.sid);

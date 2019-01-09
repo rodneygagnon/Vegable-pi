@@ -63,11 +63,15 @@ class Plantings {
   }
 
   // Calculate the cumulative ETc for the plantings in this zone between the given dates
+  // if there are no plantings, return the ETo because some water should have been depleted
+  //
+  // TODO: the depletion when there is no planting should account for a default (bare soil/cover crop/...), not ETo
   async getETcByZone(zid, start, end) {
-    var dailyETc = 0;
+    var ETc = 0, ETo = 0;
 
-    // Get daily weather for given date range
     var dailyETo = await WeatherInstance.getDailyETo(new Date(start), new Date(end));
+    for (var etoDay = 0; etoDay < dailyETo.length; etoDay++)
+      ETo += dailyETo[etoDay];
 
     var plantings = await this.getPlantingsByZone(zid);
     for (var i = 0; i < plantings.length; i++) {
@@ -88,16 +92,16 @@ class Plantings {
       // For each day on the given range, accumulate the dailyETc using the ETo and Kc
       // TODO: adjust the precision by acounting for crop density, canopy, shading, ...
       for (var day = 0; day < dailyETo.length; day++) {
-        dailyETc += dailyETo[day] *
-                      (age <= initStage ? crop.initKc :
-                        (age <= devStage ? crop.devKc :
-                          (age <= midStage ? crop.midKc : crop.lateKc)));
+        ETc += dailyETo[day] *
+                    (age <= initStage ? crop.initKc :
+                      (age <= devStage ? crop.devKc :
+                        (age <= midStage ? crop.midKc : crop.lateKc)));
         age++;
       }
     }
 
     // Return the zone's ETc for the given date range
-    return(dailyETc);
+    return(ETc > 0 ? ETc : ETo);
   }
 
   async getCrop(cid) {

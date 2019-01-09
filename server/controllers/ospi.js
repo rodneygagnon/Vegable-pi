@@ -107,10 +107,8 @@ class OSPi {
   }
 
   async switchStation(stationId, value) {
-    if (!OSPi.enabled) {
-      log.debug(`OSPI::switchStation not enabled ${OSPi.enabled}`)
+    if (!OSPi.enabled)
       return;
-    }
 
     if (value)
       OSPiStationsBitMask |= value << (stationId - 1);
