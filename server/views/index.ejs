@@ -149,6 +149,78 @@
       <section class="py-0">
 
         <div class="container">
+          <h2 class="mt-4">5 Day Forecast</h2>
+          <div class="row justify-content-between">
+            <div class="col-lg-2 py-6">
+              <h3 id="day0DateString" class"lead"></h3>
+              <div class="row justify-content-between">
+                <div class="col-lg-6 py-6">
+		              <canvas id="day0WeatherIcon" width="64" height="64"></canvas>
+                </div>
+                <div class="col-lg-6 py-6">
+                  <p id="day0LoTempString" class="lead"></p>
+                  <p id="day0HiTempString" class="lead"></p>
+                </div>
+              </div>
+              <h4 id="day0SummaryString" class="lead"></h4>
+            </div>
+            <div class="col-lg-2 py-6">
+              <h3 id="day1DateString" class"lead"></h3>
+              <div class="row justify-content-between">
+                <div class="col-lg-6 py-6">
+		              <canvas id="day1WeatherIcon" width="64" height="64"></canvas>
+                </div>
+                <div class="col-lg-6 py-6">
+                  <p id="day1LoTempString" class="lead"></p>
+                  <p id="day1HiTempString" class="lead"></p>
+                </div>
+              </div>
+              <h4 id="day1SummaryString" class="lead"></h4>
+            </div>
+            <div class="col-lg-2 py-6">
+              <h3 id="day2DateString" class"lead"></h3>
+              <div class="row justify-content-between">
+                <div class="col-lg-6 py-6">
+		              <canvas id="day2WeatherIcon" width="64" height="64"></canvas>
+                </div>
+                <div class="col-lg-6 py-6">
+                  <p id="day2LoTempString" class="lead"></p>
+                  <p id="day2HiTempString" class="lead"></p>
+                </div>
+              </div>
+              <h4 id="day2SummaryString" class="lead"></h4>
+            </div>
+            <div class="col-lg-2 py-6">
+              <h3 id="day3DateString" class"lead"></h3>
+              <div class="row justify-content-between">
+                <div class="col-lg-6 py-6">
+		              <canvas id="day3WeatherIcon" width="64" height="64"></canvas>
+                </div>
+                <div class="col-lg-6 py-6">
+                  <p id="day3LoTempString" class="lead"></p>
+                  <p id="day3HiTempString" class="lead"></p>
+                </div>
+              </div>
+              <h4 id="day3SummaryString" class="lead"></h4>
+            </div>
+            <div class="col-lg-2 py-6">
+              <h3 id="day4DateString" class"lead"></h3>
+              <div class="row justify-content-between">
+                <div class="col-lg-6 py-6">
+		              <canvas id="day4WeatherIcon" width="64" height="64"></canvas>
+                </div>
+                <div class="col-lg-6 py-6">
+                  <p id="day4LoTempString" class="lead"></p>
+                  <p id="day4HiTempString" class="lead"></p>
+                </div>
+              </div>
+              <h4 id="day4SummaryString" class="lead"></h4>
+            </div>
+          </div>
+          
+          <hr>
+
+          <h2 class="mt-4">Resource Utilization</h2>
           <div class="row justify-content-between">
             <div class="col-lg-12 py-6">
 		          <canvas id="overviewChart"></canvas>
@@ -213,6 +285,7 @@
     <script src="assets/js/stickyfill.min.js"></script>
     <script src="assets/lib/remodal/remodal.js"></script>
     <script src="assets/js/rellax.min.js"></script>
+	  <script src="assets/js/moment.min.js"></script>
     <script src="assets/js/bootstrap-select.js"></script>
     <script src="assets/js/skycons.js"></script>
     <script src="assets/js/Chart.bundle.js"></script>
@@ -483,13 +556,28 @@
       
      $().ready(function(){
         var skycons = new Skycons();
+       
+       // Current Conditions
         $.getJSON('/api/weather/get', (conditions) => {
           $('#weatherString').replaceWith(`<p id="weatherString" class="lead">${conditions.summary}, ${conditions.temperature.toFixed(1)}˚F</p>`);
           skycons.add("weatherIcon", conditions.icon);
           skycons.play();               
         });
 
-                
+       // Forecast Conditions
+       $.getJSON('/api/forecast/get', (forecast) => {
+         // No more that 5 days
+         var forecastLength = forecast.length < 5 ? forecast.length : 5;
+        for (var day = 0; day < forecastLength; day++) {
+          var dateString = (day === 0 ? "Tomorrow" : moment.unix(forecast[day].time).format("dddd"));
+          $(`#day${day}DateString`).replaceWith(`<h3 id="day${day}DateString" class="lead">${dateString}</h3>`);
+          skycons.add(`day${day}WeatherIcon`, forecast[day].icon);
+          $(`#day${day}LoTempString`).replaceWith(`<p id="day${day}LoTempString" class="lead">${forecast[day].temperatureLow.toFixed(1)}˚F</p>`);
+          $(`#day${day}HiTempString`).replaceWith(`<p id="day${day}HiTempString" class="lead">${forecast[day].temperatureHigh.toFixed(1)}˚F</p>`);
+          $(`#day${day}SummaryString`).replaceWith(`<h4 id="day${day}SummaryString" class="fs-0">${forecast[day].summary}</h4>`);
+         }
+      });
+               
       });
      
 	</script>
