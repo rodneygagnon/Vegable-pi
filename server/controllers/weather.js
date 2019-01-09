@@ -33,6 +33,24 @@ const weatherSchema = schema({
   humidity: Number    // (DARKSKY)
 });
 
+/** DARKSKY */
+const forecastSchema = schema({
+  time: Number,               // UNIX time
+  summary: String,            // Description
+  icon: String,               // Icon Name
+  sunriseTime: Number,        // UNIX time
+  sunsetTime: Number,         // UNIX time
+  moonPhase: Number,          //
+  precipIntensity: Number,    // Inches
+  precipProbability: Number,  //
+  precipType: String,         //
+  temperatureHigh: Number,    // ˚F
+  temperatureLow: Number,     // ˚F
+  dewPoint: Number,           // ˚F
+  humidity: Number,           // %
+  windSpeed: Number           // MPH
+});
+
 // Bull/Redis Jobs Queue
 var WeatherQueue;
 
@@ -97,6 +115,30 @@ class Weather {
 
         callback(await this.setConditions(targetDate, weatherData));
       });
+
+      this.getForecastData();
+    });
+  }
+
+  getForecastData() {
+    this.getDarkSkyForecast(async (darkSkyData) => {
+      try {
+        var dailyForecast = darkSkyData.data;
+
+        // Clear old forecast data
+        await db.delAsync(dbKeys.dbForecastKey);
+
+        for (var day = 0; day < dailyForecast.length; day++) {
+          var forecast = await forecastSchema.validate(dailyForecast[day]);
+
+          var zcnt = await db.zaddAsync(dbKeys.dbForecastKey, forecast.time, JSON.stringify(forecast));
+          if (zcnt < 1) {
+            log.error(`setDailyForecast: (${forecast.time}) NOT SET ${JSON.stringify(forecast)}`);
+          }
+        }
+      } catch (err) {
+        log.error(`setDailyForecast: error setting daily forecast (${err})`);
+      }
     });
   }
 
@@ -109,13 +151,13 @@ class Weather {
       var weather = await weatherSchema.validate(weatherData);
 
       var zcnt = await db.zaddAsync(dbKeys.dbWeatherKey, dateScore, JSON.stringify(weather));
-      if (zcnt > 0) {
-        log.debug(`setWeatherConditions: (${dateScore}) : ${JSON.stringify(weather)}`);
+      if (zcnt < 1) {
+        log.debug(`setConditions: (${dateScore}) NOT SET ${JSON.stringify(weather)}`);
       }
 
       return(weather);
     } catch (err) {
-      log.error(`setWeatherConditions: error setting conditions (${err})`);
+      log.error(`setConditions: error setting conditions (${err})`);
     }
     return(null);
   }
@@ -186,17 +228,21 @@ class Weather {
   async getCurrentConditions(callback)
   {
     var url = darkskyWeatherURL + await SettingsInstance.getDarkSkyKey() + '/' +
-              await SettingsInstance.getLong() + ',' + await SettingsInstance.getLat();
+              await SettingsInstance.getLong() + ',' + await SettingsInstance.getLat() +
+              '?exclude=[daily,minutely,hourly,flags]';
 
     request({
       url: url,
       json: true
     }, (error, response, body) => {
-      // TODO: Fleshout error handling
-      if (error)
-        log.error(`getConditions: ${error}`);
+      var currently = null;
+      if (error || response.statusCode !== 200) {
+        log.error(`getCurrentConditions: error (${error}) response (${JSON.stringify(response)})`);
+      } else {
+        currently = body.currently;
+      }
 
-      callback(error, body.currently);
+      callback(error, currently);
     });
   }
 
@@ -217,6 +263,29 @@ class Weather {
         log.error(`getDarkSkyConditions(${targetDate}): error (${error}) response (${JSON.stringify(response)})`);
       } else {
         darkSkyData = body.daily.data[0]
+      }
+
+      callback(darkSkyData);
+    });
+  }
+
+  // Get Forecast
+  async getDarkSkyForecast(callback)
+  {
+    var url = darkskyWeatherURL + await SettingsInstance.getDarkSkyKey() + '/' +
+              await SettingsInstance.getLong() + ',' + await SettingsInstance.getLat() +
+              '?exclude=[currently,minutely,hourly,flags]';
+
+    request({
+      url: url,
+      json: true
+    }, (error, response, body) => {
+      var darkSkyData = null;
+
+      if (error || response.statusCode !== 200) {
+        log.error(`getDarkSkyForecast: error (${error}) response (${JSON.stringify(response)})`);
+      } else {
+        darkSkyData = body.daily;
       }
 
       callback(darkSkyData);

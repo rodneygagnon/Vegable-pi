@@ -20,6 +20,7 @@ const dbKeys = {
   dbEventsKey: 'events',
   dbPlantingsKey: 'plantings',
   dbWeatherKey: 'weather',
+  dbForecastKey: 'forecast',
   dbETrKey: 'etr'
 };
 
