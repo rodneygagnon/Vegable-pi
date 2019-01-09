@@ -1,8 +1,8 @@
 /**
- * Unit Test Suite
- *
- * @author: rgagnon
+ * @file Unit Test Suite
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
 'use strict';
 

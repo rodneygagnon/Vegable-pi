@@ -1,8 +1,8 @@
 /**
- * Vegable App Test Harness
- *
- * @author: rgagnon
+ * @file Test Harness
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
 'use strict';
 
@@ -12,7 +12,7 @@ var Unit = require('./tests/unitTests');
 var Functional = require('./tests/functionalTests');
 var Api = require('./tests/apiTests');
 
-// Separating the zones to isolate testing
+/** Separating the zones to isolate testing */
 const unitTestZoneId = 3;
 const functionalTestZoneId = 4;
 

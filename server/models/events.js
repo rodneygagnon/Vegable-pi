@@ -1,20 +1,27 @@
 /**
- * Events Singleton
- *
- * @author: rgagnon
+ * @file Events Singleton
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
 'use strict';
 
 const uuidv4 = require('uuid/v4');
 const Queue = require("bull");
 
+/** Controllers */
 const {log} = require('../controllers/logger');
 
+/** Models */
+const {ZonesInstance} = require('./zones');
+
+/** Database */
 const {db} = require("./db");
 const {dbKeys} = require("./db");
 
-const {ZonesInstance} = require('./zones');
+/** Constants */
+const {gpm_cfs} = require('../../config/constants');
+const {sqft_acre} = require('../../config/constants');
 
 const schema = require("schm");
 const eventSchema = schema({
@@ -29,9 +36,6 @@ const eventSchema = schema({
   repeatDow: Array,
   repeatEnd: String               // ISO8601
 });
-
-const gpm_cfs = 448.83;
-const sqft_acre = 43560;
 
 // Bull/Redis Jobs Queue
 var EventsQueue;

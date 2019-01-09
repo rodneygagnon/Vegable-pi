@@ -1,35 +1,35 @@
 /**
- * Functional Test Suite
- *
- * @author: rgagnon
+ * @file Functional Test Suite
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
 'use strict';
 
 const expect = require('expect');
 
-// Controllers
+/** Controllers */
 const {VegableInstance} = require('../../server/controllers/vegable');
 const {WeatherInstance} = require('../../server/controllers/weather');
 
-// Models
+/** Models */
 const {CropsInstance} = require('../../server/models/crops');
 const {PlantingsInstance} = require('../../server/models/plantings');
 const {StatsInstance} = require('../../server/models/stats');
 const {ZonesInstance} = require('../../server/models/zones');
 const {EventsInstance} = require('../../server/models/events');
 
+/** Constants */
+const {gpm_cfs} = require('../../config/constants');
+const {sqft_acre} = require('../../config/constants');
+const {milli_per_sec} = require('../../config/constants');
+const {milli_per_min} = require('../../config/constants');
+const {milli_per_hour} = require('../../config/constants');
+const {milli_per_day} = require('../../config/constants');
+
 const sum = (total, num) => {
   return total + num;
 }
-
-const gpm_cfs = 448.83;
-const sqft_acre = 43560;
-
-const milli_per_sec = 1000;
-const milli_per_min = milli_per_sec * 60;
-const milli_per_hour = milli_per_min * 60;
-const milli_per_day = milli_per_hour * 24;
 
 const runTests = (testZoneId) => {
   var start = new Date(2018, 0, 16); // Jan 15

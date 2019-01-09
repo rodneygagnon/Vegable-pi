@@ -1,22 +1,26 @@
 /**
- * Plantings Singleton
- *
- * @author: rgagnon
+ * @file Plantings Singleton
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
 'use strict';
 
-const {log} = require('../controllers/logger');
-
 const uuidv4 = require('uuid/v4');
 
-const {CropsInstance} = require('./crops');
+/** Controllers */
+const {log} = require('../controllers/logger');
 const {WeatherInstance} = require('../controllers/weather');
 
+/** Models */
+const {CropsInstance} = require('./crops');
+
+/** Database */
 const {db} = require('./db');
 const {dbKeys} = require('./db');
 
-const oneDay = 24*60*60*1000; // hours*minutes*seconds*milliseconds
+/** Constants */
+const {milli_per_day} = require('../../config/constants');
 
 const schema = require('schm');
 const plantingSchema = schema({
@@ -82,7 +86,7 @@ class Plantings {
       var crop = await this.getCrop(planting.cid);
       var plantingDate = new Date(planting.date);
       var age = planting.age +
-                  Math.round(Math.abs((start.getTime() - plantingDate.getTime())/(oneDay)));
+                  Math.round(Math.abs((start.getTime() - plantingDate.getTime())/(milli_per_day)));
 
       // Caclulate this crop stages in order to extract the appropriate Kc
       var initStage = crop.initDay;

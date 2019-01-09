@@ -1,22 +1,28 @@
 /**
- * Zones Singleton
- *
- * @author: rgagnon
+ * @file Zones Singleton
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
 'use strict';
 
+/** Controllers */
 const {log} = require('../controllers/logger');
+const {OSPiInstance} = require("../controllers/ospi");
 
+/** Models */
 const {SettingsInstance} = require('./settings');
 const {StatsInstance} = require('./stats');
 const {PlantingsInstance} = require('./plantings');
 
-// OpenSprinker Controller
-const {OSPiInstance} = require("../controllers/ospi");
-
+/** Database */
 const {db} = require("./db");
 const {dbKeys} = require("./db");
+
+/** Constants */
+const {gpm_cfs} = require('../../config/constants');
+const {sqft_acre} = require('../../config/constants');
+const {milli_per_hour} = require('../../config/constants');
 
 const schema = require("schm");
 const zonesSchema = schema({
@@ -40,12 +46,6 @@ const zonesSchema = schema({
   color: String,
   textColor: String
 });
-
-const gpm_cfs = 448.83;
-const sqft_acre = 43560;
-
-const min_per_hour = 60;
-const milli_per_hour = min_per_hour * 60000;
 
 const ZoneType = { // Master, Fertilizer, Open
   control: 0,
