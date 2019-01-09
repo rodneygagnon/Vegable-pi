@@ -179,6 +179,17 @@ class Weather {
     return(weather);
   }
 
+  // Get 7-Day Forecast
+  async getForecast() {
+    var redisForecast = await db.zrangebyscoreAsync(dbKeys.dbForecastKey,  '-inf', '+inf');
+
+    var forecast = [];
+    for (var i = 1; i < redisForecast.length; i++)
+      forecast.push(await forecastSchema.validate(JSON.parse(redisForecast[i])));
+
+    return(forecast);
+  }
+
   // ONLY used for testing
   async clearWeatherData(targetDate) {
     await db.delAsync(dbKeys.dbWeatherKey);

@@ -325,6 +325,14 @@ const runTests = async (app) => {
           .expect(200)
           .end(done);
       });
+
+      it ('should get 7-day weather forecast', (done) => {
+        request(app)
+          .get('/api/forecast/get')
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(done);
+      });
     });
   });
 }

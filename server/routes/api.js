@@ -312,4 +312,15 @@ router.route('/weather/get').get(function (req, res) {
   });
 });
 
+/**
+ * Route to get 7-day forecast conditions
+ * @name api/forecast/get
+ * @function
+ * @returns {object} forecast - 7-day forecast weather conditions
+ */
+router.route('/forecast/get').get(async function (req, res) {
+  var forecast = await WeatherInstance.getForecast();
+  res.status(200).json(forecast);
+});
+
 module.exports = router;

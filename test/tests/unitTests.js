@@ -173,6 +173,12 @@ const runTests = (zoneId) => {
         });
       });
 
+      it ('should get 7-Day forecast', async () => {
+        var forecast = await WeatherInstance.getForecast();
+        expect(forecast).toBeDefined();
+        expect(forecast.length).toBe(7);
+      });
+
       it ('should get CIMIS conditions from yesterday', function (done) {
         this.timeout(3 * 1000);
 
