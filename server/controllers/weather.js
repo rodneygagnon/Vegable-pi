@@ -45,7 +45,9 @@ const forecastSchema = schema({
   precipProbability: Number,  //
   precipType: String,         //
   temperatureHigh: Number,    // ˚F
+  temperatureHighTime: Number, // UNIX time
   temperatureLow: Number,     // ˚F
+  temperatureLowTime: Number, // UNIX Time
   dewPoint: Number,           // ˚F
   humidity: Number,           // %
   windSpeed: Number           // MPH

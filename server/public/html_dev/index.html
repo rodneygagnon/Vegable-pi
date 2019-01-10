@@ -153,11 +153,13 @@
           <div class="row justify-content-between">
             <div class="col-lg-2 py-6">
               <h3 id="day0DateString" class"lead"></h3>
+              <canvas id="day0WeatherIcon" width="64" height="64"></canvas>
               <div class="row justify-content-between">
-                <div class="col-lg-6 py-6">
-		              <canvas id="day0WeatherIcon" width="64" height="64"></canvas>
+                <div class="col-lg-6 py-3">
+                  <p id="day0LoTimeString" class="lead"></p>
+                  <p id="day0HiTimeString" class="lead"></p>
                 </div>
-                <div class="col-lg-6 py-6">
+                <div class="col-lg-6 py-3">
                   <p id="day0LoTempString" class="lead"></p>
                   <p id="day0HiTempString" class="lead"></p>
                 </div>
@@ -166,11 +168,13 @@
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day1DateString" class"lead"></h3>
+              <canvas id="day1WeatherIcon" width="64" height="64"></canvas>
               <div class="row justify-content-between">
-                <div class="col-lg-6 py-6">
-		              <canvas id="day1WeatherIcon" width="64" height="64"></canvas>
+                 <div class="col-lg-6 py-3">
+                  <p id="day1LoTimeString" class="lead"></p>
+                  <p id="day1HiTimeString" class="lead"></p>
                 </div>
-                <div class="col-lg-6 py-6">
+                <div class="col-lg-6 py-3">
                   <p id="day1LoTempString" class="lead"></p>
                   <p id="day1HiTempString" class="lead"></p>
                 </div>
@@ -179,11 +183,13 @@
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day2DateString" class"lead"></h3>
+              <canvas id="day2WeatherIcon" width="64" height="64"></canvas>
               <div class="row justify-content-between">
-                <div class="col-lg-6 py-6">
-		              <canvas id="day2WeatherIcon" width="64" height="64"></canvas>
+                <div class="col-lg-6 py-3">
+                  <p id="day2LoTimeString" class="lead"></p>
+                  <p id="day2HiTimeString" class="lead"></p>
                 </div>
-                <div class="col-lg-6 py-6">
+                <div class="col-lg-6 py-3">
                   <p id="day2LoTempString" class="lead"></p>
                   <p id="day2HiTempString" class="lead"></p>
                 </div>
@@ -192,11 +198,13 @@
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day3DateString" class"lead"></h3>
+              <canvas id="day3WeatherIcon" width="64" height="64"></canvas>
               <div class="row justify-content-between">
-                <div class="col-lg-6 py-6">
-		              <canvas id="day3WeatherIcon" width="64" height="64"></canvas>
+                <div class="col-lg-6 py-3">
+                  <p id="day3LoTimeString" class="lead"></p>
+                  <p id="day3HiTimeString" class="lead"></p>
                 </div>
-                <div class="col-lg-6 py-6">
+                <div class="col-lg-6 py-3">
                   <p id="day3LoTempString" class="lead"></p>
                   <p id="day3HiTempString" class="lead"></p>
                 </div>
@@ -205,11 +213,13 @@
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day4DateString" class"lead"></h3>
+              <canvas id="day4WeatherIcon" width="64" height="64"></canvas>
               <div class="row justify-content-between">
-                <div class="col-lg-6 py-6">
-		              <canvas id="day4WeatherIcon" width="64" height="64"></canvas>
+                <div class="col-lg-6 py-3">
+                  <p id="day4LoTimeString" class="lead"></p>
+                  <p id="day4HiTimeString" class="lead"></p>
                 </div>
-                <div class="col-lg-6 py-6">
+                <div class="col-lg-6 py-3">
                   <p id="day4LoTempString" class="lead"></p>
                   <p id="day4HiTempString" class="lead"></p>
                 </div>
@@ -572,8 +582,10 @@
           var dateString = (day === 0 ? "Tomorrow" : moment.unix(forecast[day].time).format("dddd"));
           $(`#day${day}DateString`).replaceWith(`<h3 id="day${day}DateString" class="lead">${dateString}</h3>`);
           skycons.add(`day${day}WeatherIcon`, forecast[day].icon);
-          $(`#day${day}LoTempString`).replaceWith(`<p id="day${day}LoTempString" class="lead">${forecast[day].temperatureLow.toFixed(1)}˚F</p>`);
-          $(`#day${day}HiTempString`).replaceWith(`<p id="day${day}HiTempString" class="lead">${forecast[day].temperatureHigh.toFixed(1)}˚F</p>`);
+          $(`#day${day}LoTimeString`).replaceWith(`<h4 id="day${day}LoTimeString" class="fs-0">${moment.unix(forecast[day].temperatureLowTime).format("h:mm a")}</h4>`);
+          $(`#day${day}LoTempString`).replaceWith(`<h4 id="day${day}LoTempString" class="fs-0">${forecast[day].temperatureLow.toFixed(1)}˚F</h4>`);
+          $(`#day${day}HiTimeString`).replaceWith(`<h4 id="day${day}HiTimeString" class="fs-0">${moment.unix(forecast[day].temperatureHighTime).format("h:mm a")}</h4>`);
+          $(`#day${day}HiTempString`).replaceWith(`<h4 id="day${day}HiTempString" class="fs-0">${forecast[day].temperatureHigh.toFixed(1)}˚F</h4>`);
           $(`#day${day}SummaryString`).replaceWith(`<h4 id="day${day}SummaryString" class="fs-0">${forecast[day].summary}</h4>`);
          }
       });
