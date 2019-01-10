@@ -152,78 +152,33 @@
           <h2 class="mt-4">5 Day Forecast</h2>
           <div class="row justify-content-between">
             <div class="col-lg-2 py-6">
-              <h3 id="day0DateString" class"lead"></h3>
+              <h3 id="day0DateString"></h3>
               <canvas id="day0WeatherIcon" width="64" height="64"></canvas>
-              <div class="row justify-content-between">
-                <div class="col-lg-6 py-3">
-                  <p id="day0LoTimeString" class="lead"></p>
-                  <p id="day0HiTimeString" class="lead"></p>
-                </div>
-                <div class="col-lg-6 py-3">
-                  <p id="day0LoTempString" class="lead"></p>
-                  <p id="day0HiTempString" class="lead"></p>
-                </div>
-              </div>
-              <h4 id="day0SummaryString" class="lead"></h4>
+              <h4 id="day0TempString"></h4>
+              <h4 id="day0SummaryString"></h4>
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day1DateString" class"lead"></h3>
               <canvas id="day1WeatherIcon" width="64" height="64"></canvas>
-              <div class="row justify-content-between">
-                 <div class="col-lg-6 py-3">
-                  <p id="day1LoTimeString" class="lead"></p>
-                  <p id="day1HiTimeString" class="lead"></p>
-                </div>
-                <div class="col-lg-6 py-3">
-                  <p id="day1LoTempString" class="lead"></p>
-                  <p id="day1HiTempString" class="lead"></p>
-                </div>
-              </div>
+              <h4 id="day1TempString"></h4>
               <h4 id="day1SummaryString" class="lead"></h4>
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day2DateString" class"lead"></h3>
               <canvas id="day2WeatherIcon" width="64" height="64"></canvas>
-              <div class="row justify-content-between">
-                <div class="col-lg-6 py-3">
-                  <p id="day2LoTimeString" class="lead"></p>
-                  <p id="day2HiTimeString" class="lead"></p>
-                </div>
-                <div class="col-lg-6 py-3">
-                  <p id="day2LoTempString" class="lead"></p>
-                  <p id="day2HiTempString" class="lead"></p>
-                </div>
-              </div>
+              <h4 id="day2TempString"></h4>
               <h4 id="day2SummaryString" class="lead"></h4>
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day3DateString" class"lead"></h3>
               <canvas id="day3WeatherIcon" width="64" height="64"></canvas>
-              <div class="row justify-content-between">
-                <div class="col-lg-6 py-3">
-                  <p id="day3LoTimeString" class="lead"></p>
-                  <p id="day3HiTimeString" class="lead"></p>
-                </div>
-                <div class="col-lg-6 py-3">
-                  <p id="day3LoTempString" class="lead"></p>
-                  <p id="day3HiTempString" class="lead"></p>
-                </div>
-              </div>
+              <h4 id="day3TempString"></h4>
               <h4 id="day3SummaryString" class="lead"></h4>
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day4DateString" class"lead"></h3>
               <canvas id="day4WeatherIcon" width="64" height="64"></canvas>
-              <div class="row justify-content-between">
-                <div class="col-lg-6 py-3">
-                  <p id="day4LoTimeString" class="lead"></p>
-                  <p id="day4HiTimeString" class="lead"></p>
-                </div>
-                <div class="col-lg-6 py-3">
-                  <p id="day4LoTempString" class="lead"></p>
-                  <p id="day4HiTempString" class="lead"></p>
-                </div>
-              </div>
+              <h4 id="day4TempString"></h4>
               <h4 id="day4SummaryString" class="lead"></h4>
             </div>
           </div>
@@ -576,18 +531,32 @@
 
        // Forecast Conditions
        $.getJSON('/api/forecast/get', (forecast) => {
-         // No more that 5 days
-         var forecastLength = forecast.length < 5 ? forecast.length : 5;
+        // No more that 5 days
+        var forecastLength = forecast.length < 5 ? forecast.length : 5;
         for (var day = 0; day < forecastLength; day++) {
           var dateString = (day === 0 ? "Tomorrow" : moment.unix(forecast[day].time).format("dddd"));
+
           $(`#day${day}DateString`).replaceWith(`<h3 id="day${day}DateString" class="lead">${dateString}</h3>`);
           skycons.add(`day${day}WeatherIcon`, forecast[day].icon);
-          $(`#day${day}LoTimeString`).replaceWith(`<h4 id="day${day}LoTimeString" class="fs-0">${moment.unix(forecast[day].temperatureLowTime).format("h:mm a")}</h4>`);
-          $(`#day${day}LoTempString`).replaceWith(`<h4 id="day${day}LoTempString" class="fs-0">${forecast[day].temperatureLow.toFixed(1)}˚F</h4>`);
-          $(`#day${day}HiTimeString`).replaceWith(`<h4 id="day${day}HiTimeString" class="fs-0">${moment.unix(forecast[day].temperatureHighTime).format("h:mm a")}</h4>`);
-          $(`#day${day}HiTempString`).replaceWith(`<h4 id="day${day}HiTempString" class="fs-0">${forecast[day].temperatureHigh.toFixed(1)}˚F</h4>`);
-          $(`#day${day}SummaryString`).replaceWith(`<h4 id="day${day}SummaryString" class="fs-0">${forecast[day].summary}</h4>`);
-         }
+          
+          // Indicator Heat Stress Conditions
+          var hiTempIndicator;
+          if (forecast[day].temperatureHigh >= 90)
+            hiTempIndicator = `<span class="badge badge-danger">High: ${forecast[day].temperatureHigh.toFixed(0)}˚</span>`;
+          else
+            hiTempIndicator = `High: ${forecast[day].temperatureHigh.toFixed(0)}˚`;
+          
+          // Indicate Frost/Freeze Conditions
+          var loTempIndicator;
+          if (forecast[day].temperatureLow <= 32)
+            loTempIndicator = `<span class="badge badge-primary">Low: ${forecast[day].temperatureLow.toFixed(0)}˚</span>`;
+          else
+            loTempIndicator = `Low: ${forecast[day].temperatureLow.toFixed(0)}˚`;
+          
+          $(`#day${day}TempString`).replaceWith(`<h4 id="day${day}TempString" class="fs-0">${hiTempIndicator} ${loTempIndicator}</h4>`);
+          $(`#day${day}SummaryString`).replaceWith(`<h4 id="day${day}SummaryString" class="fs-1 lead">${forecast[day].summary}</h4>`);
+
+        }
       });
                
       });
