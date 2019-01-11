@@ -15,9 +15,9 @@ PLEASE REFER TO THE <a href="https://github.com/rodneygagnon/Vegable-pi/wiki">WI
 
 ---
 <a href="http://vegable.co/images/VegableScreenshots/Login.png"><img src="http://vegable.co/images/VegableScreenshots/Login.png" width="240"/></a>
-<a href="http://vegable.co/images/VegableScreenshots/Dashboard1.png"><img src="http://vegable.co/images/VegableScreenshots/Dashboard1.png" width="240"/></a>
+<a href="http://vegable.co/images/VegableScreenshots/Dashboard.png"><img src="http://vegable.co/images/VegableScreenshots/Dashboard.png" width="240"/></a>
 <a href="http://vegable.co/images/VegableScreenshots/Plantings.png"><img src="http://vegable.co/images/VegableScreenshots/Plantings.png" width="240"/></a>
-<a href="http://vegable.co/images/VegableScreenshots/Zones1.png"><img src="http://vegable.co/images/VegableScreenshots/Zones1.png" width="240"/></a>
+<a href="http://vegable.co/images/VegableScreenshots/Zones.png"><img src="http://vegable.co/images/VegableScreenshots/Zones.png" width="240"/></a>
 <a href="http://vegable.co/images/VegableScreenshots/Schedule.png"><img src="http://vegable.co/images/VegableScreenshots/Schedule.png" width="240"/></a>
 <a href="http://vegable.co/images/VegableScreenshots/Basic-Settings.png"><img src="http://vegable.co/images/VegableScreenshots/Basic-Settings.png" width="240"/></a>
 <a href="http://vegable.co/images/VegableScreenshots/Advanced-Settings.png"><img src="http://vegable.co/images/VegableScreenshots/Advanced-Settings.png" width="240"/></a>
