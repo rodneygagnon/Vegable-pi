@@ -39,7 +39,7 @@ const runTests = (zoneId) => {
 
   describe('Unit Tests', () => {
     describe('Settings', () => {
-      var address, city, state, zip, etzone, vegable_time, lat, long;
+      var address, city, state, zip, etzone, practice, vegable_time, lat, long;
       it ('should get address', async () => {
         address = await SettingsInstance.getAddress();
         expect(address).toBeDefined();
@@ -74,6 +74,13 @@ const runTests = (zoneId) => {
       });
       it ('should set etzone', async () => {
         await SettingsInstance.setETZone(etzone);
+      });
+      it ('should get practice', async () => {
+        practice = await SettingsInstance.getPractice();
+        expect(practice).toBeDefined();
+      });
+      it ('should set practice', async () => {
+        await SettingsInstance.setPractice(practice);
       });
       it ('should get vegable time', async () => {
         vegable_time = await SettingsInstance.getVegableTime();
@@ -173,10 +180,10 @@ const runTests = (zoneId) => {
         });
       });
 
-      it ('should get 7-Day forecast', async () => {
+      it ('should get forecast', async () => {
         var forecast = await WeatherInstance.getForecast();
         expect(forecast).toBeDefined();
-        expect(forecast.length).toBe(7);
+        expect(forecast.length).toBe(8);
       });
 
       it ('should get CIMIS conditions from yesterday', function (done) {

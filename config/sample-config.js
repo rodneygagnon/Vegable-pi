@@ -15,6 +15,7 @@ module.exports = {
   default_lat: -122.82418,
   default_long: 38.402096,
   default_etzone: 4,
+  default_practice: 0,
   default_vegable_time: "03:15",
   default_mapbox_key: "-YOUR-MAPBOX-API-KEY-",
   default_darksky_key: "-YOUR-DARKSKY-API-KEY-"

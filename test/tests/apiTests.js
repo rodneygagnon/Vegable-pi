@@ -34,6 +34,15 @@ const runTests = async (app) => {
           .expect(200)
           .end(done);
       });
+
+      it('should set practice', (done) => {
+        request(app)
+          .post('/api/practice/set')
+          .send({ practice: 0 })
+          .set('Accept', 'application/json')
+          .expect(200)
+          .end(done);
+      });
     });
 
     describe('Crops', () => {
@@ -326,7 +335,7 @@ const runTests = async (app) => {
           .end(done);
       });
 
-      it ('should get 7-day weather forecast', (done) => {
+      it ('should get weather forecast', (done) => {
         request(app)
           .get('/api/forecast/get')
           .expect('Content-Type', /json/)

@@ -51,6 +51,18 @@ router.route('/location/set').post(function (req, res) {
 });
 
 /**
+ * Route to set gardening practice
+ * @name settings/practice/set
+ * @function
+ * @param {Number} practice - Practice
+ */
+router.route('/practice/set').post(function (req, res) {
+  SettingsInstance.setPractice(req.body.practice);
+
+  res.redirect('/settings');
+});
+
+/**
  * Route to update a crop and redirect Settings view
  * @name settings/crops/update
  * @function

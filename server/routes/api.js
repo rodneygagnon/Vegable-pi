@@ -48,6 +48,17 @@ router.route('/location/set').post(function (req, res) {
   res.status(200).end();
 });
 
+/**
+ * Route to set gardening practice.
+ * @name practice/set
+ * @function
+ * @param {Number} practice - Practice
+ */
+router.route('/practice/set').post(function (req, res) {
+  SettingsInstance.setPractice(req.body.practice);
+  res.status(200).end();
+});
+
 /*
  * Crops APIs
  */

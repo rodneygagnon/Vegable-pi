@@ -29,6 +29,7 @@ const settingsSchema = schema({
   lat: Number,
   long: Number,
   etzone: Number,
+  practice: Number,
   vegable_time: String,
   mapboxKey: String,
   darkskyKey: String,
@@ -43,12 +44,21 @@ var defaultSettings = { address : config.default_address,
                         lat : config.default_lat,
                         long : config.default_long,
                         etzone: config.default_etzone,
+                        practice: config.default_practice,
                         vegable_time: config.default_vegable_time,
                         mapboxKey : config.default_mapbox_key,
                         darkskyKey : config.default_darksky_key,
                         zones : config.zones,
                         cimisKey: config.cimis_key
                       };
+
+// Practice Types
+const Practices = {
+  Sustainable: 0,
+  Organic: 1,
+  Biodynamic: 2
+};
+Object.freeze(Practices);
 
 /**
  * A singleton class to get and set system settings
@@ -175,6 +185,14 @@ class Settings {
   }
   async setETZone(etzone) {
     return await this.setHashKey('etzone', etzone);
+  }
+
+  // Get/Set practice
+  async getPractice() {
+    return await this.getSetHashKey('practice', defaultSettings.practice);
+  }
+  async setPractice(practice) {
+    return await this.setHashKey('practice', practice);
   }
 
   // Get/Set vegable_time

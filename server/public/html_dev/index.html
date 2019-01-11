@@ -155,30 +155,35 @@
               <h3 id="day0DateString"></h3>
               <canvas id="day0WeatherIcon" width="64" height="64"></canvas>
               <h4 id="day0TempString"></h4>
+              <h4 id="day0PrecipString"></h4>
               <h4 id="day0SummaryString"></h4>
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day1DateString" class"lead"></h3>
               <canvas id="day1WeatherIcon" width="64" height="64"></canvas>
               <h4 id="day1TempString"></h4>
+              <h4 id="day1PrecipString"></h4>
               <h4 id="day1SummaryString" class="lead"></h4>
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day2DateString" class"lead"></h3>
               <canvas id="day2WeatherIcon" width="64" height="64"></canvas>
               <h4 id="day2TempString"></h4>
+              <h4 id="day2PrecipString"></h4>
               <h4 id="day2SummaryString" class="lead"></h4>
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day3DateString" class"lead"></h3>
               <canvas id="day3WeatherIcon" width="64" height="64"></canvas>
               <h4 id="day3TempString"></h4>
+              <h4 id="day3PrecipString"></h4>
               <h4 id="day3SummaryString" class="lead"></h4>
             </div>
             <div class="col-lg-2 py-6">
               <h3 id="day4DateString" class"lead"></h3>
               <canvas id="day4WeatherIcon" width="64" height="64"></canvas>
               <h4 id="day4TempString"></h4>
+              <h4 id="day4PrecipString"></h4>
               <h4 id="day4SummaryString" class="lead"></h4>
             </div>
           </div>
@@ -534,7 +539,8 @@
         // No more that 5 days
         var forecastLength = forecast.length < 5 ? forecast.length : 5;
         for (var day = 0; day < forecastLength; day++) {
-          var dateString = (day === 0 ? "Tomorrow" : moment.unix(forecast[day].time).format("dddd"));
+          var dateString = (day === 0 ? "Today" :
+                              (day === 1 ? "Tomorrow" : moment.unix(forecast[day].time).format("dddd")));
 
           $(`#day${day}DateString`).replaceWith(`<h3 id="day${day}DateString" class="lead">${dateString}</h3>`);
           skycons.add(`day${day}WeatherIcon`, forecast[day].icon);
@@ -554,6 +560,10 @@
             loTempIndicator = `Low: ${forecast[day].temperatureLow.toFixed(0)}˚`;
           
           $(`#day${day}TempString`).replaceWith(`<h4 id="day${day}TempString" class="fs-0">${hiTempIndicator} ${loTempIndicator}</h4>`);
+ 
+          var precip = forecast[day].precipIntensity * 24;
+          var probability = forecast[day].precipProbability * 100;
+          $(`#day${day}PrecipString`).replaceWith(`<h4 id="day${day}PrecipString" class="fs-0">Precip ${precip.toFixed(1)}&#34 ${probability.toFixed(0)}%</h4>`);
           $(`#day${day}SummaryString`).replaceWith(`<h4 id="day${day}SummaryString" class="fs-1 lead">${forecast[day].summary}</h4>`);
 
         }

@@ -130,7 +130,7 @@
           <div class="row">
             <div class="col-lg-6 col-xl-5">
               <h1 class="fs-3 fs-sm-4">Settings</h1>
-              <p class="lead">Location, Crops, ...</p>
+              <p class="lead">Profile, Practices &amp; Crops</p>
             </div>
             <div class="col-lg-6 col-xl-5 text-lg-right">
             </div>
@@ -145,79 +145,134 @@
       <!-- ============================================-->
       <!-- <section> begin ============================-->
       <section class="py-0">
-        <div class="container">
-          <div class="row justify-content-between">
-            <div class="col-lg-12 pt-6 pb-3">
-              <h3 class="text-danger mt-3">Location</h3>
-              <form class="needs-validation mt-5" method="post" action="/settings/location/set" novalidate>
-                <div class="row mb-4">
-                  <div class="col">
-                    <input class="form-control border-300 bg-light" type="text" placeholder="Your Address" id="address" name="address"  value="<%= config.address %>" required=""/>
-                  </div>
-                </div>
-                <div class="row mb-4">
-                  <div class="col">
-                    <input class="form-control border-300 bg-light" type="text" placeholder="Your City" id="city" name="city" value="<%= config.city %>" required=""/>
-                  </div>
-                </div>
-                <div class="row mb-4">
-                  <div class="col">
-                    <select class="selectpicker form-control" id="state" name="state" data-size="7" required="">
-                      <%
-                        var states = [ "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
-                                "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "MA",
-                                "ME", "MD", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE",
-                                "NH", "NJ", "NM", "NY", "OH", "OK", "OR", "PA", "RI", "SC",
-                                "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
-                              ];
-                        for ( var i = 0; i < states.length; i++ ) {
-                          var selected = ( config.state === states[i] ) ? "selected" : "";
-
-                          %><option value="<%=states[ i ] %>" <%=selected %>><%=states[ i ] %></option><%
-                        }
-                      %>
-                    </select>
-                  </div>
-                  <div class="col">
-                    <input class="form-control border-300 bg-light" type="text" placeholder="Your Zipcode" id="zip" name="zip" value="<%= config.zip %>" required=""/>
-                  </div>
-                </div>
-                <div class="row mb-4">
-                  <div class="col">
-                    <label for="etzone" class="col-form-label">Evapotranspiration Reference (ETr) Zone</label>
-                    <select  class="selectpicker form-control" id="etzone" name="etzone">
-                      <%
-                         for(var i=0; i < etrs.length; i++) { 
-                           var selected = ( config.etzone === etrs[i].zone ) ? "selected" : "";
-                      
-                           %><option value="<%= etrs[i].zone %>" <%=selected %>><%=etrs[i].title %></option><%
-                         }
-                      %>
-                    </select>
-                  </div>
-                </div>  
-                <div class="d-flex">
-                  <div class="ml-auto p-2"><button type="submit" class="btn btn-sm btn-dark">Save</button></div>
-                </div>
-              </form>
+        <div class="container mt-3">
+          <div class="fancy-tab">
+            <div class="nav-bar">
+              <div class="nav-bar-item active">Basic</div>
+              <div class="nav-bar-item">Advanced</div>
             </div>
-          </div>
-          <div class="row justify-content-between">
-            <div class="col-lg-12 pt-3 pb-6">
-              <h3 class="text-danger mt-3">Crops</h3>
-              <div class="table-responsive mt-3">
-                <div id="toolbar" class="btn-group">
-                  <a rel="tooltip" title="Add Crop" href="javascript:void(0)" data-remodal-target="editCropModal">
-                    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="32px" height="32px" viewBox="0 0 300 300" style="enable-background:new 0 0 300 300;" xml:space="preserve">
-                      <g>
-                        <path class="st0" d="M225.2,138h-63.9V74c0-6.3-5-11.7-11.7-11.7c-6.3,0-11.7,5-11.7,11.7V138H74c-6.3,0-11.7,5-11.7,11.7 c0,3.1,1.3,6,3.5,8.2c2.2,2.2,5,3.5,8.2,3.5H138v63.9c0,3.1,1.3,6,3.5,8.2s5,3.5,8.2,3.5c6.3,0,11.7-5,11.7-11.7v-63.9h63.9 c6.3,0,11.7-5,11.7-11.7C236.6,143.3,231.5,138,225.2,138z"/>
-                        <path class="st0" d="M149.6,0C67.1,0,0,67.1,0,149.6s67.1,149.6,149.6,149.6s149.6-67.1,149.6-149.6S232.2,0,149.6,0z M149.6,276.3C79.7,276.3,23,219.6,23,149.6S79.7,23,149.6,23s126.6,56.7,126.6,126.6S219.6,276.3,149.6,276.3z"/>
-                      </g>
-                    </svg>
-                  </a>
+            <div class="tab-contents">
+              <div class="tab-content active">
+                <div class="row justify-content-between">
+                  <div class="col-lg-12 pt-3 pb-3">
+                    <h3>Location</h3>
+                    <form class="needs-validation mt-5" method="post" action="/settings/location/set" novalidate>
+                      <div class="row mb-4">
+                        <div class="col">
+                          <input class="form-control border-300 bg-light" type="text" placeholder="Your Address" id="address" name="address"  value="<%= config.address %>" required=""/>
+                        </div>
+                      </div>
+                      <div class="row mb-4">
+                        <div class="col">
+                          <input class="form-control border-300 bg-light" type="text" placeholder="Your City" id="city" name="city" value="<%= config.city %>" required=""/>
+                        </div>
+                      </div>
+                      <div class="row mb-4">
+                        <div class="col">
+                          <select class="selectpicker form-control" id="state" name="state" data-size="7" required="">
+                            <%
+                              var states = [ "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+                                      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "MA",
+                                      "ME", "MD", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE",
+                                      "NH", "NJ", "NM", "NY", "OH", "OK", "OR", "PA", "RI", "SC",
+                                      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+                                    ];
+                              for ( var i = 0; i < states.length; i++ ) {
+                                var selected = ( config.state === states[i] ) ? "selected" : "";
+
+                                %><option value="<%=states[ i ] %>" <%=selected %>><%=states[ i ] %></option><%
+                              }
+                            %>
+                          </select>
+                        </div>
+                        <div class="col">
+                          <input class="form-control border-300 bg-light" type="text" placeholder="Your Zipcode" id="zip" name="zip" value="<%= config.zip %>" required=""/>
+                        </div>
+                      </div>
+                      <div class="row mb-4">
+                        <div class="col">
+                          <h4 for="etzone" class="col-form-label">Evapotranspiration Reference (ETr) Zone</h4>
+                          <p>
+                            Evapotranspiration (ET) is the term used to describe the loss of water to the atmosphere by the combined processes of evaporation (from soil and plant surfaces) and transpiration (from plant tissues) and is needed for irrigation scheduling. Vegable retrieves ETo from CIMIS to calculate ETc for plantings/crops. If the CIMIS ETo can not be obtained, the ETr for your zone is used.
+                          </p>
+                          <p>
+                            Choose the zone that most accurately represents the micro climate at your location.
+                          </p>
+                          <select  class="selectpicker form-control" id="etzone" name="etzone">
+                            <%
+                               for(var i=0; i < etrs.length; i++) { 
+                                 var selected = ( config.etzone === etrs[i].zone ) ? "selected" : "";
+
+                                 %><option value="<%= etrs[i].zone %>" <%=selected %>><%=etrs[i].title %></option><%
+                               }
+                            %>
+                          </select>
+                        </div>
+                      </div>  
+                      <div class="d-flex">
+                        <div class="ml-auto p-2"><button type="submit" class="btn btn-sm btn-dark">Save</button></div>
+                      </div>
+                    </form>
+                  </div>
                 </div>
-                <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-sort-name="date" data-sort-order="asc" data-toolbar="#toolbar" data-search="true" data-detail-view="true" data-detail-formatter="detailFormatter">
-                </table>
+              </div>
+              <div class="tab-content">
+                <div class="row justify-content-between">
+                  <div class="col-lg-12 pt-3 pb-3">
+                    <h3>Practices</h3>
+                    <form class="needs-validation mt-3" method="post" action="/settings/practice/set" novalidate>
+                      <div class="row mb-4">
+                        <div class="col">
+                          <h4 for="etzone" class="col-form-label">Sustainable, Organic or Biodynamic</h4>
+                          <p>
+                            Definitions for these practices can be contentious and variable. But in short, if you employ one of these practices, Vegable will take them to mean:
+                            <ul>
+                              <li><strong>Sustainable</strong>: You follow good environmental stewardship. You use synthetic fertilizers, pesticides and fungicides ONLY sparingly.</li>
+                              <li><strong>Organic</strong>: You look to improve the environment. You don't use any synthetic fertiliers, pesticides or fungicides. You control pest and disease with minimal applications of natural products.</li>
+                              <li><strong>Biodynamic</strong>: You follow a holistic, ecological approach to gardening. You use biodiversity and environmental conditions to control pests and disease. </li>
+                            </ul>
+                          </p>
+                          <p>
+                            Choose which practice Vegable should follow.
+                          </p>
+                           <select class="selectpicker form-control" id="practice" name="practice" data-size="7" required="">
+                            <%
+                              var practiceTypes = [ "Sustainable", "Organic", "Biodynamic" ];
+                              var practiceValue = [ 0, 1, 2 ];
+                              for ( var i = 0; i < practiceTypes.length; i++ ) {
+                                var selected = ( config.practice === practiceValue[i] ) ? "selected" : "";
+
+                                %><option value="<%=practiceValue[ i ] %>" <%=selected %>><%=practiceTypes[ i ] %></option><%
+                              }
+                            %>
+                          </select>
+                        </div>
+                      </div>  
+                      <div class="d-flex">
+                        <div class="ml-auto p-2"><button type="submit" class="btn btn-sm btn-dark">Save</button></div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+                <div class="row justify-content-between">
+                  <div class="col-lg-12 pt-3 pb-6">
+                    <h3>Crops</h3>
+                    <div class="table-responsive mt-3">
+                      <div id="toolbar" class="btn-group">
+                        <a rel="tooltip" title="Add Crop" href="javascript:void(0)" data-remodal-target="editCropModal">
+                          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="32px" height="32px" viewBox="0 0 300 300" style="enable-background:new 0 0 300 300;" xml:space="preserve">
+                            <g>
+                              <path class="st0" d="M225.2,138h-63.9V74c0-6.3-5-11.7-11.7-11.7c-6.3,0-11.7,5-11.7,11.7V138H74c-6.3,0-11.7,5-11.7,11.7 c0,3.1,1.3,6,3.5,8.2c2.2,2.2,5,3.5,8.2,3.5H138v63.9c0,3.1,1.3,6,3.5,8.2s5,3.5,8.2,3.5c6.3,0,11.7-5,11.7-11.7v-63.9h63.9 c6.3,0,11.7-5,11.7-11.7C236.6,143.3,231.5,138,225.2,138z"/>
+                              <path class="st0" d="M149.6,0C67.1,0,0,67.1,0,149.6s67.1,149.6,149.6,149.6s149.6-67.1,149.6-149.6S232.2,0,149.6,0z M149.6,276.3C79.7,276.3,23,219.6,23,149.6S79.7,23,149.6,23s126.6,56.7,126.6,126.6S219.6,276.3,149.6,276.3z"/>
+                            </g>
+                          </svg>
+                        </a>
+                      </div>
+                      <table id="bootstrap-table" class="bootstrap-table table table-no-bordered" data-sort-name="date" data-sort-order="asc" data-toolbar="#toolbar" data-search="true" data-detail-view="true" data-detail-formatter="detailFormatter">
+                      </table>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

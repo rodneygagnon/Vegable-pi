@@ -186,7 +186,7 @@ class Weather {
     var redisForecast = await db.zrangebyscoreAsync(dbKeys.dbForecastKey,  '-inf', '+inf');
 
     var forecast = [];
-    for (var i = 1; i < redisForecast.length; i++)
+    for (var i = 0; i < redisForecast.length; i++)
       forecast.push(await forecastSchema.validate(JSON.parse(redisForecast[i])));
 
     return(forecast);
