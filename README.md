@@ -19,7 +19,8 @@ PLEASE REFER TO THE <a href="https://github.com/rodneygagnon/Vegable-pi/wiki">WI
 <a href="http://vegable.co/images/VegableScreenshots/Plantings.png"><img src="http://vegable.co/images/VegableScreenshots/Plantings.png" width="240"/></a>
 <a href="http://vegable.co/images/VegableScreenshots/Zones.png"><img src="http://vegable.co/images/VegableScreenshots/Zones.png" width="240"/></a>
 <a href="http://vegable.co/images/VegableScreenshots/Schedule.png"><img src="http://vegable.co/images/VegableScreenshots/Schedule.png" width="240"/></a>
-<a href="http://vegable.co/images/VegableScreenshots/Setting.png"><img src="http://vegable.co/images/VegableScreenshots/Setting.png" width="240"/></a>
+<a href="http://vegable.co/images/VegableScreenshots/Basic-Settings.png"><img src="http://vegable.co/images/VegableScreenshots/Basic-Settings.png" width="240"/></a>
+<a href="http://vegable.co/images/VegableScreenshots/Advanced-Settings.png"><img src="http://vegable.co/images/VegableScreenshots/Advanced-Settings.png" width="240"/></a>
 ---
 
 # Questions and issues
