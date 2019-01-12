@@ -1,8 +1,8 @@
 /**
- * Crops Singleton
- *
- * @author: rgagnon
+ * @file Crop Singleton
+ * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
+ * @version 0.1
  */
 'use strict';
 
@@ -20,17 +20,30 @@ const schema = require("schm");
 const cropSchema = schema({
   id: String,
   name: String,
-  type: String,
   initDay: Number,
   initKc: Number,
+  initN: Number,
+  initP: Number,
+  initK: Number,
+  initFreq: Number,
   devDay: Number,
   devKc: Number,
+  devN: Number,
+  devP: Number,
+  devK: Number,
+  devFreq: Number,
   midDay: Number,
   midKc: Number,
+  midN: Number,
+  midP: Number,
+  midK: Number,
+  midFreq: Number,
   lateDay: Number,
   lateKc: Number,
-  totDay: Number,
-  totKc: Number
+  lateN: Number,
+  lateP: Number,
+  lateK: Number,
+  lateFreq: Number
 });
 
 class Crops {
@@ -98,14 +111,6 @@ class Crops {
   async setCrop(crop) {
     try {
       var validCrop = await cropSchema.validate(crop);
-
-      // Calculate totals
-      validCrop.totDay = validCrop.initDay + validCrop.devDay +
-                         validCrop.midDay + validCrop.lateDay;
-      validCrop.totKc = validCrop.initDay * validCrop.initKc +
-                        validCrop.devDay * validCrop.devKc +
-                        validCrop.midDay * validCrop.midKc +
-                        validCrop.lateDay * validCrop.lateKc;
 
       if (typeof validCrop.id === 'undefined' || validCrop.id === "")
         // Create a new crop id.

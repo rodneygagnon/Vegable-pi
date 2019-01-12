@@ -329,7 +329,7 @@
     <div class="remodal" data-remodal-id="editCropModal" align="left" >
       <button class="remodal-close" data-remodal-action="close"></button>
       <h4 id="remodalTitle">Edit Crop</h4>
-      <p>Change the name, type, stages, coefficients, ...</p><br>
+      <p>Change the name, stages, coefficients &amp; nutrients ...</p><br>
 
       <form id="cropForm" method="post" action="/settings/crops/update">
 
@@ -341,15 +341,11 @@
             <label for="name" class="col-form-label">Name</label>
             <input type="text" class="form-control" id="name" name="name">
           </div>
-          <div class="col">
-            <label for="type" class="col-form-label">Type</label>
-            <input type="text" class="form-control" id="type" name="type">
-          </div>
         </div>
         
         <div class="row">
           <div class="col" align="center">
-            <h4>Crop Stages &amp; Coefficients</h4>
+            <h4>Crop Stages, Coefficients &amp; Nutrients</h4>
           </div>
         </div>
 
@@ -360,7 +356,19 @@
             <label class="col-form-label">Days</label>
           </div>
           <div class="col" align="center">
-            <label class="col-form-label">ETc</label>
+            <label class="col-form-label">Kc</label>
+          </div>
+          <div class="col" align="center">
+            <label class="col-form-label">N</label>
+          </div>
+          <div class="col" align="center">
+            <label class="col-form-label">P</label>
+          </div>
+          <div class="col" align="center">
+            <label class="col-form-label">K</label>
+          </div>
+          <div class="col" align="center">
+            <label class="col-form-label">Frequency</label>
           </div>
         </div>
         <div class="row mb-4">
@@ -373,10 +381,22 @@
           <div class="col">
             <input type="text" class="form-control" id="initKc" name="initKc">
           </div>
-        </div>
+          <div class="col">
+            <input type="text" class="form-control" id="initN" name="initN">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="initP" name="initP">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="initK" name="initK">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="initFreq" name="initFreq">
+          </div>
+       </div>
         <div class="row mb-4">
           <div class="col">
-            <label class="col-form-label">Development</label>
+            <label class="col-form-label">Early</label>
           </div>
           <div class="col">
             <input type="text" class="form-control" id="devDay" name="devDay">
@@ -384,16 +404,40 @@
           <div class="col">
             <input type="text" class="form-control" id="devKc" name="devKc">
           </div>
+          <div class="col">
+            <input type="text" class="form-control" id="devN" name="devN">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="devP" name="devP">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="devK" name="devK">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="devFreq" name="devFreq">
+          </div>
         </div>
         <div class="row mb-4">
           <div class="col">
-            <label class="col-form-label">Mid Season</label>
+            <label class="col-form-label">Middle</label>
           </div>
           <div class="col">
             <input type="text" class="form-control" id="midDay" name="midDay">
           </div>
           <div class="col">
             <input type="text" class="form-control" id="midKc" name="midKc">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="midN" name="midN">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="midP" name="midP">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="midK" name="midK">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="midFreq" name="midFreq">
           </div>
         </div>
         <div class="row mb-4">
@@ -405,6 +449,18 @@
           </div>
           <div class="col">
             <input type="text" class="form-control" id="lateKc" name="lateKc">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="lateN" name="lateN">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="lateP" name="lateP">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="lateK" name="lateK">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="lateFreq" name="lateFreq">
           </div>
         </div>
 
@@ -450,19 +506,21 @@
               sortable: true
             },
             {
-              field: 'type',
-              title: 'Type',
-              sortable: true
-            },
-            {
-              field: 'totDay',
+              field: 'initDay',
               title: 'Total Days',
-              sortable: true
+              sortable: true,
+              formatter: function (value, row) {
+                return (row.initDay + row.devDay + row.midDay + row.lateDay);
+              }
             },
             {
-              field: 'totKc',
+              field: 'initKc',
               title: 'Total Kc',
-              sortable: true
+              sortable: true,
+              formatter: function (value, row) {
+                return ((row.initDay * row.initKc + row.devDay * row.devKc +
+                        row.midDay * row.midKc + row.lateDay * row.lateKc).toFixed(0));
+              }
             }
           ]
         });
@@ -476,12 +534,28 @@
             switch (key) {
               case 'initDay':
               case 'initKc':
+              case 'initN':
+              case 'initP':
+              case 'initK':
+              case 'initFreq':
               case 'devDay':
               case 'devKc':
+              case 'devN':
+              case 'devP':
+              case 'devK':
+              case 'devFreq':
               case 'midDay':
               case 'midKc':
+              case 'midN':
+              case 'midP':
+              case 'midK':
+              case 'midFreq':
               case 'lateDay':
               case 'lateKc':
+              case 'lateN':
+              case 'lateP':
+              case 'lateK':
+              case 'lateFreq':
                 html.push('<b>    ' + key + ':</b> ' + value);
                 break;
             }
@@ -498,15 +572,30 @@
           $('[data-remodal-id=editCropModal] #remodalTitle').text('Edit: ' + row.name);
           $('[data-remodal-id=editCropModal] #id').val(row.id);
           $('[data-remodal-id=editCropModal] #name').val(row.name);
-          $('[data-remodal-id=editCropModal] #type').val(row.type);
           $('[data-remodal-id=editCropModal] #initDay').val(row.initDay);
           $('[data-remodal-id=editCropModal] #initKc').val(row.initKc);
+          $('[data-remodal-id=editCropModal] #initN').val(row.initN);
+          $('[data-remodal-id=editCropModal] #initP').val(row.initP);
+          $('[data-remodal-id=editCropModal] #initK').val(row.initK);
+          $('[data-remodal-id=editCropModal] #initFreq').val(row.initFreq);
           $('[data-remodal-id=editCropModal] #devDay').val(row.devDay);
           $('[data-remodal-id=editCropModal] #devKc').val(row.devKc);
+          $('[data-remodal-id=editCropModal] #devN').val(row.devN);
+          $('[data-remodal-id=editCropModal] #devP').val(row.devP);
+          $('[data-remodal-id=editCropModal] #devK').val(row.devK);
+          $('[data-remodal-id=editCropModal] #devFreq').val(row.devFreq);
           $('[data-remodal-id=editCropModal] #midDay').val(row.midDay);
           $('[data-remodal-id=editCropModal] #midKc').val(row.midKc);
+          $('[data-remodal-id=editCropModal] #midN').val(row.midN);
+          $('[data-remodal-id=editCropModal] #midP').val(row.midP);
+          $('[data-remodal-id=editCropModal] #midK').val(row.midK);
+          $('[data-remodal-id=editCropModal] #midFreq').val(row.midFreq);
           $('[data-remodal-id=editCropModal] #lateDay').val(row.lateDay);
           $('[data-remodal-id=editCropModal] #lateKc').val(row.lateKc);
+          $('[data-remodal-id=editCropModal] #lateN').val(row.lateN);
+          $('[data-remodal-id=editCropModal] #lateP').val(row.lateP);
+          $('[data-remodal-id=editCropModal] #lateK').val(row.lateK);
+          $('[data-remodal-id=editCropModal] #lateFreq').val(row.lateFreq);
 
           inst.open();
           $('[data-remodal-id=editCropModal] #delete_action').removeClass("hide-form-button");
