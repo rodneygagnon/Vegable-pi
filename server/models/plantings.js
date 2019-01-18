@@ -108,6 +108,95 @@ class Plantings {
     return(ETc > 0 ? ETc : ETo);
   }
 
+  // Calculate the fertilizer applications for the plantings in this zone between the given dates
+  async getFertilizerByZone(zid, start, end, lastFertilized) {
+    var plantings = await this.getPlantingsByZone(zid);
+    var fertilizer = JSON.stringify({ n: 0, p: 0, k: 0 });
+
+    if (plantings.length === 0) {
+      return(fertilizer);
+    }
+
+    log.debug(`getFertilizerByZone: zid(${zid}) start(${start}) end(${end}) lastFert(${lastFertilized})`);
+
+    var fertApplications = [];
+    do {
+      for (var i = 0; i < plantings.length; i++) {
+        var planting = plantings[i];
+        var plantingDate = new Date(planting.date);
+
+        // Adjust the dates if necessary.
+        // - If end is before planting, we won't fertilize.
+        // - Else if start is before planting, move start up to planting
+        if (end < plantingDate)
+          break;
+        else if (start < plantingDate) {
+          start = plantingDate;
+        }
+
+        // Get the crop and caclulate this crop stages in order to extract the NPK
+        var crop = await this.getCrop(planting.cid);
+        var initStage = crop.initDay;
+        var devStage = initStage + crop.devDay;
+        var midStage = devStage + crop.midDay;
+
+        var age = planting.age +
+                    Math.round(Math.abs((start.getTime() - plantingDate.getTime())/(milli_per_day)));
+        var lastAgeFertilized = (lastFertilized < plantingDate ? 0 : planting.age +
+                    Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime())/(milli_per_day))));
+
+        log.error(`getFertilizerByZone: age(${age}) lastAgeFert(${lastAgeFertilized}) stages(${initStage}:${devStage}:${midStage})`);
+
+        // If the crop wants fertilizer at a particular stage and
+        // it hasn't been fertilized during this stage yet, record what the crop needs
+        if (age <= initStage) {
+          if (crop.initFreq && lastAgeFertilized === 0) {
+            log.error(`getFertilizerByZone(INIT): n(${crop.initN}) p(${crop.initN}) k(${crop.initK})`);
+            fertApplications.push({ date: start, crops: planting.count, n: crop.initN, p: crop.initP, k: crop.initK });
+          }
+        } else if (age <= devStage) {
+          if (crop.devFreq && lastAgeFertilized < initStage) {
+            log.error(`getFertilizerByZone(DEV): n(${crop.devN}) p(${crop.devN}) k(${crop.devK})`);
+            fertApplications.push({ date: start, crops: planting.count, n: crop.devN, p: crop.devP, k: crop.devK });
+          }
+        } else if (age <= midStage) {
+          if (crop.midFreq && lastAgeFertilized < devStage) {
+            log.error(`getFertilizerByZone(MID): n(${crop.midN}) p(${crop.midN}) k(${crop.midK})`);
+            fertApplications.push({ date: start, crops: planting.count, n: crop.midN, p: crop.midP, k: crop.midK });
+          }
+        } else {
+          if (crop.lateFreq && lastAgeFertilized < midStage) {
+            log.error(`getFertilizerByZone(LATE): n(${crop.lateN}) p(${crop.lateN}) k(${crop.lateK})`);
+            fertApplications.push({ date: start, crops: planting.count, n: crop.lateN, p: crop.lateP, k: crop.lateK });
+          }
+        }
+      }
+
+      start.setDate(start.getDate() + 1);
+    } while (start < end);
+
+    // We should now have a list of fertilizer applications for the crops planted in
+    // the given zone over the specified time frame. Let's crudely return a weighted average (for now)
+    if (fertApplications.length) {
+      var crops = 0, n = 0, p = 0, k = 0;
+      for (var app = 0; app < fertApplications.length; app++) {
+        var fertApp = fertApplications[app];
+
+        crops += fertApp.crops;
+        n += fertApp.crops * fertApp.n;
+        p += fertApp.crops * fertApp.p;
+        k += fertApp.crops * fertApp.k;
+      }
+
+      fertilizer = JSON.stringify({ n: Number((n / crops).toFixed(0)),
+                                    p: Number((p / crops).toFixed(0)),
+                                    k: Number((k / crops).toFixed(0))
+                                  });
+    }
+
+    return(fertilizer);
+  }
+
   async getCrop(cid) {
     return (await CropsInstance.getCrop(cid));
   }

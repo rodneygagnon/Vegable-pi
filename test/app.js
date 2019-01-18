@@ -9,15 +9,18 @@
 var app = require('../server/app');
 
 var Unit = require('./tests/unitTests');
-var Functional = require('./tests/functionalTests');
 var Api = require('./tests/apiTests');
+var Functional = require('./tests/functionalTests');
+var Longevity = require('./tests/longevityTests');
 
 /** Separating the zones to isolate testing */
 const unitTestZoneId = 3;
 const functionalTestZoneId = 4;
+const longevityTestZoneId = 5;
 
 describe('Vegable Tests', async () => {
  await Unit.runTests(unitTestZoneId);
- await Functional.runTests(functionalTestZoneId);
  await Api.runTests(app);
+ await Functional.runTests(functionalTestZoneId);
+ await Longevity.runTests(longevityTestZoneId);
 });

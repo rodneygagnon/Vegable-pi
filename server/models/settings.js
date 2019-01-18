@@ -252,7 +252,7 @@ class Settings {
 
   async setHashKey(hashKey, value) {
     try {
-        if (value)
+        if (typeof value !== 'undefined')
           await db.hsetAsync(dbKeys.dbConfigKey, hashKey, value);
         else
           log.error(`setHashKey: Undefined value for ${hashKey}`);

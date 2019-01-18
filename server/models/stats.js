@@ -16,7 +16,7 @@ const statsSchema = schema({
   started: { type: Number, min: 0 },        // ISO8601 - Irrigation started
   stopped: { type: Number, min: 0 },        // ISO8601 - Irrigation stopped
   amount: { type: Number, min: 0 },         // gallons
-  fertilized: Boolean
+  fertilizer: String                        // NPK values
 });
 
 /**
@@ -31,10 +31,10 @@ class Stats {
     return Stats.StatsInstance;
   }
 
-  async saveStats(zid, started, stopped, amount, fertilized) {
+  async saveStats(zid, started, stopped, amount, fertilizer) {
     try {
       var validStats = await statsSchema.validate({ started: started, stopped: stopped,
-                                                    amount: amount, fertilized: fertilized
+                                                    amount: amount, fertilizer: fertilizer
                                                   });
 
       await db.zaddAsync(dbKeys.dbStatsKey + zid, started, JSON.stringify(validStats));

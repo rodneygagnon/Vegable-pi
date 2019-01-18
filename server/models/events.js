@@ -20,8 +20,7 @@ const {db} = require("./db");
 const {dbKeys} = require("./db");
 
 /** Constants */
-const {gpm_cfs} = require('../../config/constants');
-const {sqft_acre} = require('../../config/constants');
+const {milli_per_hour} = require('../../config/constants');
 
 const schema = require("schm");
 const eventSchema = schema({
@@ -30,7 +29,7 @@ const eventSchema = schema({
   title: String,
   start: String,                  // ISO8601
   amt: { type: Number, min: 0 },  // inches of water to apply
-  fertilize: Boolean,             // fertigate?
+  fertilizer: String,             // NPK fertilizer
   color: String,
   textColor: String,
   repeatDow: Array,
@@ -148,7 +147,6 @@ class Events {
       if (typeof validEvent.id === 'undefined' || validEvent.id === "") {
         // Create a new event id.
         validEvent.id = uuidv4();
-        log.debug(`setEvent: new event ${validEvent.id}`);
       } else {
         // Find and remove the old event
         var removeEvent = await this.findEvent(validEvent.id);
@@ -247,7 +245,6 @@ class Events {
     }
 
     if (jobOpts) {
-      log.debug(`Events::scheduleJob(add): event (${JSON.stringify(event)} jobOpts ${JSON.stringify(jobOpts)}`);
       const job = await EventsQueue.add(event, jobOpts);
     } else {
       log.debug(`Events::scheduleJob(skip): nothing to do, job has expired(${JSON.stringify(event)})`);
@@ -255,8 +252,6 @@ class Events {
   }
 
   async processJob(job, done) {
-    log.debug(`Events::process-ing job(${job.id}`);
-
     var status;
     var zone = await ZonesInstance.getZone(job.data.sid);
 
@@ -266,19 +261,12 @@ class Events {
       // We are meant to turn the zone ON
       if (!zone.status) {
         // Switch ON the station and create a job to turn it off
-        ZonesInstance.switchZone(job.data.sid, job.data.fertilize, async (status) => {
-          // Calculate irrigation time (minutes) to recharge the zone
-          // Irrigators Equation : Q x t = d x A
-          //   Q - flow rate (cfs)
-          //   t - time (hr)
-          //   d - depth (inches - adjusted for efficiency of irrigation system)
-          //   A - area (acres)
-          var irrTime = (((job.data.amt / zone.irreff) * (zone.area / sqft_acre)) / (zone.flowrate / gpm_cfs));
+        ZonesInstance.switchZone(job.data.sid, job.data.fertilizer, async (status) => {
+          var irrTime = (job.data.amt / zone.iph) * milli_per_hour;
           var nextJob = await EventsQueue.add(job.data, { jobId: uuidv4(),
-                                                          delay: irrTime * 3600000,
+                                                          delay: irrTime,
                                                           removeOnComplete: true });
 
-          log.debug(`Events::process(1) zone ${zone.id} switched ${status === true ? 'ON' : 'OFF'}`);
           done();
         });
       } else {
@@ -288,9 +276,8 @@ class Events {
     } else {
       // We are meant to turn the zone OFF
       if (zone.status) {
-        // Switch OFF the station and create a job to turn it off
-        ZonesInstance.switchZone(job.data.sid, job.data.fertilize, async (status) => {
-          log.debug(`Events::process(1) zone ${zone.id} switched ${status === true ? 'ON' : 'OFF'}`);
+        // Switch OFF the station
+        ZonesInstance.switchZone(job.data.sid, job.data.fertilizer, async (status) => {
           done();
         });
       } else {

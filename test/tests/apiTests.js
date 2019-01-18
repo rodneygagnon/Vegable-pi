@@ -46,19 +46,11 @@ const runTests = async (app) => {
     });
 
     describe('Crops', () => {
-      var addedCrop = {
-            name: "Test Crop",
-            type: "Test Vegetable",
-            initDay: 1,
-            initKc: 2,
-            devDay: 3,
-            devKc: 4,
-            midDay: 5,
-            midKc: 6,
-            lateDay: 7,
-            lateKc: 8,
-            totDay: 16,
-            totKc: 100
+      var addedCrop = { name: "Test Crop",
+            initDay: 1, initKc: 2, initN: 3, initP: 4, initK: 5, initFreq: 6,
+            devDay: 7, devKc: 8, devN: 9, devP: 10, devK: 11, devFreq: 12,
+            midDay: 13, midKc: 14, midN: 9, midP: 10, midK: 11, midFreq: 12,
+            lateDay: 7, lateKc: 8, lateN: 9, lateP: 10, lateK: 11, lateFreq: 12
           };
 
       it ('should get all crops', (done) => {

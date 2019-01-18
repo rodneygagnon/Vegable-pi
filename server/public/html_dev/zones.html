@@ -255,25 +255,17 @@
 
         <div class="row mb-4">
           <div class="col">
-            <label for="irreff" class="col-form-label">Irrigation Type</label>
-            <select class="selectpicker form-control" id="irreff" name="irreff" data-size="7" required="">
-              <%
-                var irrTypes = [ "Drip", "Spray" ];
-                var irrEff = [ "90", "80" ];
-                for ( var i = 0; i < irrTypes.length; i++ ) {
-                  %><option value="<%=irrEff[ i ] / 100 %>"><%=irrTypes[ i ] %></option><%
-                }
-              %>
-            </select>
+            <label for="emitterCount" class="col-form-label">Emitters</label>
+            <input type="text" class="form-control" id="emitterCount" name="emitterCount">
           </div>
           <div class="col">
-            <label for="flowrate" class="col-form-label">Flow Rate (gpm)</label>
-            <select class="selectpicker form-control" id="flowrate" name="flowrate" data-size="7" required="">
+            <label for="emitterRate" class="col-form-label">Flow Rate (gpm)</label>
+            <select class="selectpicker form-control" id="emitterRate" name="emitterRate" data-size="7" required="">
               <%
-                var flowTypes = [ "0.5", "1.0", "2.0" ];
+                var rateTypes = [ "0.5", "1.0", "2.0" ];
                 var rates = [ "0.5", "1", "2" ];
                 for ( var i = 0; i < rates.length; i++ ) {
-                  %><option value="<%=rates[ i ] %>"><%=flowTypes[ i ] %></option><%
+                  %><option value="<%=rates[ i ] %>"><%=rateTypes[ i ] %></option><%
                 }
               %>
             </select>
@@ -367,14 +359,11 @@
                 }
               },  
               {
-                field: 'irreff',
+                field: 'emitterCount',
                 title: 'Irrigation',
                 sortable: true,
                 formatter: function (value, row) {
-                  var irrEff = [ 0.9, 0.8 ];
-                  var irrTypes = [ "Drip", "Spray" ];
-                  for ( var i = 0; i < irrEff.length; i++ )
-                    if (value === irrEff[i]) return `<span>${irrTypes[i]} (${row.flowrate} gpm)</span>`;
+                  return `<span>${value} (${row.emitterRate} gph)</span>`;
                 }
               },
               {
@@ -488,9 +477,9 @@
             $('[data-remodal-id=editZoneModal] #id').val(row.id);
             $('[data-remodal-id=editZoneModal] #name').val(row.name);
             $('[data-remodal-id=editZoneModal] #area').val(row.area);
-            $('[data-remodal-id=editZoneModal] #irreff').selectpicker('val', row.irreff);
+            $('[data-remodal-id=editZoneModal] #emitterCount').val(row.emitterCount);
+            $('[data-remodal-id=editZoneModal] #emitterRate').selectpicker('val', row.emitterRate);
             $('[data-remodal-id=editZoneModal] #swhc').selectpicker('val', row.swhc);
-            $('[data-remodal-id=editZoneModal] #flowrate').selectpicker('val', row.flowrate);
             
             var times = String(row.start).split(':');
             var now = new Date();

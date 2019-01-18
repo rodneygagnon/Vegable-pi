@@ -37,6 +37,15 @@ const runTests = (zoneId) => {
   yesterday.setDate(today.getDate() - 1);
   tomorrow.setDate(today.getDate() + 1);
 
+  var fertilizerObj = { n: Number((1.1).toFixed(0)),
+                        p: Number((2.2).toFixed(0)),
+                        k: Number((3.3).toFixed(0))
+                      };
+  var noFertilizerObj = { n: Number((0).toFixed(0)),
+                          p: Number((0).toFixed(0)),
+                          k: Number((0).toFixed(0))
+                        };
+
   describe('Unit Tests', () => {
     describe('Settings', () => {
       var address, city, state, zip, etzone, practice, vegable_time, lat, long;
@@ -230,40 +239,6 @@ const runTests = (zoneId) => {
       });
     });
 
-    describe('Crops', () => {
-      var crops, crop;
-
-      it ('should get all crops', (done) => {
-        CropsInstance.getCrops((result) => {
-          expect(result).toBeDefined();
-          crops = result;
-          crop = crops[0];
-          done();
-        });
-      });
-
-      it ('should get a single crop', async () => {
-        expect(await CropsInstance.getCrop(crop.id)).toEqual(crop);
-      });
-
-      it ('should set a crop', async () => {
-        var cropId = crop.id;
-        crop.id = await CropsInstance.setCrop(crop);
-        expect(crop.id).toBe(cropId);
-      });
-
-      it ('should create a crop', async () => {
-        delete crop.id;
-        crop.id = await CropsInstance.setCrop(crop);
-        expect(crop.id).toBeDefined();
-      });
-
-      it ('should delete a crop', async () => {
-        expect(await CropsInstance.delCrop(crop.id)).toBe(crop.id);
-      });
-
-    });
-
     describe('Events', () => {
       var addedEvent = {
             sid: zoneId,
@@ -327,7 +302,8 @@ const runTests = (zoneId) => {
       var stopped = today.getTime();
 
       it(`should save stats for ${today}`, async () => {
-        await StatsInstance.saveStats(zoneId, started, stopped, 0, false);
+        await StatsInstance.saveStats(zoneId, started, stopped, 0,
+                                      JSON.stringify(fertilizerObj));
       });
 
       it(`should get stats from ${yesterday} to ${tomorrow}`, async () => {
@@ -370,7 +346,7 @@ const runTests = (zoneId) => {
         // TODO: add setZone test for success/failure
       });
       it ('should switch a zone ON (w/out fertilizer)', (done) => {
-        ZonesInstance.switchZone(zoneId, false, async (status) => {
+        ZonesInstance.switchZone(zoneId, JSON.stringify(noFertilizerObj), async (status) => {
           expect(status).toBe(true);
 
           // MasterZone should also be on
@@ -381,7 +357,7 @@ const runTests = (zoneId) => {
         });
       });
       it ('should switch a zone OFF (w/out fertilizer)', (done) => {
-        ZonesInstance.switchZone(zoneId, false, async (status) => {
+        ZonesInstance.switchZone(zoneId, JSON.stringify(noFertilizerObj), async (status) => {
           expect(status).toBe(false);
 
           // MasterZone should also turn off
@@ -392,7 +368,7 @@ const runTests = (zoneId) => {
         });
       });
       it ('should switch a zone ON (w/ fertilizer)', (done) => {
-        ZonesInstance.switchZone(zoneId, true, async (status) => {
+        ZonesInstance.switchZone(zoneId, JSON.stringify(fertilizerObj), async (status) => {
           expect(status).toBe(true);
 
           // MasterZone and Fertilizer should also be on
@@ -405,7 +381,7 @@ const runTests = (zoneId) => {
         });
       });
       it ('should switch a zone OFF (w/ fertilizer)', (done) => {
-        ZonesInstance.switchZone(zoneId, true, async (status) => {
+        ZonesInstance.switchZone(zoneId, JSON.stringify(fertilizerObj), async (status) => {
           expect(status).toBe(false);
 
           // MasterZone and Fertilizer should also turn off
@@ -419,7 +395,7 @@ const runTests = (zoneId) => {
       });
       it ('should switch Master and all other zones off', (done) => {
         // Turn on a planting zone and make sure master is on
-        ZonesInstance.switchZone(zoneId, true, async (status) => {
+        ZonesInstance.switchZone(zoneId, JSON.stringify(fertilizerObj), async (status) => {
           expect(status).toBe(true);
 
           // MasterZone and Fertilizer should also be on
@@ -429,7 +405,7 @@ const runTests = (zoneId) => {
           expect(fertilizerZone.status).toBe(true);
 
           // Turn off the master zone and make sure planting zone is off
-          ZonesInstance.switchZone(masterZone.id, false, async (status) => {
+          ZonesInstance.switchZone(masterZone.id, JSON.stringify(noFertilizerObj), async (status) => {
             expect(status).toBe(false);
 
             // Zone Id and Fertilizer should also be off
@@ -444,7 +420,7 @@ const runTests = (zoneId) => {
       });
       it ('should switch zone off but leave master on', (done) => {
         // Turn on a planting zone and make sure master is on
-        ZonesInstance.switchZone(zoneId, false, async (status) => {
+        ZonesInstance.switchZone(zoneId, JSON.stringify(noFertilizerObj), async (status) => {
           expect(status).toBe(true);
 
           masterZone = await ZonesInstance.getMasterZone();
@@ -458,14 +434,14 @@ const runTests = (zoneId) => {
             expect(masterZone.status).toBe(true);
 
             // Turn off first planting zone and make sure master is still on
-            ZonesInstance.switchZone(zoneId, false, async (status) => {
+            ZonesInstance.switchZone(zoneId, JSON.stringify(noFertilizerObj), async (status) => {
               expect(status).toBe(false);
 
               masterZone = await ZonesInstance.getMasterZone();
               expect(masterZone.status).toBe(true);
 
               // Turn off second planting zone and make sure master is now off
-              ZonesInstance.switchZone(zoneId + 1, false, async (status) => {
+              ZonesInstance.switchZone(zoneId + 1, JSON.stringify(noFertilizerObj), async (status) => {
                 expect(status).toBe(false);
 
                 masterZone = await ZonesInstance.getMasterZone();
@@ -478,26 +454,26 @@ const runTests = (zoneId) => {
         });
       });
       it ('should only switch Master on and off', (done) => {
-        ZonesInstance.switchZone(masterZone.id, true, async (status) => {
+        ZonesInstance.switchZone(masterZone.id, JSON.stringify(fertilizerObj), async (status) => {
           expect(status).toBe(true);
 
           zones = await ZonesInstance.getZonesByStatus(true);
           expect(zones.length).toBe(1);
 
-          ZonesInstance.switchZone(masterZone.id, false, async (status) => {
+          ZonesInstance.switchZone(masterZone.id, JSON.stringify(noFertilizerObj), async (status) => {
             expect(status).toBe(false);
             done();
           });
         });
       });
       it ('should only switch Fertilizer on and off', (done) => {
-        ZonesInstance.switchZone(fertilizerZone.id, true, async (status) => {
+        ZonesInstance.switchZone(fertilizerZone.id, JSON.stringify(fertilizerObj), async (status) => {
           expect(status).toBe(true);
 
           zones = await ZonesInstance.getZonesByStatus(true);
           expect(zones.length).toBe(1);
 
-          ZonesInstance.switchZone(fertilizerZone.id, false, async (status) => {
+          ZonesInstance.switchZone(fertilizerZone.id, JSON.stringify(noFertilizerObj), async (status) => {
             expect(status).toBe(false);
             done();
           });
@@ -508,12 +484,50 @@ const runTests = (zoneId) => {
           for (var i = 0; i < zones.length; i++) {
             zone = zones[i];
             zone.availableWater = 0;
+            zone.fertilized = 0;
             zone.adjusted = 0;
             await ZonesInstance.setZone(zone);
             await StatsInstance.clearStats(zone.id);
           }
           done();
         });
+      });
+    });
+
+    describe('Crops', () => {
+      var crops, crop;
+
+      it ('should get all crops', (done) => {
+        CropsInstance.getCrops((result) => {
+          expect(result).toBeDefined();
+          crops = result;
+          crop = crops[0];
+          done();
+        });
+      });
+
+      it ('should get a single crop', async () => {
+        expect(await CropsInstance.getCrop(crop.id)).toEqual(crop);
+      });
+
+      it ('should set a crop', async () => {
+        var cropId = crop.id;
+        crop.id = await CropsInstance.setCrop(crop);
+        expect(crop.id).toBe(cropId);
+      });
+
+      it ('should create a crop', async () => {
+        delete crop.id;
+        crop.id = await CropsInstance.setCrop(crop);
+        expect(crop.id).toBeDefined();
+      });
+
+      it ('should delete a crop', async () => {
+        expect(await CropsInstance.delCrop(crop.id)).toBe(crop.id);
+      });
+
+      it ('should return crops', () => {
+        return(crops);
       });
     });
   });

@@ -20,9 +20,8 @@ const {db} = require("./db");
 const {dbKeys} = require("./db");
 
 /** Constants */
-const {gpm_cfs} = require('../../config/constants');
-const {sqft_acre} = require('../../config/constants');
 const {milli_per_hour} = require('../../config/constants');
+const {app_rate_drip_conversion} = require('../../config/constants');
 
 const schema = require("schm");
 const zonesSchema = schema({
@@ -30,14 +29,16 @@ const zonesSchema = schema({
   name: String,
   type: Number,
   area: { type: Number, min: 0 },           // sq ft
-  flowrate: { type: Number, min: 0.5 },     // gallons per hour
-  irreff: { type: Number, min: 0.5 },       // Irrigation Efficiency %
+  emitterCount: { type: Number, min: 0 },   // total number of emitters
+  emitterRate: { type: Number, min: 0.5 },  // total number of emitters
+  gph: { type: Number, min: 0 },            // total Gallons per Hour
+  iph: { type: Number, min: 0 },            // total Inches per Hour
   swhc: { type: Number, min: 0.5 },         // Soil Water Holding Capacity
   status: Boolean,                          // on/off
   start: String,                            // HH:mm - time to irrigate when needed
   started: { type: Number, min: 0 },        // ISO8601 - Irrigation started
-  recharged: { type: Number, min: 0 },      // ISO8601 - Last Date the zone was recharged
   adjusted: { type: Number, min: 0 },       // ISO8601 - Last Date aw was adjusted for depletion
+  fertilized: { type: Number, min: 0 },     // ISO8601 - Last Date zone was fertilized
   availableWater: { type: Number, min: 0 }, // Available Water (inches)
   mad: { type: Number, min: 0 },            // Max Allowable Depletion (MAD %)
   plantings: { type: Number, min: 0 },
@@ -66,12 +67,6 @@ const FlowRates = { // Gallons per Hour
   twoGPH: 2.0
 };
 Object.freeze(FlowRates);
-
-const IrrEff = { // Percentage
-  spray: 0.8,
-  drip: 0.9
-};
-Object.freeze(IrrEff);
 
 // Soil Water Holding Capacity
 const SoilWHC = { // Inches
@@ -104,24 +99,27 @@ class Zones {
         var multi = db.multi();
 
         // Fixed Zones (Master + Fertilizer)
-        await multi.hset(dbKeys.dbZonesKey, MasterZoneId, JSON.stringify({ id: MasterZoneId, name:MasterZoneName, area: 0,
-                                                                           type: ZoneType.control, flowrate: FlowRates.oneGPH,
-                                                                           irreff: IrrEff.drip, swhc: SoilWHC.medium, availableWater: 0, mad: 100,
-                                                                           status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
-                                                                           plantings: 0, color: zoneEventColors[0], textColor: zoneTextColor
+        await multi.hset(dbKeys.dbZonesKey, MasterZoneId, JSON.stringify({ id: MasterZoneId, name:MasterZoneName, type: ZoneType.control,
+                                                                           area: 1, emitterCount: 1, emitterRate: FlowRates.oneGPH, gph: (1 * FlowRates.oneGPH),
+                                                                           iph: (((1 * FlowRates.oneGPH) * app_rate_drip_conversion) / 1),
+                                                                           swhc: SoilWHC.medium, availableWater: 0, mad: 0, status: false,
+                                                                           start: '00:00', started: 0, adjusted: 0, fertilized: 0, plantings: 0,
+                                                                           color: zoneEventColors[0], textColor: zoneTextColor
                                                                          }));
-        await multi.hset(dbKeys.dbZonesKey, FertilizerZoneId, JSON.stringify({ id: FertilizerZoneId, name:FertilizerZoneName, area: 0,
-                                                                              type: ZoneType.control, flowrate: FlowRates.oneGPH,
-                                                                              irreff: IrrEff.drip, swhc: SoilWHC.medium, availableWater: 0, mad: 100,
-                                                                              status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
-                                                                              plantings: 0, color: zoneEventColors[1], textColor: zoneTextColor
-                                                                            }));
+        await multi.hset(dbKeys.dbZonesKey, FertilizerZoneId, JSON.stringify({ id: FertilizerZoneId, name:FertilizerZoneName, type: ZoneType.control,
+                                                                               area: 1, emitterCount: 1, emitterRate: FlowRates.oneGPH, gph: (1 * FlowRates.oneGPH),
+                                                                               iph: (((1 * FlowRates.oneGPH) * app_rate_drip_conversion) / 1),
+                                                                               swhc: SoilWHC.medium, availableWater: 0, mad: 0, status: false,
+                                                                               start: '00:00', started: 0, adjusted: 0, fertilized: 0, plantings: 0,
+                                                                               color: zoneEventColors[1], textColor: zoneTextColor
+                                                                             }));
 
         for (var i = 3; i <= zoneCount; i++) {
-          var zone = { id: i, name:`Z0${i-2}`, area: 1, type: ZoneType.open,
-                       flowrate: FlowRates.oneGPH, irreff: IrrEff.drip, swhc: SoilWHC.medium,
-                       mad: 100, availableWater: 0, status: false, start: '00:00', started: 0, recharged: 0, adjusted: 0,
-                       plantings: 0, color: zoneEventColors[i-1], textColor: zoneTextColor };
+          var zone = { id: i, name:`Z0${i-2}`, type: ZoneType.open, area: 1,
+                       emitterCount: 1, emitterRate: FlowRates.oneGPH, gph: (1 * FlowRates.oneGPH),
+                       iph: (((1 * FlowRates.oneGPH) * app_rate_drip_conversion) / 1), swhc: SoilWHC.medium,
+                       mad: 100, availableWater: 0, status: false, start: '00:00', started: 0, adjusted: 0,
+                       fertilized: 0, plantings: 0, color: zoneEventColors[i-1], textColor: zoneTextColor };
 
           await zonesSchema.validate(zone);
 
@@ -222,20 +220,26 @@ class Zones {
 
   async setZone(zone) {
     try {
+//      log.debug(`setZone: (${JSON.stringify(zone)})`);
+
       var inputZone = await zonesSchema.validate(zone);
       var saveZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, inputZone.id));
 
       saveZone.name = inputZone.name;
       saveZone.area = inputZone.area;
-      saveZone.irreff = inputZone.irreff;
+      saveZone.emitterCount = inputZone.emitterCount;
+      saveZone.emitterRate = inputZone.emitterRate;
+      saveZone.gph = saveZone.emitterCount * saveZone.emitterRate;
+      saveZone.iph = (saveZone.gph * app_rate_drip_conversion) / saveZone.area;
       saveZone.swhc = inputZone.swhc;
-      saveZone.flowrate = inputZone.flowrate;
       saveZone.start = inputZone.start;
       saveZone.mad = inputZone.mad;
       if (typeof inputZone.availableWater !== 'undefined')
         saveZone.availableWater = inputZone.availableWater;
       if (typeof inputZone.adjusted !== 'undefined')
         saveZone.adjusted = inputZone.adjusted;
+      if (typeof inputZone.fertilized !== 'undefined')
+        saveZone.fertilized = inputZone.fertilized;
       if (typeof inputZone.plantings !== 'undefined')
         saveZone.plantings = inputZone.plantings;
 
@@ -245,10 +249,9 @@ class Zones {
                  saveZone.status !== inputZone.status) {
         if (saveZone.status) {
           // Save the stats
-          // TODO: keep track of fertilization
-          var fertilized = false;
-          var amount = Number((((Date.now() - zone.started) / milli_per_hour) * zone.flowrate).toFixed(2));
-          StatsInstance.saveStats(saveZone.id, saveZone.started, Date.now(), amount, fertilized);
+          var runTime = (Date.now() - saveZone.started) / milli_per_hour;
+          StatsInstance.saveStats(saveZone.id, saveZone.started, Date.now(),
+                                  saveZone.gph * runTime, (savedZone.started === saveZone.fertilized));
           saveZone.started = 0;
         } else {
           // Start the stats
@@ -278,18 +281,21 @@ class Zones {
    *       zone(s) if there are no other zones currently on
    *
    * @param   {number}    zid       id of the zone to turn on or off
-   * @param   {boolean}   fertilize whether or not to include fertilization
+   * @param   {string}   fertilizer  NPK mix to add to zone
    * @param   {callback}  callback
    *
    * @returns {boolean}   status    current status of zone
    */
-  async switchZone(zid, fertilize, callback) {
+  async switchZone(zid, fertilizer, callback) {
     try {
       var switchZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, zid));
+      var fertilizerObj = JSON.parse(fertilizer);
+      var fertilized = (fertilizerObj.n || fertilizerObj.p || fertilizerObj.k) ? true : false;
 
       if (switchZone.type === ZoneType.control) {
         if (switchZone.status) {
           // zone is on. if master, turn everything off. other
+          // TODO: we need to properly record zone fertilizer stats
           if (switchZone.id === MasterZoneId) {
             // turn everything OFF
             var allActiveZones = await this.getZonesByStatus(true);
@@ -298,10 +304,9 @@ class Zones {
 
               // Save Planting Zone Stats
               if (zone.type === ZoneType.open) {
-                var amount = Number((((Date.now() - zone.started) / milli_per_hour) * zone.flowrate).toFixed(2));
-                StatsInstance.saveStats(zone.id, zone.started, Date.now(), amount, fertilize);
-
-                zone.availableWater += ((((Date.now() - zone.started) / milli_per_hour) * (zone.flowrate / gpm_cfs)) / (zone.area / sqft_acre)) * zone.irreff;
+                var runTime = (Date.now() - zone.started) / milli_per_hour;
+                zone.availableWater += zone.iph * runTime;
+                StatsInstance.saveStats(zone.id, zone.started, Date.now(), zone.gph * runTime, fertilizer);
               }
 
               if (zone.id === switchZone.id)
@@ -328,10 +333,9 @@ class Zones {
       } else {
         if (switchZone.status) {
           // Save Planting Zone Stats
-          var amount = Number((((Date.now() - switchZone.started) / milli_per_hour) * switchZone.flowrate).toFixed(2));
-          StatsInstance.saveStats(switchZone.id, switchZone.started, Date.now(), amount, fertilize);
-
-          switchZone.availableWater += ((((Date.now() - switchZone.started) / milli_per_hour) * (switchZone.flowrate / gpm_cfs)) / (switchZone.area / sqft_acre)) * switchZone.irreff;
+          var runTime = (Date.now() - switchZone.started) / milli_per_hour;
+          switchZone.availableWater += switchZone.iph * runTime;
+          StatsInstance.saveStats(switchZone.id, switchZone.started, Date.now(), switchZone.gph * runTime, fertilizer);
 
           // Switch OFF a planting zone
           switchZone.status = false;
@@ -344,6 +348,10 @@ class Zones {
           // Switch ON the planting zone
           switchZone.status = true;
           switchZone.started = Date.now();
+
+          if (fertilized)
+            switchZone.fertilized = switchZone.adjusted;
+
           await OSPiInstance.switchStation(switchZone.id, switchZone.status);
           await db.hsetAsync(dbKeys.dbZonesKey, switchZone.id, JSON.stringify(switchZone));
         }
@@ -354,7 +362,7 @@ class Zones {
         if ((switchZone.status && activePlantingZones.length === 1) ||
             (!switchZone.status && activePlantingZones.length === 0)) {
           var controlZone;
-          if (fertilize) {
+          if (fertilized) {
             controlZone = await this.getFertilizerZone();
             controlZone.status = switchZone.status;
             controlZone.started = switchZone.started;
