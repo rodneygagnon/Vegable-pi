@@ -37,7 +37,7 @@ const runTests = async function (testZoneId) {
 
   var masterZone, fertilizerZone, testZone;
   var origEmitterCount, origEmitterRate, origArea, origZoneStart;
-  var testCrop = { id: "8521015b-428f-4868-90e0-5eef018543aa", name: "Broccoli",
+  var testCrop = { name: "Test Crop",
         initDay: 35, initKc: 0.70, initN: 5, initP: 10, initK: 10, initFreq: 1,
         devDay: 45, devKc: 0.70, devN: 20, devP: 0, devK: 0, devFreq: 1,
         midDay: 40, midKc: 1.05, midN: 0, midP: 0, midK: 0, midFreq: 0,
@@ -135,8 +135,15 @@ const runTests = async function (testZoneId) {
 
     await ZonesInstance.setZone(testZone);
 
+    // Create a test crop
+    testCrop.id = await CropsInstance.setCrop(testCrop);
+    testPlanting.cid = testCrop.id;
+
     var result = await PlantingsInstance.setPlanting(testPlanting);
     testPlanting.id = result.id;
+
+    console.log(`Test Crop: ${JSON.stringify(testCrop)}`);
+    console.log(`Test Planting: ${JSON.stringify(testPlanting)}`);
 
     // Tell the zone of a planting change
     await ZonesInstance.updatePlantings(result.zids);
@@ -246,7 +253,7 @@ const runTests = async function (testZoneId) {
       nextProcessDate.setDate(nextProcessDate.getDate() + 1)
 
       processDates.forEach((processDate) => {
-        it('should deplete the soil and adjust the zone: processDate (${processDate}) nextScheduleDate (${nextScheduleDate})', async () => {
+        it('should deplete the soil and adjust the zone', async () => {
           var adjusted = testZone.adjusted;
 
           nextScheduleDate = new Date(Date.now() + (5 * milli_per_sec));
@@ -378,6 +385,9 @@ const runTests = async function (testZoneId) {
           expect(zone.fertilized).toBe(0);
           expect(zone.plantings).toBe(0);
         }
+
+        // Delete the test crop
+        expect(await CropsInstance.delCrop(testCrop.id)).toBe(testCrop.id);
 
         // Clear events and stats
         var totalInches = 0;
