@@ -298,7 +298,7 @@ const runTests = (testZoneId) => {
 
           setTimeout(async () => {
             testZone = await ZonesInstance.getZone(testZoneId);
-            expect(testZone.availableWater.toFixed(2)).toBe(testZone.swhc.toFixed(2));
+            expect(testZone.availableWater.toFixed(1)).toBe(testZone.swhc.toFixed(1));
             expect(testZone.status).toBe(false);
             masterZone = await ZonesInstance.getMasterZone();
             expect(masterZone.status).toBe(false);
@@ -327,12 +327,15 @@ const runTests = (testZoneId) => {
 
     describe('Verify zone recharge after maximum allowable depletion (MAD)', () => {
 
-      it(`should deplete soil water below MAD and create a recharge event`, async () => {
+      it(`should deplete soil water below MAD and create a recharge event`, async function () {
         var availableWater = testZone.availableWater;
         var adjusted = testZone.adjusted;
 
         // Report how many days it took to reach MAD
         var firstProcessDate = new Date(nextProcessDate);
+
+        // Make sure the test doesn't timeout
+        this.timeout(5 * milli_per_sec);
 
         while (testZone.availableWater > (testZone.swhc * (testZone.mad / 100))) {
           // Set the next process and schedule (+5 seconds) dates
@@ -448,12 +451,15 @@ const runTests = (testZoneId) => {
         expect(conditions.length).toBe(1);
       });
 
-      it(`should deplete soil water below MAD and create a recharge event (LATER)`, async () => {
+      it(`should deplete soil water below MAD and create a recharge event (LATER)`, async function () {
         var availableWater = testZone.availableWater;
         var adjusted = testZone.adjusted;
 
         // Report how many days it took to reach MAD
         var firstProcessDate = new Date(nextProcessDate);
+
+        // Make sure the test doesn't timeout
+        this.timeout(5 * milli_per_sec);
 
         while (testZone.availableWater > (testZone.swhc * (testZone.mad / 100))) {
           // Set the next process and schedule (+5 seconds) dates
@@ -559,12 +565,15 @@ const runTests = (testZoneId) => {
         expect(testZone.mad).toBe((testPlanting1.mad + testPlanting2.mad) / 2);
       });
 
-      it(`should deplete soil water below MAD and create a recharge event (SOONER)`, async () => {
+      it(`should deplete soil water below MAD and create a recharge event (SOONER)`, async function () {
         var availableWater = testZone.availableWater;
         var adjusted = testZone.adjusted;
 
         // Report how many days it took to reach MAD
         var firstProcessDate = new Date(nextProcessDate);
+
+        // Make sure the test doesn't timeout
+        this.timeout(5 * milli_per_sec);
 
         while (testZone.availableWater > (testZone.swhc * (testZone.mad / 100))) {
           // Set the next process and schedule (+5 seconds) dates
@@ -670,12 +679,15 @@ const runTests = (testZoneId) => {
         expect(testZone.mad).toBe(testPlanting1.mad);
       });
 
-      it(`should deplete soil water below MAD and create a recharge event (SLOWER)`, async () => {
+      it(`should deplete soil water below MAD and create a recharge event (SLOWER)`, async function () {
         var availableWater = testZone.availableWater;
         var adjusted = testZone.adjusted;
 
         // Report how many days it took to reach MAD
         var firstProcessDate = new Date(nextProcessDate);
+
+        // Make sure the test doesn't timeout
+        this.timeout(5 * milli_per_sec);
 
         while (testZone.availableWater > (testZone.swhc * (testZone.mad / 100))) {
           // Set the next process and schedule (+5 seconds) dates
