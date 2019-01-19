@@ -182,29 +182,9 @@ const runTests = (zoneId) => {
         });
       });
 
-      it ('should get DarkSky conditions from yesterday', (done) => {
-        WeatherInstance.getDarkSkyConditions(yesterday, (conditions) => {
-          expect(conditions).toBeDefined();
-          done();
-        });
-      });
-
-      it ('should get forecast', async () => {
-        var forecast = await WeatherInstance.getForecast();
-        expect(forecast).toBeDefined();
-        expect(forecast.length).toBe(8);
-      });
-
-      it ('should get CIMIS conditions from yesterday', function (done) {
-        this.timeout(3 * 1000);
-
-        WeatherInstance.getCimisConditions(yesterday, (conditions) => {
-          expect(conditions).toBeDefined();
-          done();
-        });
-      });
-
-      it ('should get/set complete conditions for yesterday', function (done) {
+      // This tests Dark Sky and CIMIS APIs calls
+      it ('should retrieve and record conditions for yesterday', function (done) {
+        // Sometimes CIMIS takes a moment
         this.timeout(3 * 1000);
 
         WeatherInstance.getWeatherData(yesterday, (conditions) => {
@@ -217,6 +197,16 @@ const runTests = (zoneId) => {
           expect(conditions.tempHi).toBeDefined();
           expect(conditions.tempLo).toBeDefined();
           expect(conditions.humidity).toBeDefined();
+          done();
+        });
+      });
+
+      it ('should get forecast', (done) => {
+        WeatherInstance.getForecastData(async () => {
+          var forecast = await WeatherInstance.getForecast();
+          expect(forecast).toBeDefined();
+          expect(forecast.length).toBe(8);
+
           done();
         });
       });

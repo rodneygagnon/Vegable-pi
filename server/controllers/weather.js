@@ -93,7 +93,9 @@ class Weather {
     log.debug(`processJob: Getting Weather Conditions @ (${yesterday})`);
 
     this.getWeatherData(yesterday, (weatherData) => {
-      log.debug(`processJob: Weather Conditions (${yesterday}) : ${JSON.stringify(weatherData)}`);
+      this.getForecastData(() => {
+        log.debug(`processJob: Weather Conditions (${yesterday}) : ${JSON.stringify(weatherData)}`);
+      });
     });
 
     done();
@@ -117,12 +119,10 @@ class Weather {
 
         callback(await this.setConditions(targetDate, weatherData));
       });
-
-      this.getForecastData();
     });
   }
 
-  getForecastData() {
+  getForecastData(callback) {
     this.getDarkSkyForecast(async (darkSkyData) => {
       try {
         var dailyForecast = darkSkyData.data;
@@ -141,6 +141,7 @@ class Weather {
       } catch (err) {
         log.error(`setDailyForecast: error setting daily forecast (${err})`);
       }
+      callback();
     });
   }
 
