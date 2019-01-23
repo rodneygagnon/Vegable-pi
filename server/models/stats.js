@@ -4,19 +4,19 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-'use strict';
 
-const {log} = require('../controllers/logger');
+const Schema = require('schm');
 
-const {db} = require("./db");
-const {dbKeys} = require("./db");
+const { log } = require('../controllers/logger');
 
-const schema = require("schm");
-const statsSchema = schema({
-  started: { type: Number, min: 0 },        // ISO8601 - Irrigation started
-  stopped: { type: Number, min: 0 },        // ISO8601 - Irrigation stopped
-  amount: { type: Number, min: 0 },         // gallons
-  fertilizer: String                        // NPK values
+const { db } = require('./db');
+const { dbKeys } = require('./db');
+
+const statsSchema = Schema({
+  started: { type: Number, min: 0 }, // ISO8601 - Irrigation started
+  stopped: { type: Number, min: 0 }, // ISO8601 - Irrigation stopped
+  amount: { type: Number, min: 0 }, // gallons
+  fertilizer: String, // NPK values
 });
 
 /**
@@ -33,25 +33,28 @@ class Stats {
 
   async saveStats(zid, started, stopped, amount, fertilizer) {
     try {
-      var validStats = await statsSchema.validate({ started: started, stopped: stopped,
-                                                    amount: amount, fertilizer: fertilizer
-                                                  });
+      const validStats = await statsSchema.validate({
+        started,
+        stopped,
+        amount,
+        fertilizer,
+      });
 
       await db.zaddAsync(dbKeys.dbStatsKey + zid, started, JSON.stringify(validStats));
-
     } catch (err) {
       log.error(`saveStats Failed to save statistics: ${JSON.stringify(err)}`);
     }
   }
 
   async getStats(zid, start, end) {
-    var stats = [];
+    const stats = [];
 
-    var redisStats = await db.zrangebyscoreAsync(dbKeys.dbStatsKey + zid, start, end);
-    for (var i = 0; i < redisStats.length; i++)
+    const redisStats = await db.zrangebyscoreAsync(dbKeys.dbStatsKey + zid, start, end);
+    for (let i = 0; i < redisStats.length; i++) {
       stats.push(await statsSchema.validate(JSON.parse(redisStats[i])));
+    }
 
-    return(stats);
+    return (stats);
   }
 
   async clearStats(zid) {
@@ -63,5 +66,5 @@ const StatsInstance = new Stats();
 Object.freeze(StatsInstance);
 
 module.exports = {
-  StatsInstance
-}
+  StatsInstance,
+};

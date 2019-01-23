@@ -4,13 +4,13 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-'use strict';
 
-var express = require('express');
-var router = express.Router();
+const express = require('express');
 
-const {SettingsInstance} = require('../models/settings');
-const {CropsInstance} = require('../models/crops');
+const { SettingsInstance } = require('../models/settings');
+const { CropsInstance } = require('../models/crops');
+
+const router = express.Router();
 
 /**
  * Route to render Settings view
@@ -19,15 +19,14 @@ const {CropsInstance} = require('../models/crops');
  * @returns {object} config - location configuration
  * @returns {object} etrs - reference evapotranspiration zones
  */
-router.get('/', function(req, res, next) {
+router.get('/', (req, res, next) => {
   // Make sure the user is logged in
-  if (typeof req.user === 'undefined')
+  if (typeof req.user === 'undefined') {
     res.redirect('/signin');
-  else {
-    var config;
+  } else {
     SettingsInstance.getSettings((config) => {
       SettingsInstance.getETrs((etrs) => {
-        res.render('settings', {title: 'Vegable', config: config, etrs: etrs});
+        res.render('settings', { title: 'Vegable', config: config, etrs: etrs });
       });
     });
   }
@@ -39,14 +38,10 @@ router.get('/', function(req, res, next) {
  * @function
  * @param {object} location - Address, City, State, Zip, ET Zone
  */
-router.route('/location/set').post(function (req, res) {
-  console.log(`Setting Location: `);
-  console.log(req.body);
-
+router.route('/location/set').post((req, res) => {
   SettingsInstance.setLocation(req.body.address, req.body.city,
-                                req.body.state, req.body.zip,
-                                req.body.etzone);
-
+                               req.body.state, req.body.zip,
+                               req.body.etzone);
   res.redirect('/settings');
 });
 
@@ -56,9 +51,8 @@ router.route('/location/set').post(function (req, res) {
  * @function
  * @param {Number} practice - Practice
  */
-router.route('/practice/set').post(function (req, res) {
+router.route('/practice/set').post((req, res) => {
   SettingsInstance.setPractice(req.body.practice);
-
   res.redirect('/settings');
 });
 
@@ -69,13 +63,14 @@ router.route('/practice/set').post(function (req, res) {
  * @param {object} crop - crop
  * @param {string} action - _null_ or _delete_
  */
-router.route('/crops/update').post(async function (req, res) {
-  var result;
+router.route('/crops/update').post(async (req, res) => {
+  let result;
 
-  if (req.body.action === 'delete')
+  if (req.body.action === 'delete') {
     result = await CropsInstance.delCrop(req.body.id);
-  else
+  } else {
     result = await CropsInstance.setCrop(req.body);
+  }
 
   res.redirect('/settings');
  });

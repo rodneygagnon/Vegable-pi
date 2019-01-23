@@ -4,13 +4,13 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-'use strict';
 
-var express = require('express');
-var router = express.Router();
+const express = require('express');
 
-const {EventsInstance} = require('../models/events');
-const {ZonesInstance} = require('../models/zones');
+const { EventsInstance } = require('../models/events');
+const { ZonesInstance } = require('../models/zones');
+
+const router = express.Router();
 
 /**
  * Route to render Events view
@@ -19,14 +19,13 @@ const {ZonesInstance} = require('../models/zones');
  * @param {object} user - user
  * @returns {array} zones - list of zones
  */
-router.get('/', function(req, res, next) {
+router.get('/', (req, res, next) => {
   // Make sure the user is logged in
-  if (typeof req.user === 'undefined')
+  if (typeof req.user === 'undefined') {
     res.redirect('/signin');
-  else {
-    let zones = [];
+  } else {
     ZonesInstance.getPlantingZones((zones) => {
-      res.render('events', {title: 'Vegable', zones: zones});
+      res.render('events', { title: 'Vegable', zones: zones });
     });
   }
 });
@@ -38,15 +37,16 @@ router.get('/', function(req, res, next) {
  * @param {object} event - event
  * @param {string} action - _null_ or _delete_
  */
-router.route('/update').post(async function (req, res) {
-  var result;
+router.route('/update').post(async (req, res) => {
+  let result;
 
-  if (req.body.action === 'delete')
+  if (req.body.action === 'delete') {
     result = await EventsInstance.delEvent(req.body);
-  else
+  } else {
     result = await EventsInstance.setEvent(req.body);
+  }
 
   res.redirect('/events');
- });
+});
 
 module.exports = router;

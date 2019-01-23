@@ -524,50 +524,65 @@
 
     <script type="text/javascript">
       
-     $().ready(function(){
+      $().ready(function(){
         var skycons = new Skycons();
+        var statistics = [];
        
-       // Current Conditions
+        // Current Conditions
         $.getJSON('/api/weather/get', (conditions) => {
           $('#weatherString').replaceWith(`<p id="weatherString" class="lead">${conditions.summary}, ${conditions.temperature.toFixed(1)}˚F</p>`);
           skycons.add("weatherIcon", conditions.icon);
           skycons.play();               
         });
 
-       // Forecast Conditions
-       $.getJSON('/api/forecast/get', (forecast) => {
-        // No more that 5 days
-        var forecastLength = forecast.length < 5 ? forecast.length : 5;
-        for (var day = 0; day < forecastLength; day++) {
-          var dateString = (day === 0 ? "Today" :
-                              (day === 1 ? "Tomorrow" : moment.unix(forecast[day].time).format("dddd")));
+        // Forecast Conditions
+        $.getJSON('/api/forecast/get', (forecast) => {
+          // No more that 5 days
+          var forecastLength = forecast.length < 5 ? forecast.length : 5;
+          for (var day = 0; day < forecastLength; day++) {
+            var dateString = (day === 0 ? "Today" :
+                                (day === 1 ? "Tomorrow" : moment.unix(forecast[day].time).format("dddd")));
 
-          $(`#day${day}DateString`).replaceWith(`<h3 id="day${day}DateString" class="lead">${dateString}</h3>`);
-          skycons.add(`day${day}WeatherIcon`, forecast[day].icon);
-          
-          // Indicator Heat Stress Conditions
-          var hiTempIndicator;
-          if (forecast[day].temperatureHigh >= 90)
-            hiTempIndicator = `<span class="badge badge-danger">High: ${forecast[day].temperatureHigh.toFixed(0)}˚</span>`;
-          else
-            hiTempIndicator = `High: ${forecast[day].temperatureHigh.toFixed(0)}˚`;
-          
-          // Indicate Frost/Freeze Conditions
-          var loTempIndicator;
-          if (forecast[day].temperatureLow <= 32)
-            loTempIndicator = `<span class="badge badge-primary">Low: ${forecast[day].temperatureLow.toFixed(0)}˚</span>`;
-          else
-            loTempIndicator = `Low: ${forecast[day].temperatureLow.toFixed(0)}˚`;
-          
-          $(`#day${day}TempString`).replaceWith(`<h4 id="day${day}TempString" class="fs-0">${hiTempIndicator} ${loTempIndicator}</h4>`);
- 
-          var precip = forecast[day].precipIntensity * 24;
-          var probability = forecast[day].precipProbability * 100;
-          $(`#day${day}PrecipString`).replaceWith(`<h4 id="day${day}PrecipString" class="fs-0">Precip ${precip.toFixed(1)}&#34 ${probability.toFixed(0)}%</h4>`);
-          $(`#day${day}SummaryString`).replaceWith(`<h4 id="day${day}SummaryString" class="fs-1 lead">${forecast[day].summary}</h4>`);
+            $(`#day${day}DateString`).replaceWith(`<h3 id="day${day}DateString" class="lead">${dateString}</h3>`);
+            skycons.add(`day${day}WeatherIcon`, forecast[day].icon);
 
-        }
-      });
+            // Indicator Heat Stress Conditions
+            var hiTempIndicator;
+            if (forecast[day].temperatureHigh >= 90)
+              hiTempIndicator = `<span class="badge badge-danger">High: ${forecast[day].temperatureHigh.toFixed(0)}˚</span>`;
+            else
+              hiTempIndicator = `High: ${forecast[day].temperatureHigh.toFixed(0)}˚`;
+
+            // Indicate Frost/Freeze Conditions
+            var loTempIndicator;
+            if (forecast[day].temperatureLow <= 32)
+              loTempIndicator = `<span class="badge badge-primary">Low: ${forecast[day].temperatureLow.toFixed(0)}˚</span>`;
+            else
+              loTempIndicator = `Low: ${forecast[day].temperatureLow.toFixed(0)}˚`;
+
+            $(`#day${day}TempString`).replaceWith(`<h4 id="day${day}TempString" class="fs-0">${hiTempIndicator} ${loTempIndicator}</h4>`);
+
+            var precip = forecast[day].precipIntensity * 24;
+            var probability = forecast[day].precipProbability * 100;
+            $(`#day${day}PrecipString`).replaceWith(`<h4 id="day${day}PrecipString" class="fs-0">Precip ${precip.toFixed(1)}&#34 ${probability.toFixed(0)}%</h4>`);
+            $(`#day${day}SummaryString`).replaceWith(`<h4 id="day${day}SummaryString" class="fs-1 lead">${forecast[day].summary}</h4>`);
+
+          }
+        });
+        
+        // Get statistics for all planting zones
+        $.getJSON('/api/zones/get/planting', (zones) => {
+          var epoch = new Date(0);
+          var now = new Date();
+          
+          
+          zones.forEach(zone) {
+            $.getJSON('/api/stats/get', { zid: zone.id, start: epoch.getTime(), stop: now.getTime() },
+                      (zoneStats => {
+              statistics.push({ zone: zone, stats: zoneStats });
+            });
+          }
+        });
                
       });
      

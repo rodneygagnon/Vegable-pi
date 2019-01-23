@@ -4,23 +4,23 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-'use strict';
 
 const express = require('express');
-const router = express.Router();
 
-const {ZonesInstance} = require('../models/zones');
+const { ZonesInstance } = require('../models/zones');
+
+const router = express.Router();
 
 /**
  * Route to render Zones view
  * @name zones
  * @function
  */
-router.get('/', function(req, res, next) {
+router.get('/', (req, res, next) => {
   // Make sure the user is logged in
-  if (typeof req.user === 'undefined')
+  if (typeof req.user === 'undefined') {
     res.redirect('/signin');
-  else {
+  } else {
     res.render('zones');
   }
 });
@@ -32,8 +32,8 @@ router.get('/', function(req, res, next) {
  * @param {object} crop - crop
  * @param {string} action - _null_ or _delete_
  */
-router.route('/update').post(async function (req, res) {
-  await ZonesInstance.setZone(req.body)
+router.route('/update').post(async (req, res) => {
+  await ZonesInstance.setZone(req.body);
   res.redirect('/zones');
 });
 
@@ -43,7 +43,7 @@ router.route('/update').post(async function (req, res) {
  * @function
  * @param {object} id - zone id
  */
-router.route('/enable/:id').post(function (req, res) {
+router.route('/enable/:id').post((req, res) => {
   // TODO: add ability to pass fertilize flag
   ZonesInstance.switchZone(req.params.id, false, () => {
     res.redirect('/zones');

@@ -4,26 +4,25 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-'use strict';
 
 const uuidv4 = require('uuid/v4');
-const Queue = require("bull");
+const Queue = require('bull');
+const Schema = require('schm');
 
 /** Controllers */
-const {log} = require('../controllers/logger');
+const { log } = require('../controllers/logger');
 
 /** Models */
-const {ZonesInstance} = require('./zones');
+const { ZonesInstance } = require('./zones');
 
 /** Database */
-const {db} = require("./db");
-const {dbKeys} = require("./db");
+const { db } = require('./db');
+const { dbKeys } = require('./db');
 
 /** Constants */
-const {milli_per_hour} = require('../../config/constants');
+const { milli_per_hour } = require('../../config/constants');
 
-const schema = require("schm");
-const eventSchema = schema({
+const eventSchema = Schema({
   id: String,                     // Event UUID
   sid: Number,                    // Zone ID
   title: String,
@@ -37,7 +36,7 @@ const eventSchema = schema({
 });
 
 // Bull/Redis Jobs Queue
-var EventsQueue;
+let EventsQueue;
 
 class Events {
   constructor() {
@@ -51,65 +50,66 @@ class Events {
 
   static async init() {
     try {
-    	EventsQueue = new Queue('EventsQueue', {redis: {host: 'redis'}});
+      EventsQueue = new Queue('EventsQueue', { redis: { host: 'redis' } });
 
       // Set Queue processor
       EventsQueue.process(async (job, done) => {
         EventsInstance.processJob(job, done);
       });
     } catch (err) {
-      log.error("Failed to create EVENTS queue: ", + err);
+      log.error(`Failed to create EVENTS queue: ${err}`);
     }
-    log.debug(`*** Events Initialized!`);
+    log.debug('*** Events Initialized!');
   }
 
   async getEvents(start, end, callback) {
-    var events = [];
-    var startRange = (new Date(start)).getTime() / 1000;
-    var endRange = (new Date(end)).getTime() / 1000;
+    const events = [];
+    const startRange = (new Date(start)).getTime() / 1000;
+    const endRange = (new Date(end)).getTime() / 1000;
 
     log.debug(`getEvents: from ${startRange} to ${endRange}`);
 
-    var redisEvents
     try {
-      redisEvents = await db.zrangebyscoreAsync(dbKeys.dbEventsKey, startRange, endRange);
+      const redisEvents = await db.zrangebyscoreAsync(dbKeys.dbEventsKey, startRange, endRange);
 
       log.debug(`getEvents: (${redisEvents.length})`);
 
-      for (var i = 0; i < redisEvents.length; i++) {
+      for (let i = 0; i < redisEvents.length; i++) {
         // If this is a repeating event, we have to create the appropriate number of
         // individual events within the range requested (end-start)
-        var masterEvent = await eventSchema.validate(JSON.parse(redisEvents[i]));
+        let masterRepeatEnd;
+        const masterEvent = await eventSchema.validate(JSON.parse(redisEvents[i]));
 
-        // Add the masterEvent. If it is repeating, create and add the children for display during the date range given
+        // Add the masterEvent. If it is repeating, create and add the children
+        // for display during the date range given
         events.push(masterEvent);
 
         // If not repeating, continue ...
-        if (typeof masterEvent.repeatDow === 'undefined' || masterEvent.repeatDow === '7' /* none */)
+        if (typeof masterEvent.repeatDow === 'undefined' || masterEvent.repeatDow === '7' /* none */) {
           continue;
+        }
 
         // ... otherwise, create repeating events for the given timeframe
-        var masterRepeatEnd;
-        if (typeof masterEvent.repeatEnd == 'undefined')
+        if (typeof masterEvent.repeatEnd === 'undefined') {
           masterRepeatEnd = new Date(masterEvent.start);
-        else
+        } else {
           masterRepeatEnd = new Date(masterEvent.repeatEnd);
+        }
 
         // Find the follow on dates
-        for (var j = 0; j < masterEvent.repeatDow.length; j++) {
-          var repeatDow = masterEvent.repeatDow[j];
+        for (let j = 0; j < masterEvent.repeatDow.length; j++) {
+          const repeatDow = masterEvent.repeatDow[j];
+
+          // Clone the object and calculate the next day increment
+          let nextEvent = JSON.parse(JSON.stringify(masterEvent));
+          let nextStart = new Date(masterEvent.start);
+          let nextAmt = new Date(masterEvent.amt);
+          let nextDay = (7 + repeatDow - nextStart.getDay()) % 7;
 
           log.debug(`getEvents: Master Event (${JSON.stringify(masterEvent)})`);
-
-          // Clone th object and calculate the next day increment
-          var nextEvent = JSON.parse(JSON.stringify(masterEvent));
-          var nextStart = new Date(masterEvent.start);
-          var nextAmt = new Date(masterEvent.amt);
-          var nextDay = (7 + repeatDow - nextStart.getDay()) % 7;
-
           log.debug(`getEvents: Next Day: (${nextDay})`);
 
-          nextStart.setDate(nextStart.getDate() + (nextDay != 0 ? nextDay : 7));
+          nextStart.setDate(nextStart.getDate() + (nextDay !== 0 ? nextDay : 7));
 
           while (nextStart <= masterRepeatEnd) {
             nextEvent.start = nextStart;
@@ -126,30 +126,30 @@ class Events {
 
             log.debug(`getEvents: Next Day: (${nextDay})`);
 
-            nextStart.setDate(nextStart.getDate() + (nextDay != 0 ? nextDay : 7));
+            nextStart.setDate(nextStart.getDate() + (nextDay !== 0 ? nextDay : 7));
           }
         }
       }
     } catch (err) {
-      log.error("getEvents Failed: " + err);
+      log.error(`getEvents Failed: ${err}`);
     }
 
     callback(events);
   }
 
   async setEvent(event) {
-    var eid = null;
+    let eid = null;
 
     try {
-      var validEvent = await eventSchema.validate(event);
-      var validStart = (new Date(validEvent.start)).getTime() / 1000;
+      const validEvent = await eventSchema.validate(event);
+      const validStart = (new Date(validEvent.start)).getTime() / 1000;
 
-      if (typeof validEvent.id === 'undefined' || validEvent.id === "") {
+      if (typeof validEvent.id === 'undefined' || validEvent.id === '') {
         // Create a new event id.
         validEvent.id = uuidv4();
       } else {
         // Find and remove the old event
-        var removeEvent = await this.findEvent(validEvent.id);
+        const removeEvent = await this.findEvent(validEvent.id);
 
         if (removeEvent) {
           // Remove the event and the job from event queue.
@@ -168,15 +168,15 @@ class Events {
     } catch (err) {
       log.error(`setEvent Failed to set event: ${JSON.stringify(err)}`);
     }
-    return(eid);
+    return (eid);
   }
 
   async delEvent(event) {
-    var eid = null;
+    let eid = null;
 
     try {
-      var validEvent = await eventSchema.validate(event);
-      var removeEvent = await this.findEvent(validEvent.id);
+      const validEvent = await eventSchema.validate(event);
+      const removeEvent = await this.findEvent(validEvent.id);
 
       if (removeEvent) {
         // Remove the job from event queue
@@ -189,11 +189,11 @@ class Events {
       log.error(`delEvent Failed to del event: ${err}`);
     }
 
-    return(eid);
+    return (eid);
   }
 
   async delJob(id) {
-    var job = await EventsQueue.getJob(id);
+    const job = await EventsQueue.getJob(id);
     if (job) {
       log.debug(`delJob: job (${id}) deleted!`);
       job.remove();
@@ -201,17 +201,19 @@ class Events {
   }
 
   async findEvent(eid) {
-    var eventCnt = await db.zcountAsync(dbKeys.dbEventsKey, '-inf', '+inf');
+    const eventCnt = await db.zcountAsync(dbKeys.dbEventsKey, '-inf', '+inf');
 
-    var cnt = 0, start = 0;
-    var end = 20; // get 'end' per page
+    let cnt = 0;
+    let start = 0;
+    let end = 20; // get 'end' per page
     while (cnt < eventCnt) {
-      var events = await db.zrangeAsync(dbKeys.dbEventsKey, start, end);
+      const events = await db.zrangeAsync(dbKeys.dbEventsKey, start, end);
 
-      for (var i = 0; i < events.length; i++) {
-        var event = JSON.parse(events[i]);
-        if (event.id === eid)
+      for (let i = 0; i < events.length; i++) {
+        const event = JSON.parse(events[i]);
+        if (event.id === eid) {
           return(event);
+        }
       }
 
       start = end;
@@ -219,26 +221,28 @@ class Events {
       cnt += events.length;
     }
 
-    return(null);
+    return (null);
   }
 
   async scheduleJob(event) {
     // Add event to the EventsQueue. Calculate when it should be processed next.
-    var now = new Date();
+    const now = new Date();
 
-    var jobOpts = null, repeatOpts, delay;
+    let jobOpts = null;
+    let delay;
     if (typeof event.repeatDow === 'undefined' || event.repeatDow === '7' /* none */) {
       // Skip it if we are not repeating and the start time is in the past
       delay = (new Date(event.start)).getTime() - now.getTime();
-      if (delay > 0)
+      if (delay > 0) {
         jobOpts = { jobId: event.id, delay: delay, removeOnComplete: true };
+      }
     } else {
       // Skip it if the repeat has expired
       delay = (new Date(event.repeatEnd)).getTime() - now.getTime();
       if (delay > 0) {
-        var start = new Date(event.start);
-        var dow = (Array.isArray(event.repeatDow) ? event.repeatDow.join(",") : event.repeatDow);
-        var repeatOpts = { cron: `${start.getMinutes()} ${start.getHours()} * * ${dow}`};
+        const start = new Date(event.start);
+        const dow = (Array.isArray(event.repeatDow) ? event.repeatDow.join(',') : event.repeatDow);
+        const repeatOpts = { cron: `${start.getMinutes()} ${start.getHours()} * * ${dow}` };
 
         jobOpts = { jobId: event.id, delay: delay, repeat: repeatOpts, removeOnComplete: true };
       }
@@ -252,8 +256,7 @@ class Events {
   }
 
   async processJob(job, done) {
-    var status;
-    var zone = await ZonesInstance.getZone(job.data.sid);
+    const zone = await ZonesInstance.getZone(job.data.sid);
 
     // If the job.id !== job.data.id (original event.id), then we created this job to turn the
     // zone off at a specified time. If the station was turned off manually, log & do nothing.
@@ -262,10 +265,10 @@ class Events {
       if (!zone.status) {
         // Switch ON the station and create a job to turn it off
         ZonesInstance.switchZone(job.data.sid, job.data.fertilizer, async (status) => {
-          var irrTime = (job.data.amt / zone.iph) * milli_per_hour;
-          var nextJob = await EventsQueue.add(job.data, { jobId: uuidv4(),
-                                                          delay: irrTime,
-                                                          removeOnComplete: true });
+          const irrTime = (job.data.amt / zone.iph) * milli_per_hour;
+          const nextJob = await EventsQueue.add(job.data, { jobId: uuidv4(),
+                                                            delay: irrTime,
+                                                            removeOnComplete: true });
 
           done();
         });
@@ -293,4 +296,4 @@ Object.freeze(EventsInstance);
 
 module.exports = {
   EventsInstance
-}
+};

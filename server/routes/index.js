@@ -4,12 +4,12 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-'use strict';
 
 const express = require('express');
-const router = express.Router();
 
-const {UsersInstance} = require('../models/users');
+const { UsersInstance } = require('../models/users');
+
+const router = express.Router();
 
 /**
  * Route to render Index view
@@ -17,12 +17,12 @@ const {UsersInstance} = require('../models/users');
  * @function
  * @returns {object} user - user
  */
-router.get('/', function(req, res, next) {
+router.get('/', (req, res, next) => {
   // Make sure the user is logged in
-  if (typeof req.user === 'undefined')
+  if (typeof req.user === 'undefined') {
     res.redirect('/signin');
-  else {
-    res.render('index', {title: 'Vegable', user: req.user });
+  } else {
+    res.render('index', { title: 'Vegable', user: req.user });
   }
 });
 
@@ -31,7 +31,7 @@ router.get('/', function(req, res, next) {
  * @name signin
  * @function
  */
-router.get('/signin', function(req, res, next) {
+router.get('/signin', (req, res, next) => {
   res.render('signin');
 });
 
@@ -40,7 +40,7 @@ router.get('/signin', function(req, res, next) {
  * @name signup
  * @function
  */
-router.get('/signup', function(req, res, next) {
+router.get('/signup', (req, res, next) => {
   res.render('signup');
 });
 
@@ -49,7 +49,7 @@ router.get('/signup', function(req, res, next) {
  * @name signout
  * @function
  */
-router.get('/signout', function(req, res, next) {
+router.get('/signout', (req, res, next) => {
   req.logout();
   res.redirect('/signin');
 });
@@ -60,8 +60,8 @@ router.get('/signout', function(req, res, next) {
  * @function
  * @param {object} user - user
  */
-router.post('/signup', function(req, res, next) {
-  UsersInstance.updateUser(req.body, "" /* action */, (result) => {
+router.post('/signup', (req, res, next) => {
+  UsersInstance.updateUser(req.body, '' /* action */, (result) => {
     // TODO: check result of new user registration before redirecting
     res.redirect('/signin');
   });

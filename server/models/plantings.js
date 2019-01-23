@@ -4,26 +4,25 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-'use strict';
 
 const uuidv4 = require('uuid/v4');
+const Schema = require('schm');
 
 /** Controllers */
-const {log} = require('../controllers/logger');
-const {WeatherInstance} = require('../controllers/weather');
+const { log } = require('../controllers/logger');
+const { WeatherInstance } = require('../controllers/weather');
 
 /** Models */
-const {CropsInstance} = require('./crops');
+const { CropsInstance } = require('./crops');
 
 /** Database */
-const {db} = require('./db');
-const {dbKeys} = require('./db');
+const { db } = require('./db');
+const { dbKeys } = require('./db');
 
 /** Constants */
-const {milli_per_day} = require('../../config/constants');
+const { milli_per_day } = require('../../config/constants');
 
-const schema = require('schm');
-const plantingSchema = schema({
+const plantingSchema = Schema({
   id: String,       // Planting UUID
   zid: Number,      // Zone ID
   title: String,
@@ -32,86 +31,90 @@ const plantingSchema = schema({
   age: { type: Number, min: 0 },       // Age (days) of the crop at planting (seed = 0)
   mad: { type: Number, min: 0 },       // Max Allowable Depletion (MAD %)
   count: { type: Number, default: 1 },
-  spacing: { type: Number, default: 1} // Inches
+  spacing: { type: Number, default: 1 } // Inches
 });
 
 class Plantings {
   constructor() {
     if (!Plantings.PlantingsInstance) {
       Plantings.PlantingsInstance = this;
-      log.debug(`*** Plantings Initialized!`);
+      log.debug('*** Plantings Initialized!');
     }
     return Plantings.PlantingsInstance;
   }
 
   async getAllPlantings(callback) {
-    var plantings = [];
-
-    var redisPlantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, '-inf', '+inf');
-    for (var i = 0; i < redisPlantings.length; i++) {
+    const plantings = [];
+    const redisPlantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, '-inf', '+inf');
+    for (let i = 0; i < redisPlantings.length; i++) {
       plantings[i] = await plantingSchema.validate(JSON.parse(redisPlantings[i]));
     }
     callback(plantings);
   }
 
   async getPlantingsByZone(zid) {
-    var plantings = [];
+    const plantings = [];
+    const redisPlantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, zid, zid);
 
-    // get all plantings for given zone
-    var redisPlantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, zid, zid);
-
-    for (var i = 0; i < redisPlantings.length; i++)
+    for (let i = 0; i < redisPlantings.length; i++) {
       plantings[i] = await plantingSchema.validate(JSON.parse(redisPlantings[i]));
-
-    return(plantings);
+    }
+    return (plantings);
   }
 
   // Calculate the cumulative ETc for the plantings in this zone between the given dates
   // if there are no plantings, return the ETo because some water should have been depleted
   //
-  // TODO: the depletion when there is no planting should account for a default (bare soil/cover crop/...), not ETo
+  // TODO: the depletion when there is no planting should account for a default
+  // (bare soil/cover crop/...), not ETo
   async getETcByZone(zid, start, end) {
-    var ETc = 0, ETo = 0;
+    let ETc = 0;
+    let ETo = 0;
 
-    var dailyETo = await WeatherInstance.getDailyETo(new Date(start), new Date(end));
-    for (var etoDay = 0; etoDay < dailyETo.length; etoDay++)
+    const dailyETo = await WeatherInstance.getDailyETo(new Date(start), new Date(end));
+    for (let etoDay = 0; etoDay < dailyETo.length; etoDay++) {
       ETo += dailyETo[etoDay];
+    }
 
-    var plantings = await this.getPlantingsByZone(zid);
-    for (var i = 0; i < plantings.length; i++) {
-      var planting = plantings[i];
+    const plantings = await this.getPlantingsByZone(zid);
+    for (let i = 0; i < plantings.length; i++) {
+      const planting = plantings[i];
 
       // Get the crop Kc's for this planting and calculate the age
       // of the crop at the start of this range
-      var crop = await this.getCrop(planting.cid);
-      var plantingDate = new Date(planting.date);
-      var age = planting.age +
-                  Math.round(Math.abs((start.getTime() - plantingDate.getTime())/(milli_per_day)));
+      const crop = await this.getCrop(planting.cid);
+      if (crop === null) {
+        throw(`getETcByZone: Invalid Crop Id: ${planting.cid}`);
+      }
+
+      const plantingDate = new Date(planting.date);
+      let age = planting.age
+                  + Math.round(Math.abs((start.getTime() - plantingDate.getTime()) / (milli_per_day)));
 
       // Caclulate this crop stages in order to extract the appropriate Kc
-      var initStage = crop.initDay;
-      var devStage = initStage + crop.devDay;
-      var midStage = devStage + crop.midDay;
+      const initStage = crop.initDay;
+      const devStage = initStage + crop.devDay;
+      const midStage = devStage + crop.midDay;
 
       // For each day on the given range, accumulate the dailyETc using the ETo and Kc
       // TODO: adjust the precision by acounting for crop density, canopy, shading, ...
-      for (var day = 0; day < dailyETo.length; day++) {
+      for (let day = 0; day < dailyETo.length; day++) {
         ETc += dailyETo[day] *
-                    (age <= initStage ? crop.initKc :
-                      (age <= devStage ? crop.devKc :
-                        (age <= midStage ? crop.midKc : crop.lateKc)));
+          (age <= initStage ? crop.initKc :
+            (age <= devStage ? crop.devKc :
+              (age <= midStage ? crop.midKc : crop.lateKc)));
         age++;
       }
     }
 
     // Return the zone's ETc for the given date range
-    return(ETc > 0 ? ETc : ETo);
+    return (ETc > 0 ? ETc : ETo);
   }
 
   // Calculate the fertilizer applications for the plantings in this zone between the given dates
   async getFertilizerByZone(zid, start, end, lastFertilized) {
-    var plantings = await this.getPlantingsByZone(zid);
-    var fertilizer = JSON.stringify({ n: 0, p: 0, k: 0 });
+    const plantings = await this.getPlantingsByZone(zid);
+    let fertilizer = JSON.stringify({ n: 0, p: 0, k: 0 });
 
     if (plantings.length === 0) {
       return(fertilizer);
@@ -119,55 +122,79 @@ class Plantings {
 
     log.debug(`getFertilizerByZone: zid(${zid}) start(${start}) end(${end}) lastFert(${lastFertilized})`);
 
-    var fertApplications = [];
+    const fertApplications = [];
     do {
-      for (var i = 0; i < plantings.length; i++) {
-        var planting = plantings[i];
-        var plantingDate = new Date(planting.date);
+      for (let i = 0; i < plantings.length; i++) {
+        const planting = plantings[i];
+        const plantingDate = new Date(planting.date);
 
         // Adjust the dates if necessary.
         // - If end is before planting, we won't fertilize.
         // - Else if start is before planting, move start up to planting
-        if (end < plantingDate)
+        if (end < plantingDate) {
           break;
-        else if (start < plantingDate) {
+        } else if (start < plantingDate) {
           start = plantingDate;
         }
 
         // Get the crop and caclulate this crop stages in order to extract the NPK
-        var crop = await this.getCrop(planting.cid);
-        var initStage = crop.initDay;
-        var devStage = initStage + crop.devDay;
-        var midStage = devStage + crop.midDay;
+        const crop = await this.getCrop(planting.cid);
+        const initStage = crop.initDay;
+        const devStage = initStage + crop.devDay;
+        const midStage = devStage + crop.midDay;
 
-        var age = planting.age +
-                    Math.round(Math.abs((start.getTime() - plantingDate.getTime())/(milli_per_day)));
-        var lastAgeFertilized = (lastFertilized < plantingDate ? 0 : planting.age +
-                    Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime())/(milli_per_day))));
+        const age = planting.age
+                    + Math.round(Math.abs((start.getTime() - plantingDate.getTime()) / (milli_per_day)));
+        const lastAgeFertilized = (lastFertilized < plantingDate ? 0 : planting.age
+                    + Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime()) / (milli_per_day))));
 
-        log.error(`getFertilizerByZone: age(${age}) lastAgeFert(${lastAgeFertilized}) stages(${initStage}:${devStage}:${midStage})`);
+        log.debug(`getFertilizerByZone: age(${age}) lastAgeFert(${lastAgeFertilized}) stages(${initStage}:${devStage}:${midStage})`);
 
         // If the crop wants fertilizer at a particular stage and
         // it hasn't been fertilized during this stage yet, record what the crop needs
         if (age <= initStage) {
           if (crop.initFreq && lastAgeFertilized === 0) {
-            log.error(`getFertilizerByZone(INIT): n(${crop.initN}) p(${crop.initN}) k(${crop.initK})`);
-            fertApplications.push({ date: start, crops: planting.count, n: crop.initN, p: crop.initP, k: crop.initK });
+            log.debug(`getFertilizerByZone(INIT): n(${crop.initN}) p(${crop.initN}) k(${crop.initK})`);
+            fertApplications.push({
+              date: start,
+              crops: planting.count,
+              n: crop.initN,
+              p: crop.initP,
+              k: crop.initK
+            });
           }
         } else if (age <= devStage) {
           if (crop.devFreq && lastAgeFertilized < initStage) {
-            log.error(`getFertilizerByZone(DEV): n(${crop.devN}) p(${crop.devN}) k(${crop.devK})`);
-            fertApplications.push({ date: start, crops: planting.count, n: crop.devN, p: crop.devP, k: crop.devK });
+            log.debug(`getFertilizerByZone(DEV): n(${crop.devN}) p(${crop.devN}) k(${crop.devK})`);
+            fertApplications.push({
+              date: start,
+              crops: planting.count,
+              n: crop.devN,
+              p: crop.devP,
+              k: crop.devK
+            });
           }
         } else if (age <= midStage) {
           if (crop.midFreq && lastAgeFertilized < devStage) {
-            log.error(`getFertilizerByZone(MID): n(${crop.midN}) p(${crop.midN}) k(${crop.midK})`);
-            fertApplications.push({ date: start, crops: planting.count, n: crop.midN, p: crop.midP, k: crop.midK });
+            log.debug(`getFertilizerByZone(MID): n(${crop.midN}) p(${crop.midN}) k(${crop.midK})`);
+            fertApplications.push({
+              date: start,
+              crops: planting.count,
+              n: crop.midN,
+              p: crop.midP,
+              k: crop.midK
+            });
           }
         } else {
           if (crop.lateFreq && lastAgeFertilized < midStage) {
-            log.error(`getFertilizerByZone(LATE): n(${crop.lateN}) p(${crop.lateN}) k(${crop.lateK})`);
-            fertApplications.push({ date: start, crops: planting.count, n: crop.lateN, p: crop.lateP, k: crop.lateK });
+            log.debug(`getFertilizerByZone(LATE): n(${crop.lateN}) p(${crop.lateN}) k(${crop.lateK})`);
+            fertApplications.push({
+              date: start,
+              crops: planting.count,
+              n: crop.lateN,
+              p: crop.lateP,
+              k: crop.lateK
+            });
           }
         }
       }
@@ -175,12 +202,16 @@ class Plantings {
       start.setDate(start.getDate() + 1);
     } while (start < end);
 
-    // We should now have a list of fertilizer applications for the crops planted in
-    // the given zone over the specified time frame. Let's crudely return a weighted average (for now)
+    // We should now have a list of fertilizer applications for the crops planted
+    // in the given zone over the specified time frame. Let's crudely return a
+    // weighted average (for now)
     if (fertApplications.length) {
-      var crops = 0, n = 0, p = 0, k = 0;
-      for (var app = 0; app < fertApplications.length; app++) {
-        var fertApp = fertApplications[app];
+      let crops = 0;
+      let n = 0;
+      let p = 0;
+      let k = 0;
+      for (let app = 0; app < fertApplications.length; app++) {
+        const fertApp = fertApplications[app];
 
         crops += fertApp.crops;
         n += fertApp.crops * fertApp.n;
@@ -188,13 +219,14 @@ class Plantings {
         k += fertApp.crops * fertApp.k;
       }
 
-      fertilizer = JSON.stringify({ n: Number((n / crops).toFixed(0)),
-                                    p: Number((p / crops).toFixed(0)),
-                                    k: Number((k / crops).toFixed(0))
-                                  });
+      fertilizer = JSON.stringify({
+        n: Number((n / crops).toFixed(0)),
+        p: Number((p / crops).toFixed(0)),
+        k: Number((k / crops).toFixed(0))
+      });
     }
 
-    return(fertilizer);
+    return (fertilizer);
   }
 
   async getCrop(cid) {
@@ -202,27 +234,28 @@ class Plantings {
   }
 
   async setPlanting(planting) {
-    var pid;
-    var zids = [];
+    let pid;
+    const zids = [];
 
     try {
-      var validPlanting = await plantingSchema.validate(planting);
+      const validPlanting = await plantingSchema.validate(planting);
 
       zids.push(validPlanting.zid);
 
-      if (typeof validPlanting.id === 'undefined' || validPlanting.id === "") {
+      if (typeof validPlanting.id === 'undefined' || validPlanting.id === '') {
         // Create a new planting id.
         validPlanting.id = uuidv4();
       } else {
         // Find and remove the old planting
-        var plantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, '-inf', '+inf');
+        const plantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, '-inf', '+inf');
 
-        for (var i = 0; i < plantings.length; i++) {
-          var pObj = JSON.parse(plantings[i]);
+        for (let i = 0; i < plantings.length; i++) {
+          const pObj = JSON.parse(plantings[i]);
           if (pObj.id === validPlanting.id) {
             // Record if it was moved to another zone
-            if (pObj.zid !== validPlanting.zid)
+            if (pObj.zid !== validPlanting.zid) {
               zids.push(pObj.zid);
+            }
 
             // Remove the old planting
             await db.zremAsync(dbKeys.dbPlantingsKey, JSON.stringify(pObj));
@@ -233,21 +266,20 @@ class Plantings {
       pid = validPlanting.id;
 
       await db.zaddAsync(dbKeys.dbPlantingsKey, validPlanting.zid, JSON.stringify(validPlanting));
-
     } catch (err) {
       log.error(`setPlanting Failed to set planting: ${err}`);
     }
-    return({id: pid, zids: zids});
+    return ({ id: pid, zids: zids });
   }
 
   async getPlanting(pid) {
-    var planting = null;
+    let planting = null;
     try {
       // Find planting
-      var plantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, '-inf', '+inf');
+      const plantings = await db.zrangebyscoreAsync(dbKeys.dbPlantingsKey, '-inf', '+inf');
 
-      for (var i = 0; i < plantings.length; i++) {
-        var pObj = JSON.parse(plantings[i]);
+      for (let i = 0; i < plantings.length; i++) {
+        const pObj = JSON.parse(plantings[i]);
         if (pObj.id === pid) {
           planting = pObj;
           break;
@@ -260,11 +292,11 @@ class Plantings {
   }
 
   async delPlanting(planting) {
-    var pid;
-    var zids = [];
+    let pid;
+    const zids = [];
 
     try {
-      var validPlanting = await plantingSchema.validate(planting);
+      const validPlanting = await plantingSchema.validate(planting);
 
       await db.zremAsync(dbKeys.dbPlantingsKey, JSON.stringify(validPlanting));
 
@@ -274,9 +306,8 @@ class Plantings {
       log.error(`delPlanting Failed to del planting: ${err}`);
     }
 
-    return({id: pid, zids: zids});
+    return ({ id: pid, zids: zids });
   }
-
 }
 
 const PlantingsInstance = new Plantings();
@@ -284,4 +315,4 @@ Object.freeze(PlantingsInstance);
 
 module.exports = {
   PlantingsInstance
-}
+};

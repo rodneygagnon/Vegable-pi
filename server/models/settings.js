@@ -4,24 +4,23 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-'use strict';
 
 const request = require('request');
+const Schema = require('schm');
 
-const {log} = require('../controllers/logger');
+const { log } = require('../controllers/logger');
 
-const config = require("../../config/config");
+const config = require('../../config/config');
 
-const {CropsInstance} = require('./crops');
-const {ETrInstance} = require('./etr');
-const {db} = require("./db");
-const {dbKeys} = require("./db");
+const { CropsInstance } = require('./crops');
+const { ETrInstance } = require('./etr');
+const { db } = require('./db');
+const { dbKeys } = require('./db');
 
 const mapboxGeocodeURL = 'https://api.mapbox.com/geocoding/v5/mapbox.places/';
 const mapboxAccessKeyURL = '.json?access_token=';
 
-const schema = require("schm");
-const settingsSchema = schema({
+const settingsSchema = Schema({
   address: String,
   city: String,
   state: String,
@@ -37,20 +36,21 @@ const settingsSchema = schema({
   cimisKey: String
 });
 
-var defaultSettings = { address : config.default_address,
-                        city : config.default_city,
-                        state : config.default_state,
-                        zip : config.default_zip,
-                        lat : config.default_lat,
-                        long : config.default_long,
-                        etzone: config.default_etzone,
-                        practice: config.default_practice,
-                        vegable_time: config.default_vegable_time,
-                        mapboxKey : config.default_mapbox_key,
-                        darkskyKey : config.default_darksky_key,
-                        zones : config.zones,
-                        cimisKey: config.cimis_key
-                      };
+const defaultSettings = {
+  address: config.default_address,
+  city: config.default_city,
+  state: config.default_state,
+  zip: config.default_zip,
+  lat: config.default_lat,
+  long: config.default_long,
+  etzone: config.default_etzone,
+  practice: config.default_practice,
+  vegable_time: config.default_vegable_time,
+  mapboxKey: config.default_mapbox_key,
+  darkskyKey: config.default_darksky_key,
+  zones: config.zones,
+  cimisKey: config.cimis_key
+};
 
 // Practice Types
 const Practices = {
@@ -80,21 +80,20 @@ class Settings {
    * Initialize settings to the defaults
    */
   static async init() {
-    var hlen = await db.hlenAsync(dbKeys.dbConfigKey);
+    const hlen = await db.hlenAsync(dbKeys.dbConfigKey);
     if (hlen === 0) { // key does not exist, store the default options
       try {
-        var result = await db.hmsetAsync(dbKeys.dbConfigKey, defaultSettings);
-        log.debug("Initialized Settings: " + result);
+        const result = await db.hmsetAsync(dbKeys.dbConfigKey, defaultSettings);
+        log.debug(`Initialized Settings: ${result}`);
       } catch (error) {
         log.error(error);
       }
     }
-    log.debug(`*** Settings Initialized!`);
+    log.debug('*** Settings Initialized!');
   }
 
   async getSettings(callback) {
-    var config = await settingsSchema.validate(await db.hgetallAsync(dbKeys.dbConfigKey));
-    callback(config);
+    callback(await settingsSchema.validate(await db.hgetallAsync(dbKeys.dbConfigKey)));
   }
 
   async getETrs(callback) {
@@ -104,14 +103,13 @@ class Settings {
   }
 
   // Get lat/long of given location
-  async getLatLong(address, city, state, zip, callback)
-  {
-    var latitude = 0;
-    var longitude = 0;
+  async getLatLong(address, city, state, zip, callback) {
+    let latitude = 0;
+    let longitude = 0;
 
-    var location = encodeURIComponent(address + ',' + city + ',' + state + ',' + zip);
-    var url = mapboxGeocodeURL + location + mapboxAccessKeyURL +
-              defaultSettings.mapboxKey;
+    const location = encodeURIComponent(`${address},${city},${state},${zip}`);
+    const url = mapboxGeocodeURL + location + mapboxAccessKeyURL
+                + defaultSettings.mapboxKey;
 
     request({
       url: url,
@@ -144,7 +142,9 @@ class Settings {
 
   // Return default user data
   getDefaultUser() { return config.default_username; }
+
   getDefaultEmail() { return config.default_email; }
+
   getDefaultPassword() { return config.default_password; }
 
   // Get/Set address
@@ -238,24 +238,25 @@ class Settings {
   // get value at hashKey, or set and return default
   async getSetHashKey(hashKey, defaultValue) {
     try {
-      var value = await db.hgetAsync(dbKeys.dbConfigKey, hashKey);
+      let value = await db.hgetAsync(dbKeys.dbConfigKey, hashKey);
       if (value === null) {
-        var result = await db.hsetAsync(dbKeys.dbConfigKey, hashKey,
-                                        defaultValue);
+        await db.hsetAsync(dbKeys.dbConfigKey, hashKey, defaultValue);
         value = defaultValue;
       }
       return value;
     } catch (error) {
         log.error(error);
     }
+    return null;
   }
 
   async setHashKey(hashKey, value) {
     try {
-        if (typeof value !== 'undefined')
+        if (typeof value !== 'undefined') {
           await db.hsetAsync(dbKeys.dbConfigKey, hashKey, value);
-        else
+        } else {
           log.error(`setHashKey: Undefined value for ${hashKey}`);
+        }
     } catch (error) {
         log.error(error);
     }
@@ -267,4 +268,4 @@ Object.freeze(SettingsInstance);
 
 module.exports = {
   SettingsInstance
-}
+};

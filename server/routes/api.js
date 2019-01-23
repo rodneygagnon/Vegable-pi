@@ -4,25 +4,23 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-'use strict';
 
 const express = require('express');
-const router = express.Router();
-
 const url = require('url');
 const querystring = require('querystring');
 
-const {SettingsInstance} = require('../models/settings');
-const {CropsInstance} = require('../models/crops');
-const {EventsInstance} = require('../models/events');
-const {PlantingsInstance} = require('../models/plantings');
-const {StatsInstance} = require('../models/stats');
-const {ZonesInstance} = require('../models/zones');
-const {WeatherInstance} = require('../controllers/weather');
+const { SettingsInstance } = require('../models/settings');
+const { CropsInstance } = require('../models/crops');
+const { EventsInstance } = require('../models/events');
+const { PlantingsInstance } = require('../models/plantings');
+const { StatsInstance } = require('../models/stats');
+const { ZonesInstance } = require('../models/zones');
+const { WeatherInstance } = require('../controllers/weather');
 
 /*
  * Location APIs
  */
+const router = express.Router();
 
 /**
  * Route to get location information.
@@ -30,7 +28,7 @@ const {WeatherInstance} = require('../controllers/weather');
  * @function
  * @returns {object} location - Address, City, State, Zip, ...
  */
-router.route('/location/get').get(function (req, res) {
+router.route('/location/get').get((req, res) => {
   SettingsInstance.getSettings((config) => {
     res.status(200).json(config);
   });
@@ -42,9 +40,9 @@ router.route('/location/get').get(function (req, res) {
  * @function
  * @param {object} location - Address, City, State, Zip, ET Zone
  */
-router.route('/location/set').post(function (req, res) {
-  SettingsInstance.setLocation( req.body.address, req.body.city,
-                                req.body.state, req.body.zip, req.body.etzone);
+router.route('/location/set').post((req, res) => {
+  SettingsInstance.setLocation(req.body.address, req.body.city,
+                               req.body.state, req.body.zip, req.body.etzone);
   res.status(200).end();
 });
 
@@ -54,7 +52,7 @@ router.route('/location/set').post(function (req, res) {
  * @function
  * @param {Number} practice - Practice
  */
-router.route('/practice/set').post(function (req, res) {
+router.route('/practice/set').post((req, res) => {
   SettingsInstance.setPractice(req.body.practice);
   res.status(200).end();
 });
@@ -70,16 +68,14 @@ router.route('/practice/set').post(function (req, res) {
  * @param {string} crop id - (optional) unique crop identifier
  * @returns {object} crop(s) - crop or crops[]
  */
-router.route('/crops/get').get(async function (req, res) {
-  if (typeof req.query === 'undefined' ||
-      typeof req.query.id === 'undefined') {
+router.route('/crops/get').get(async (req, res) => {
+  if (typeof req.query === 'undefined' || typeof req.query.id === 'undefined') {
     // Get all crops
-    var crops = [];
     CropsInstance.getCrops((crops) => {
       res.status(200).json(crops);
     });
   } else {
-    var crop = await CropsInstance.getCrop(req.query.id);
+    const crop = await CropsInstance.getCrop(req.query.id);
     res.status(crop != null ? 200 : 500).json(crop);
   }
 });
@@ -92,13 +88,14 @@ router.route('/crops/get').get(async function (req, res) {
  * @param {string} action - _null_ or _delete_
  * @returns {object} result - { id: _crop id_ }
  */
-router.route('/crops/set').post(async function (req, res) {
-  var result;
+router.route('/crops/set').post(async (req, res) => {
+  let result;
 
-  if (req.body.action === 'delete')
+  if (req.body.action === 'delete') {
     result = await CropsInstance.delCrop(req.body.id);
-  else
+  } else {
     result = await CropsInstance.setCrop(req.body);
+  }
 
   res.status(result !== null ? 200 : 500)
      .json({ id: result });
@@ -116,11 +113,10 @@ router.route('/crops/set').post(async function (req, res) {
  * @param {date} end - end date
  * @returns {array} events[] - list of events
  */
-router.route('/events/get').get(function (req, res) {
-  var parsedUrl = url.parse(req.url);
-  var parsedQs = querystring.parse(parsedUrl.query);
+router.route('/events/get').get((req, res) => {
+  const parsedUrl = url.parse(req.url);
+  const parsedQs = querystring.parse(parsedUrl.query);
 
-  var events = [];
   EventsInstance.getEvents(parsedQs.start, parsedQs.end, (events) => {
    res.status(200).json(events);
   });
@@ -134,18 +130,18 @@ router.route('/events/get').get(function (req, res) {
  * @param {string} action - _null_ or _delete_
  * @returns {string} event id - id of event created, updated or deleted
  */
-router.route('/events/set').post(async function (req, res) {
-  var result;
+router.route('/events/set').post(async (req, res) => {
+  let result;
 
-  if (req.body.action === 'delete')
-   result = await EventsInstance.delEvent(req.body);
-  else {
-   var zone = await ZonesInstance.getZone(req.body.sid);
+  if (req.body.action === 'delete') {
+    result = await EventsInstance.delEvent(req.body);
+  } else {
+    const zone = await ZonesInstance.getZone(req.body.sid);
 
-   req.body.color = zone.color;
-   req.body.textColor = zone.textColor;
+    req.body.color = zone.color;
+    req.body.textColor = zone.textColor;
 
-   result = await EventsInstance.setEvent(req.body);
+    result = await EventsInstance.setEvent(req.body);
   }
 
   res.status(result !== null ? 200 : 500).json({ id: result });
@@ -162,16 +158,14 @@ router.route('/events/set').post(async function (req, res) {
  * @param {string} planting id - (optional) unique planting identifier
  * @returns {object} planting(s) - planting or plantings[]
  */
-router.route('/plantings/get').get(async function (req, res) {
-  if (typeof req.query === 'undefined' ||
-     typeof req.query.id === 'undefined') {
+router.route('/plantings/get').get(async (req, res) => {
+  if (typeof req.query === 'undefined' || typeof req.query.id === 'undefined') {
    // Get all plantings
-   var plantings = [];
    PlantingsInstance.getAllPlantings((plantings) => {
      res.status(200).json(plantings);
    });
   } else {
-   var planting = await PlantingsInstance.getPlanting(req.query.id);
+   const planting = await PlantingsInstance.getPlanting(req.query.id);
    res.status(planting != null ? 200 : 500).json(planting);
   }
 });
@@ -184,13 +178,14 @@ router.route('/plantings/get').get(async function (req, res) {
  * @param {string} action - _null_ or _delete_
  * @returns {string} planting id - id of planting created, updated or deleted
  */
-router.route('/plantings/set').post(async function (req, res) {
-  var result;
+router.route('/plantings/set').post(async (req, res) => {
+  let result;
 
-  if (req.body.action === 'delete')
-   result = await PlantingsInstance.delPlanting(req.body);
-  else
-   result = await PlantingsInstance.setPlanting(req.body);
+  if (req.body.action === 'delete') {
+    result = await PlantingsInstance.delPlanting(req.body);
+  } else {
+    result = await PlantingsInstance.setPlanting(req.body);
+  }
 
   // Tell the zone of a planting change
   await ZonesInstance.updatePlantings(result.zids);
@@ -209,9 +204,10 @@ router.route('/plantings/set').post(async function (req, res) {
  * @param {number} zone id - zone id
  * @returns {array} stats - array of stats objects
  */
-router.route('/stats/get').get(async function (req, res) {
-  if (typeof req.query === 'undefined' || typeof req.query.zid === 'undefined' ||
-      typeof req.query.start === 'undefined' || typeof req.query.stop === 'undefined') {
+router.route('/stats/get').get(async (req, res) => {
+  if (typeof req.query === 'undefined' || typeof req.query.zid === 'undefined'
+      || typeof req.query.start === 'undefined'
+      || typeof req.query.stop === 'undefined') {
     res.status(400);
     res.end();
   } else {
@@ -226,7 +222,7 @@ router.route('/stats/get').get(async function (req, res) {
  * @function
  * @param {number} zone id - zone id
  */
-router.route('/stats/clear').post(async function (req, res) {
+router.route('/stats/clear').post(async (req, res) => {
   if (typeof req.query === 'undefined' || typeof req.query.zid === 'undefined') {
     res.status(400);
   } else {
@@ -246,12 +242,11 @@ router.route('/stats/clear').post(async function (req, res) {
  * @function
  * @returns {array} zones - array of zones objects
  */
-router.route('/zones/get').get(async function (req, res) {
-  if (typeof req.query === 'undefined' ||
-      typeof req.query.id === 'undefined') {
+router.route('/zones/get').get(async (req, res) => {
+  if (typeof req.query === 'undefined' || typeof req.query.id === 'undefined') {
     res.status(200).json(await ZonesInstance.getAllZones());
   } else {
-    var zone = await ZonesInstance.getZone(req.query.id);
+    const zone = await ZonesInstance.getZone(req.query.id);
     res.status(zone != null ? 200 : 500).json(zone);
   }
 });
@@ -262,8 +257,7 @@ router.route('/zones/get').get(async function (req, res) {
  * @function
  * @returns {array} zones - array of zones objects
  */
-router.route('/zones/get/planting').get(function (req, res) {
-  var zones = [];
+router.route('/zones/get/planting').get((req, res) => {
   ZonesInstance.getPlantingZones((zones) => {
     res.status(200).json(zones);
   });
@@ -275,8 +269,7 @@ router.route('/zones/get/planting').get(function (req, res) {
  * @function
  * @returns {array} zones - array of zones objects
  */
-router.route('/zones/get/control').get(function (req, res) {
-  var zones = [];
+router.route('/zones/get/control').get((req, res) => {
   ZonesInstance.getControlZones((zones) => {
     res.status(200).json(zones);
   });
@@ -288,7 +281,7 @@ router.route('/zones/get/control').get(function (req, res) {
  * @function
  * @param {object} zone - zone to set
  */
-router.route('/zones/set').post(async function (req, res) {
+router.route('/zones/set').post(async (req, res) => {
   await ZonesInstance.setZone(req.body);
   res.statusCode = 200;
 });
@@ -299,7 +292,7 @@ router.route('/zones/set').post(async function (req, res) {
  * @function
  * @param {number} zone id - id of zone to turn on/off
  */
-router.route('/zones/switch').post(function (req, res) {
+router.route('/zones/switch').post((req, res) => {
   // TODO: add ability to pass fertilizer
   ZonesInstance.switchZone(req.query.id, JSON.stringify({ n: 0, p: 0, k: 0 }), (status) => {
     res.status(200).json({ status: status });
@@ -316,8 +309,7 @@ router.route('/zones/switch').post(function (req, res) {
  * @function
  * @returns {object} conditions - current weather conditions
  */
-router.route('/weather/get').get(function (req, res) {
-  var error, conditions;
+router.route('/weather/get').get((req, res) => {
   WeatherInstance.getCurrentConditions((error, conditions) => {
     res.status(200).json(conditions);
   });
@@ -329,8 +321,8 @@ router.route('/weather/get').get(function (req, res) {
  * @function
  * @returns {object} forecast - 7-day forecast weather conditions
  */
-router.route('/forecast/get').get(async function (req, res) {
-  var forecast = await WeatherInstance.getForecast();
+router.route('/forecast/get').get(async (req, res) => {
+  const forecast = await WeatherInstance.getForecast();
   res.status(200).json(forecast);
 });
 

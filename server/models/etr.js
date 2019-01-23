@@ -4,18 +4,18 @@
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
-'use strict';
 
-const csvFilePath='/usr/app/config/ETReferenceTable.csv';
-const csv=require('csvtojson');
+const Schema = require('schm');
 
-const {log} = require('../controllers/logger');
+const csvFilePath = '/usr/app/config/ETReferenceTable.csv';
+const csv = require('csvtojson');
 
-const {db} = require("./db");
-const {dbKeys} = require("./db");
+const { log } = require('../controllers/logger');
 
-const schema = require("schm");
-const etrSchema = schema({
+const { db } = require('./db');
+const { dbKeys } = require('./db');
+
+const etrSchema = Schema({
   zone: Number,
   title: String,
   desc: String,
@@ -46,20 +46,19 @@ class ETr {
 
   static async init() {
     try {
-      var etrCnt = await db.hlenAsync(dbKeys.dbETrKey);
+      const etrCnt = await db.hlenAsync(dbKeys.dbETrKey);
 
       // Create ET reference table if necessary
       if (etrCnt === 0) {
-        var etrs = [];
         csv()
           .fromFile(csvFilePath)
           .then(async (etrs) => {
             log.debug(`ETrs: ${etrs.length}`);
 
             etrs.forEach(async (etr) => {
-              var validETr = await etrSchema.validate(etr);
+              const validETr = await etrSchema.validate(etr);
 
-              log.debug(`Adding ETr(${validETr.zone}): ` + JSON.stringify(validETr));
+              log.debug(`Adding ETr(${validETr.zone}): ${JSON.stringify(validETr)}`);
 
               await db.hsetAsync(dbKeys.dbETrKey, validETr.zone, JSON.stringify(validETr));
             });
@@ -69,15 +68,16 @@ class ETr {
       log.error(`ETr.init: failed to set ET reference table (${err})`);
     }
 
-    log.debug(`*** ETr Initialized!`);
+    log.debug('*** ETr Initialized!');
   }
 
   async getETrs(callback) {
-    var etrs = [];
+    const etrs = [];
 
-    var redisETrs = await db.hvalsAsync(dbKeys.dbETrKey);
-    for (var i = 0; i < redisETrs.length; i++)
+    const redisETrs = await db.hvalsAsync(dbKeys.dbETrKey);
+    for (let i = 0; i < redisETrs.length; i++) {
       etrs[i] = await etrSchema.validate(JSON.parse(redisETrs[i]));
+    }
 
     // sort by name
     await etrs.sort((a, b) => {
@@ -90,7 +90,7 @@ class ETr {
   }
 
   async getETr(zone) {
-    var etr = null;
+    let etr = null;
     try {
       etr = JSON.parse(await db.hgetAsync(dbKeys.dbETrKey, zone));
     } catch (err) {
@@ -100,10 +100,10 @@ class ETr {
   }
 
   async getDailyETr(etzone, startDate, endDate) {
-    var dailyETr = [];
-    var etrZone = await this.getETr(etzone);
+    const dailyETr = [];
+    const etrZone = await this.getETr(etzone);
 
-    for (var day = startDate; day <= endDate; day.setDate(day.getDate() + 1)) {
+    for (let day = startDate; day <= endDate; day.setDate(day.getDate() + 1)) {
       switch (day.getMonth()) {
         case 0:
           dailyETr.push(etrZone.jan / 31);
@@ -139,12 +139,13 @@ class ETr {
           dailyETr.push(etrZone.nov / 30);
           break;
         case 11:
+        default:
           dailyETr.push(etrZone.dec / 31);
           break;
       }
     }
 
-    return(dailyETr);
+    return (dailyETr);
   }
 }
 
@@ -153,4 +154,4 @@ Object.freeze(ETrInstance);
 
 module.exports = {
   ETrInstance
-}
+};

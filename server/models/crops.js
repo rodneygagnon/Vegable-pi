@@ -4,20 +4,19 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-'use strict';
 
-const csvFilePath='/usr/app/config/CropTables-GenericCAClimate.csv';
-const csv=require('csvtojson');
+const csvFilePath = '/usr/app/config/CropTables-GenericCAClimate.csv';
+const csv = require('csvtojson');
 
 const uuidv4 = require('uuid/v4');
+const Schema = require('schm');
 
-const {log} = require('../controllers/logger');
+const { log } = require('../controllers/logger');
 
-const {db} = require("./db");
-const {dbKeys} = require("./db");
+const { db } = require('./db');
+const { dbKeys } = require('./db');
 
-const schema = require("schm");
-const cropSchema = schema({
+const cropSchema = Schema({
   id: String,
   name: String,
   initDay: Number,
@@ -57,36 +56,36 @@ class Crops {
   }
 
   static async init() {
-    var cropCnt = await db.hlenAsync(dbKeys.dbCropsKey);
+    const cropCnt = await db.hlenAsync(dbKeys.dbCropsKey);
 
     // Create default crops if necessary
     if (cropCnt === 0) {
-      var crops = [];
       csv()
         .fromFile(csvFilePath)
         .then(async (crops) => {
           log.debug(`Crops: ${crops.length}`);
 
           crops.forEach(async (crop) => {
-            var validCrop = await cropSchema.validate(crop);
+            const validCrop = await cropSchema.validate(crop);
 
             validCrop.id = uuidv4();
 
-            log.debug(`Adding Crop(${validCrop.id}): ` + JSON.stringify(validCrop));
+            log.debug(`Adding Crop(${validCrop.id}): ${JSON.stringify(validCrop)}`);
 
             await db.hsetAsync(dbKeys.dbCropsKey, validCrop.id, JSON.stringify(validCrop));
           });
         });
     }
-    log.debug(`*** Crops Initialized!`);
+    log.debug('*** Crops Initialized!');
   }
 
   async getCrops(callback) {
-    var crops = [];
+    const crops = [];
 
-    var redisCrops = await db.hvalsAsync(dbKeys.dbCropsKey);
-    for (var i = 0; i < redisCrops.length; i++)
+    const redisCrops = await db.hvalsAsync(dbKeys.dbCropsKey);
+    for (let i = 0; i < redisCrops.length; i++) {
       crops[i] = await cropSchema.validate(JSON.parse(redisCrops[i]));
+    }
 
     // sort by name
     await crops.sort((a, b) => {
@@ -99,7 +98,7 @@ class Crops {
   }
 
   async getCrop(cid) {
-    var crop = null;
+    let crop = null;
     try {
       crop = JSON.parse(await db.hgetAsync(dbKeys.dbCropsKey, cid));
     } catch (err) {
@@ -110,19 +109,20 @@ class Crops {
 
   async setCrop(crop) {
     try {
-      var validCrop = await cropSchema.validate(crop);
+      const validCrop = await cropSchema.validate(crop);
 
-      if (typeof validCrop.id === 'undefined' || validCrop.id === "")
+      if (typeof validCrop.id === 'undefined' || validCrop.id === '') {
         // Create a new crop id.
         validCrop.id = uuidv4();
+      }
 
       await db.hsetAsync(dbKeys.dbCropsKey, validCrop.id, JSON.stringify(validCrop));
 
-      return(validCrop.id);
+      return (validCrop.id);
     } catch (err) {
       log.error(`setCrop Failed to set crop: ${err}`);
-      return;
     }
+    return null;
   }
 
   async delCrop(cid) {
@@ -130,7 +130,7 @@ class Crops {
       await db.hdelAsync(dbKeys.dbCropsKey, cid);
     } catch (err) {
       log.error(`delCrop Failed to del crop: ${err}`);
-      return;
+      return null;
     }
     return cid;
   }
@@ -141,4 +141,4 @@ Object.freeze(CropsInstance);
 
 module.exports = {
   CropsInstance
-}
+};

@@ -4,28 +4,24 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-'use strict';
 
 const expect = require('expect');
 
 /** Controllers */
-const {VegableInstance} = require('../../server/controllers/vegable');
-const {WeatherInstance} = require('../../server/controllers/weather');
+const { VegableInstance } = require('../../server/controllers/vegable');
+const { WeatherInstance } = require('../../server/controllers/weather');
 
 /** Models */
-const {CropsInstance} = require('../../server/models/crops');
-const {PlantingsInstance} = require('../../server/models/plantings');
-const {StatsInstance} = require('../../server/models/stats');
-const {ZonesInstance} = require('../../server/models/zones');
-const {EventsInstance} = require('../../server/models/events');
+const { CropsInstance } = require('../../server/models/crops');
+const { PlantingsInstance } = require('../../server/models/plantings');
+const { StatsInstance } = require('../../server/models/stats');
+const { ZonesInstance } = require('../../server/models/zones');
+const { EventsInstance } = require('../../server/models/events');
 
 /** Constants */
-const {gpm_cfs} = require('../../config/constants');
-const {sqft_acre} = require('../../config/constants');
-const {milli_per_sec} = require('../../config/constants');
-const {milli_per_min} = require('../../config/constants');
-const {milli_per_hour} = require('../../config/constants');
-const {milli_per_day} = require('../../config/constants');
+const { milli_per_sec } = require('../../config/constants');
+const { milli_per_hour } = require('../../config/constants');
+const { milli_per_day } = require('../../config/constants');
 
 const sum = (total, num) => {
   return total + num;
@@ -33,16 +29,16 @@ const sum = (total, num) => {
 
 const testFertilization = (zone, planting, crop, processDate) => {
   // Check if fertilizer zone should be on
-  var lastFertilized = new Date(zone.fertilized);
-  var plantingDate = new Date(planting.date);
-  var age = planting.age +
+  const lastFertilized = new Date(zone.fertilized);
+  const plantingDate = new Date(planting.date);
+  const age = planting.age +
               Math.round(Math.abs((processDate.getTime() - plantingDate.getTime())/(milli_per_day)));
-  var lastAgeFertilized = (lastFertilized < plantingDate ? 0 : planting.age +
+  const lastAgeFertilized = (lastFertilized < plantingDate ? 0 : planting.age +
               Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime())/(milli_per_day))));
-  var initStage = crop.initDay;
-  var devStage = initStage + crop.devDay;
-  var midStage = devStage + crop.midDay;
-  var fertilize = false;
+  const initStage = crop.initDay;
+  const devStage = initStage + crop.devDay;
+  const midStage = devStage + crop.midDay;
+  let fertilize = false;
 
   if (age <= initStage) {
     if (crop.initFreq && lastAgeFertilized === 0) {
@@ -62,15 +58,15 @@ const testFertilization = (zone, planting, crop, processDate) => {
     }
   }
 
-  return(fertilize);
+  return (fertilize);
 }
 
 
 const runTests = (testZoneId) => {
-  var startETr = new Date(2018, 0, 16); // Jan 15
-  var endETr = new Date(2018, 1, 15);  // Feb 15
-  var etrCrop = null;
-  var etrPlanting = {
+  const startETr = new Date(2018, 0, 16); // Jan 15
+  const endETr = new Date(2018, 1, 15);  // Feb 15
+  let etrCrop = null;
+  const etrPlanting = {
         zid: testZoneId,
         title: "ETr Planting",
         date: startETr.toString(),
@@ -78,39 +74,44 @@ const runTests = (testZoneId) => {
         count: 2,
         spacing: 12
       };
-  var expectedETr = /* jan 16-31*/ ((1.86 / 31) * 16) +
-                    /* feb 1-15 */ ((2.24 / 28) * 15)
-  var dailyETo;
+  const expectedETr = ((1.86 / 31) * 16) /* jan 16-31 */
+                    + ((2.24 / 28) * 15); /* feb 1-15 */
+  let dailyETo;
+  let crops;
 
-  var crops;
+  let masterZone;
+  let fertilizerZone;
+  let testZone;
+  let shouldFertilize;
+  let origEmitterCount;
+  let origEmitterRate;
+  let origArea;
+  let origZoneStart;
 
-  var masterZone, fertilizerZone, testZone, shouldFertilize;
-  var origEmitterCount, origEmitterRate, origArea, origZoneStart;
-
-  var today = new Date();
-  var yesterday = new Date();
+  const today = new Date();
+  const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-  var tomorrow = new Date();
+  const tomorrow = new Date();
   tomorrow.setDate(today.getDate() + 1);
 
-  var testCrop1 = null;
-  var testPlanting1 = {
-        zid: testZoneId,
-        title: "Test Planting 1",
-        date: yesterday.toString(),
-        mad: 50,
-        count: 2,
-        spacing: 12
-      };
-  var testCrop2 = null;
-  var testPlanting2 = {
-        zid: testZoneId,
-        title: "Test Planting 2",
-        date: yesterday.toString(),
-        mad: 25,
-        count: 2,
-        spacing: 12
-      };
+  let testCrop1 = null;
+  const testPlanting1 = {
+    zid: testZoneId,
+    title: "Test Planting 1",
+    date: yesterday.toString(),
+    mad: 50,
+    count: 2,
+    spacing: 12
+  };
+  let testCrop2 = null;
+  const testPlanting2 = {
+    zid: testZoneId,
+    title: "Test Planting 2",
+    date: yesterday.toString(),
+    mad: 25,
+    count: 2,
+    spacing: 12
+  };
 
   describe('Functional Tests', () => {
     var eids, event, madDays, newMadDays;
@@ -155,7 +156,7 @@ const runTests = (testZoneId) => {
 
     describe('Verify Evapotranspiration (ETo/ETc) and Fertilizer (NPK) Calcs', () => {
       before(async () => {
-        var result = await PlantingsInstance.setPlanting(etrPlanting);
+        const result = await PlantingsInstance.setPlanting(etrPlanting);
         etrPlanting.id = result.id;
 
         // Tell the zone of a planting change
@@ -164,13 +165,13 @@ const runTests = (testZoneId) => {
         testZone = await ZonesInstance.getZone(testZoneId);
       });
 
-      it (`should get daily ETo for from ${startETr} to ${endETr}`, async () => {
+      it(`should get daily ETo for from ${startETr} to ${endETr}`, async () => {
         dailyETo = await WeatherInstance.getDailyETo(new Date(startETr), new Date(endETr));
         expect(dailyETo.length).toBe(31);
         expect(dailyETo.reduce(sum).toFixed(2)).toBe(String(expectedETr));
       });
 
-      it (`should get daily ETc for all plantings in zone ${testZoneId} from ${startETr} to ${endETr}`, async () => {
+      it(`should get daily ETc for all plantings in zone ${testZoneId} from ${startETr} to ${endETr}`, async () => {
         var expectedETc = 0;
         var age = etrPlanting.age;
         var initStage = etrCrop.initDay;
@@ -185,19 +186,19 @@ const runTests = (testZoneId) => {
           age++;
         }
 
-        var dailyETc = await PlantingsInstance.getETcByZone(testZoneId, new Date(startETr), new Date(endETr));
+        const dailyETc = await PlantingsInstance.getETcByZone(testZoneId, new Date(startETr), new Date(endETr));
         expect(dailyETc.toFixed(2)).toBe(expectedETc.toFixed(2));
       });
 
-      it (`should get NPK demand for all plantings in zone ${testZoneId} from ${startETr} to ${endETr}`, async () => {
-        var fertilizer = await PlantingsInstance.getFertilizerByZone(testZoneId, new Date(startETr), new Date(endETr),
+      it(`should get NPK demand for all plantings in zone ${testZoneId} from ${startETr} to ${endETr}`, async () => {
+        const fertilizer = await PlantingsInstance.getFertilizerByZone(testZoneId, new Date(startETr), new Date(endETr),
                                                                      new Date(testZone.fertilized));
        console.log(`ETrCrop: (${JSON.stringify(etrCrop)})`);
        console.log(`Fertilizer: (${fertilizer})`);
       });
 
       after(async () => {
-        var result = await PlantingsInstance.delPlanting(etrPlanting);
+        const result = await PlantingsInstance.delPlanting(etrPlanting);
 
         // Tell the zone of a planting change
         await ZonesInstance.updatePlantings(result.zids);
@@ -310,14 +311,14 @@ const runTests = (testZoneId) => {
       });
 
       it(`should get one stats record from ${yesterday} to ${tomorrow}`, async () => {
-        var stats = await StatsInstance.getStats(testZoneId, yesterday.getTime(), tomorrow.getTime());
+        const stats = await StatsInstance.getStats(testZoneId, yesterday.getTime(), tomorrow.getTime());
         expect(stats).toBeDefined();
         expect(stats.length).toBe(1);
       });
 
       it(`should delete the events scheduled for zone ${testZoneId}`, async () => {
-        for (var i = 0; i < eids.length; i++) {
-          var event = await EventsInstance.findEvent(eids[i]);
+        for (let i = 0; i < eids.length; i++) {
+          const event = await EventsInstance.findEvent(eids[i]);
 
           expect(event).toBeDefined();
           expect(await EventsInstance.delEvent(event)).toBe(eids[i]);
@@ -326,10 +327,8 @@ const runTests = (testZoneId) => {
     });
 
     describe('Verify zone recharge after maximum allowable depletion (MAD)', () => {
-
       it(`should deplete soil water below MAD and create a recharge event`, async function () {
-        var availableWater = testZone.availableWater;
-        var adjusted = testZone.adjusted;
+        let adjusted = testZone.adjusted;
 
         // Report how many days it took to reach MAD
         var firstProcessDate = new Date(nextProcessDate);
@@ -410,14 +409,14 @@ const runTests = (testZoneId) => {
       });
 
       it(`should get two stats record from ${yesterday} to ${tomorrow}`, async () => {
-        var stats = await StatsInstance.getStats(testZoneId, yesterday.getTime(), tomorrow.getTime());
+        const stats = await StatsInstance.getStats(testZoneId, yesterday.getTime(), tomorrow.getTime());
         expect(stats).toBeDefined();
         expect(stats.length).toBe(2);
       });
 
       it(`should delete the events scheduled for zone ${testZoneId}`, async () => {
         expect(eids).toBeDefined();
-        for (var i = 0; i < eids.length; i++) {
+        for (let i = 0; i < eids.length; i++) {
           var event = await EventsInstance.findEvent(eids[i]);
 
           expect(event).toBeDefined();
@@ -427,33 +426,37 @@ const runTests = (testZoneId) => {
     });
 
     describe('Verify adjusted zone recharge after a rain event', () => {
-      var rainDate;
+      let rainDate;
 
       before(async () => {
-        var weatherData = { eto: 0.5, solar: 0, wind: 0,
-                            precip: 1.0, precipProb: 0,
-                            tempHi: 0, tempLo: 0, humidity: 0
-                          }
+        var weatherData = {
+          eto: 0.5,
+          solar: 0,
+          wind: 0,
+          precip: 1.0,
+          precipProb: 0,
+          tempLo: 0,
+          humidity: 0
+        };
 
         rainDate = new Date(nextProcessDate);
 
         // Space out rain event far enough to make a difference
         rainDate.setDate(rainDate.getDate() + 5);
 
-        var conditions =  await WeatherInstance.setConditions(rainDate, weatherData);
+        const conditions =  await WeatherInstance.setConditions(rainDate, weatherData);
         expect(conditions).toBeDefined();
       });
 
       it(`should find a rain event`, async () => {
-        var adjustmentDate = new Date(testZone.adjusted);
-        var conditions =  await WeatherInstance.getConditions(adjustmentDate, rainDate);
+        const adjustmentDate = new Date(testZone.adjusted);
+        const conditions =  await WeatherInstance.getConditions(adjustmentDate, rainDate);
         expect(conditions).toBeDefined();
         expect(conditions.length).toBe(1);
       });
 
       it(`should deplete soil water below MAD and create a recharge event (LATER)`, async function () {
-        var availableWater = testZone.availableWater;
-        var adjusted = testZone.adjusted;
+        let adjusted = testZone.adjusted;
 
         // Report how many days it took to reach MAD
         var firstProcessDate = new Date(nextProcessDate);
@@ -482,7 +485,7 @@ const runTests = (testZoneId) => {
           adjusted = testZone.adjusted;
         }
 
-        newMadDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime())/(milli_per_day)));
+        newMadDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime()) / (milli_per_day)));
         console.log(`It took ${newMadDays} days to reach ${testZone.availableWater} inches (${testZone.mad}% of ${testZone.swhc} inches)`);
 
         // We should have reached a threshold at a different time
@@ -501,7 +504,7 @@ const runTests = (testZoneId) => {
         // Make sure the test doesn't timeout
         this.timeout(eventStarted + eventEnded + (5 * milli_per_sec));
 
-        console.log(`**** Waiting ${(eventStarted/milli_per_sec).toFixed(0)} seconds for event to start ...`);
+        console.log(`**** Waiting ${(eventStarted / milli_per_sec).toFixed(0)} seconds for event to start ...`);
 
         setTimeout(async () => {
           testZone = await ZonesInstance.getZone(testZoneId);
@@ -519,7 +522,7 @@ const runTests = (testZoneId) => {
           fertilizerZone = await ZonesInstance.getFertilizerZone();
           expect(fertilizerZone.status).toBe(fertilizing);
 
-          console.log(`**** Waiting ${(eventEnded/milli_per_sec).toFixed(0)} seconds for event to end ...`);
+          console.log(`**** Waiting ${(eventEnded / milli_per_sec).toFixed(0)} seconds for event to end ...`);
 
           setTimeout(async () => {
             testZone = await ZonesInstance.getZone(testZoneId);
@@ -535,14 +538,14 @@ const runTests = (testZoneId) => {
       });
 
       it(`should get three stats record from ${yesterday} to ${tomorrow}`, async () => {
-        var stats = await StatsInstance.getStats(testZoneId, yesterday.getTime(), tomorrow.getTime());
+        const stats = await StatsInstance.getStats(testZoneId, yesterday.getTime(), tomorrow.getTime());
         expect(stats).toBeDefined();
         expect(stats.length).toBe(3);
       });
 
       it(`should delete the events scheduled for zone ${testZoneId}`, async () => {
-        for (var i = 0; i < eids.length; i++) {
-          var event = await EventsInstance.findEvent(eids[i]);
+        for (let i = 0; i < eids.length; i++) {
+          const event = await EventsInstance.findEvent(eids[i]);
 
           expect(event).toBeDefined();
           expect(await EventsInstance.delEvent(event)).toBe(eids[i]);
@@ -552,7 +555,7 @@ const runTests = (testZoneId) => {
 
     describe('Verify adjusted zone recharge after adding a planting', () => {
       before(async () => {
-        var result = await PlantingsInstance.setPlanting(testPlanting2);
+        const result = await PlantingsInstance.setPlanting(testPlanting2);
         testPlanting2.id = result.id;
 
         // Tell the zone of a planting change
@@ -561,13 +564,12 @@ const runTests = (testZoneId) => {
         testZone = await ZonesInstance.getZone(testZoneId);
       });
 
-      it(`should have adjusted the zone's MAD`, async () => {
+      it('should have adjusted the zones MAD', async () => {
         expect(testZone.mad).toBe((testPlanting1.mad + testPlanting2.mad) / 2);
       });
 
-      it(`should deplete soil water below MAD and create a recharge event (SOONER)`, async function () {
-        var availableWater = testZone.availableWater;
-        var adjusted = testZone.adjusted;
+      it('should deplete soil water below MAD and create a recharge event (SOONER)', async function () {
+        let adjusted = testZone.adjusted;
 
         // Report how many days it took to reach MAD
         var firstProcessDate = new Date(nextProcessDate);
@@ -581,8 +583,8 @@ const runTests = (testZoneId) => {
           nextScheduleDate = new Date(Date.now() + (5 * milli_per_sec));
 
           // check fertilize before we schedule events because the zone will change
-          shouldFertilize = (await testFertilization(testZone, testPlanting1, testCrop1, nextProcessDate) ||
-                             await testFertilization(testZone, testPlanting2, testCrop2, nextProcessDate));
+          shouldFertilize = (await testFertilization(testZone, testPlanting1, testCrop1, nextProcessDate)
+                             || await testFertilization(testZone, testPlanting2, testCrop2, nextProcessDate));
 
           testZone.start = `${('0' + nextScheduleDate.getHours()).slice(-2)}:${('0' + nextScheduleDate.getMinutes()).slice(-2)}`;
           await ZonesInstance.setZone(testZone);
@@ -616,7 +618,7 @@ const runTests = (testZoneId) => {
         // Make sure the test doesn't timeout
         this.timeout(eventStarted + eventEnded + (5 * milli_per_sec));
 
-        console.log(`**** Waiting ${(eventStarted/milli_per_sec).toFixed(0)} seconds for event to start ...`);
+        console.log(`**** Waiting ${(eventStarted / milli_per_sec).toFixed(0)} seconds for event to start ...`);
 
         setTimeout(async () => {
           testZone = await ZonesInstance.getZone(testZoneId);
@@ -634,7 +636,7 @@ const runTests = (testZoneId) => {
           fertilizerZone = await ZonesInstance.getFertilizerZone();
           expect(fertilizerZone.status).toBe(fertilizing);
 
-          console.log(`**** Waiting ${(eventEnded/milli_per_sec).toFixed(0)} seconds for event to end ...`);
+          console.log(`**** Waiting ${(eventEnded / milli_per_sec).toFixed(0)} seconds for event to end ...`);
 
           setTimeout(async () => {
             testZone = await ZonesInstance.getZone(testZoneId);
@@ -650,14 +652,14 @@ const runTests = (testZoneId) => {
       });
 
       it(`should get three stats record from ${yesterday} to ${tomorrow}`, async () => {
-        var stats = await StatsInstance.getStats(testZoneId, yesterday.getTime(), tomorrow.getTime());
+        const stats = await StatsInstance.getStats(testZoneId, yesterday.getTime(), tomorrow.getTime());
         expect(stats).toBeDefined();
         expect(stats.length).toBe(4);
       });
 
       it(`should delete the events scheduled for zone ${testZoneId}`, async () => {
-        for (var i = 0; i < eids.length; i++) {
-          var event = await EventsInstance.findEvent(eids[i]);
+        for (let i = 0; i < eids.length; i++) {
+          const event = await EventsInstance.findEvent(eids[i]);
 
           expect(event).toBeDefined();
           expect(await EventsInstance.delEvent(event)).toBe(eids[i]);
@@ -667,21 +669,20 @@ const runTests = (testZoneId) => {
 
     describe('Verify readjusted zone recharge after removing a planting', () => {
       before(async () => {
-        var result = await PlantingsInstance.delPlanting(testPlanting2);
+        const result = await PlantingsInstance.delPlanting(testPlanting2);
 
         // Tell the zone of a planting change
         await ZonesInstance.updatePlantings(result.zids);
       });
 
-      it(`should have adjusted the zone's MAD`, async () => {
+      it('should have adjusted the zones MAD', async () => {
         testZone = await ZonesInstance.getZone(testZoneId);
         expect(testZone.plantings).toBe(1);
         expect(testZone.mad).toBe(testPlanting1.mad);
       });
 
-      it(`should deplete soil water below MAD and create a recharge event (SLOWER)`, async function () {
-        var availableWater = testZone.availableWater;
-        var adjusted = testZone.adjusted;
+      it('should deplete soil water below MAD and create a recharge event (SLOWER)', async function () {
+        let adjusted = testZone.adjusted;
 
         // Report how many days it took to reach MAD
         var firstProcessDate = new Date(nextProcessDate);
@@ -710,7 +711,7 @@ const runTests = (testZoneId) => {
           adjusted = testZone.adjusted;
         }
 
-        madDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime())/(milli_per_day)));
+        madDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime()) / (milli_per_day)));
         console.log(`It took ${madDays} days to reach ${testZone.availableWater} inches (${testZone.mad}% of ${testZone.swhc} inches)`);
 
         // We should have reached a threshold at a different time
@@ -729,7 +730,7 @@ const runTests = (testZoneId) => {
         // Make sure the test doesn't timeout
         this.timeout(eventStarted + eventEnded + (5 * milli_per_sec));
 
-        console.log(`**** Waiting ${(eventStarted/milli_per_sec).toFixed(0)} seconds for event to start ...`);
+        console.log(`**** Waiting ${(eventStarted / milli_per_sec).toFixed(0)} seconds for event to start ...`);
 
         setTimeout(async () => {
           testZone = await ZonesInstance.getZone(testZoneId);
@@ -740,14 +741,14 @@ const runTests = (testZoneId) => {
           console.log(`****** Fertilizer (${event.fertilizer}) ...`);
 
           // Check if fertilizer zone should be on
-          var fertilizerObj = JSON.parse(event.fertilizer);
-          var fertilizing = fertilizerObj.n || fertilizerObj.p || fertilizerObj.k ? true : false;
+          const fertilizerObj = JSON.parse(event.fertilizer);
+          const fertilizing = fertilizerObj.n || fertilizerObj.p || fertilizerObj.k ? true : false;
           expect(fertilizing).toBe(shouldFertilize);
 
           fertilizerZone = await ZonesInstance.getFertilizerZone();
           expect(fertilizerZone.status).toBe(fertilizing);
 
-          console.log(`**** Waiting ${(eventEnded/milli_per_sec).toFixed(0)} seconds for event to end ...`);
+          console.log(`**** Waiting ${(eventEnded / milli_per_sec).toFixed(0)} seconds for event to end ...`);
 
           setTimeout(async () => {
             testZone = await ZonesInstance.getZone(testZoneId);
@@ -763,14 +764,14 @@ const runTests = (testZoneId) => {
       });
 
       it(`should get four stats record from ${yesterday} to ${tomorrow}`, async () => {
-        var stats = await StatsInstance.getStats(testZoneId, yesterday.getTime(), tomorrow.getTime());
+        const stats = await StatsInstance.getStats(testZoneId, yesterday.getTime(), tomorrow.getTime());
         expect(stats).toBeDefined();
         expect(stats.length).toBe(5);
       });
 
       it(`should delete the events scheduled for zone ${testZoneId}`, async () => {
-        for (var i = 0; i < eids.length; i++) {
-          var event = await EventsInstance.findEvent(eids[i]);
+        for (let i = 0; i < eids.length; i++) {
+          const event = await EventsInstance.findEvent(eids[i]);
 
           expect(event).toBeDefined();
           expect(await EventsInstance.delEvent(event)).toBe(eids[i]);
@@ -790,8 +791,8 @@ const runTests = (testZoneId) => {
 
         // Reset all zones
         var zones = await ZonesInstance.getAllZones();
-        for (var i = 0; i < zones.length; i++) {
-          var zone = zones[i];
+        for (let i = 0; i < zones.length; i++) {
+          let zone = zones[i];
 
           zone.start = origZoneStart;
           zone.emitterCount = origEmitterCount;
@@ -818,7 +819,7 @@ const runTests = (testZoneId) => {
       });
     });
   });
-}
+};
 
 module.exports = {
   runTests
