@@ -332,7 +332,7 @@ const runTests = (zoneId) => {
       });
 
       it(`should clear stats`, async () => {
-        await StatsInstance.clearStats(statsZid);
+        await StatsInstance.clearStats();
       });
     });
 

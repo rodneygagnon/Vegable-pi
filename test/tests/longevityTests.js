@@ -443,7 +443,7 @@ const runTests = async function (testZoneId) {
         }
         console.log(`**** Results: Irr(in) ${totalInches.toFixed(2)}`);
 
-        await StatsInstance.clearStats(testZoneId);
+        await StatsInstance.clearStats();
       });
     });
   });

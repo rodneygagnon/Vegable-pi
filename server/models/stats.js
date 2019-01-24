@@ -13,6 +13,7 @@ const { db } = require('./db');
 const { dbKeys } = require('./db');
 
 const statsSchema = Schema({
+  zid: Number, // Zone ID
   started: { type: Number, min: 0 }, // ISO8601 - Irrigation started
   stopped: { type: Number, min: 0 }, // ISO8601 - Irrigation stopped
   amount: { type: Number, min: 0 }, // gallons
@@ -34,13 +35,19 @@ class Stats {
   async saveStats(zid, started, stopped, amount, fertilizer) {
     try {
       const validStats = await statsSchema.validate({
+        zid,
         started,
         stopped,
         amount,
         fertilizer,
       });
 
-      await db.zaddAsync(dbKeys.dbStatsKey + zid, started, JSON.stringify(validStats));
+      const scoreDate = new Date(started);
+      const score = `${scoreDate.getFullYear()}`
+                  + `${('0' + scoreDate.getMonth()).slice(-2)}`
+                  + `${('0' + scoreDate.getDate()).slice(-2)}`;
+
+      await db.zaddAsync(dbKeys.dbStatsKey, score, JSON.stringify(validStats));
     } catch (err) {
       log.error(`saveStats Failed to save statistics: ${JSON.stringify(err)}`);
     }
@@ -48,17 +55,29 @@ class Stats {
 
   async getStats(zid, start, end) {
     const stats = [];
+    const startDate = new Date(Number(start));
+    const startScore = `${startDate.getFullYear()}`
+                + `${('0' + startDate.getMonth()).slice(-2)}`
+                + `${('0' + startDate.getDate()).slice(-2)}`;
+    const endDate = new Date(Number(end));
+    const endScore = `${endDate.getFullYear()}`
+                + `${('0' + endDate.getMonth()).slice(-2)}`
+                + `${('0' + endDate.getDate()).slice(-2)}`;
 
-    const redisStats = await db.zrangebyscoreAsync(dbKeys.dbStatsKey + zid, start, end);
+    const redisStats = await db.zrangebyscoreAsync(dbKeys.dbStatsKey, startScore, endScore);
     for (let i = 0; i < redisStats.length; i++) {
-      stats.push(await statsSchema.validate(JSON.parse(redisStats[i])));
+      const stat = await statsSchema.validate(JSON.parse(redisStats[i]));
+
+      if (stat.zid === zid) {
+        stats.push(stat);
+      }
     }
 
     return (stats);
   }
 
-  async clearStats(zid) {
-    await db.delAsync(dbKeys.dbStatsKey + zid);
+  async clearStats() {
+    await db.delAsync(dbKeys.dbStatsKey);
   }
 }
 

@@ -223,12 +223,8 @@ router.route('/stats/get').get(async (req, res) => {
  * @param {number} zone id - zone id
  */
 router.route('/stats/clear').post(async (req, res) => {
-  if (typeof req.query === 'undefined' || typeof req.query.zid === 'undefined') {
-    res.status(400);
-  } else {
-    await StatsInstance.clearStats(req.query.zid);
-    res.status(200);
-  }
+  await StatsInstance.clearStats();
+  res.status(200);
   res.end();
 });
 

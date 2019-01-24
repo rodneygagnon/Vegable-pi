@@ -204,7 +204,6 @@ const runTests = async (app) => {
       it('should clear stats for a zone', (done) => {
         request(app)
           .post('/api/stats/clear')
-          .query({ zid: 3 })
           .expect(200)
           .end(done);
       });

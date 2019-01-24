@@ -13,7 +13,7 @@ const { log } = require('../controllers/logger');
 const dbKeys = {
   dbConfigKey: 'config',
   dbZonesKey: 'zones',
-  dbStatsKey: 'stats_', // stats by zone => statis_<zone id>
+  dbStatsKey: 'statistics',
   dbUsersKey: 'users',
   dbCropsKey: 'crops',
   dbEventsKey: 'events',
