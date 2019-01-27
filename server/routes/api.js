@@ -205,8 +205,7 @@ router.route('/plantings/set').post(async (req, res) => {
  * @returns {array} stats - array of stats objects
  */
 router.route('/stats/get').get(async (req, res) => {
-  if (typeof req.query === 'undefined' || typeof req.query.zid === 'undefined'
-      || typeof req.query.start === 'undefined'
+  if (typeof req.query === 'undefined' || typeof req.query.start === 'undefined'
       || typeof req.query.stop === 'undefined') {
     res.status(400);
     res.end();

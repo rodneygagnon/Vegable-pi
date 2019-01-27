@@ -61,6 +61,16 @@ class Weather {
       Weather.init();
 
       Weather.WeatherInstance = this;
+
+      // Get yesterday's date
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      this.getWeatherData(yesterday, (weatherData) => {
+        this.getForecastData(() => {
+          log.debug(`processJob: Weather Conditions (${yesterday}) : ${JSON.stringify(weatherData)}`);
+        });
+      });
     }
     return Weather.WeatherInstance;
   }

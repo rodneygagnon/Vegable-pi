@@ -815,7 +815,7 @@ const runTests = (testZoneId) => {
         }
 
         await WeatherInstance.clearWeatherData();
-        await StatsInstance.clearStats();
+//        await StatsInstance.clearStats();
       });
     });
   });

@@ -77,7 +77,16 @@ const SoilWHC = { // Inches
 };
 Object.freeze(SoilWHC);
 
-const zoneEventColors = ['#538D9E', '#408093', '#2D7489', '#296A7D', '#255F71', '#215564', '#1D4A58', '#19404B'];
+const zoneEventColors = [
+  '#538D9E', // Master
+  '#408093', // Fertilizer
+  '#4697AB', // Z01
+  '#04647C', // Z02
+  '#1E364E', // Z03
+  '#3E515F', // Z04
+  '#7E8C9D', // Z05
+  '#5B739D'  // Z06
+];
 const zoneTextColor = '#EBF2F4';
 
 class Zones {
@@ -243,6 +252,8 @@ class Zones {
     const zones = [];
 
     const redisZones = await db.hvalsAsync(dbKeys.dbZonesKey);
+    redisZones.sort();
+
     for (let i = 0; i < redisZones.length; i++) {
       zones[i] = await zonesSchema.validate(JSON.parse(redisZones[i]));
     }
@@ -273,7 +284,7 @@ class Zones {
 
   async setZone(zone) {
     try {
-      // log.debug(`setZone: (${JSON.stringify(zone)})`);
+      log.debug(`setZone: (${JSON.stringify(zone)})`);
 
       const inputZone = await zonesSchema.validate(zone);
       const saveZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, inputZone.id));
@@ -287,6 +298,9 @@ class Zones {
       saveZone.swhc = inputZone.swhc;
       saveZone.start = inputZone.start;
       saveZone.mad = inputZone.mad;
+      if (typeof inputZone.color !== 'undefined') {
+        saveZone.color = inputZone.color;
+      }
       if (typeof inputZone.availableWater !== 'undefined') {
         saveZone.availableWater = inputZone.availableWater;
       }

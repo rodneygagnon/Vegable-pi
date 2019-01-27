@@ -64,14 +64,21 @@ class Stats {
                 + `${('0' + endDate.getMonth()).slice(-2)}`
                 + `${('0' + endDate.getDate()).slice(-2)}`;
 
+    log.error(`getStats(${zid}) from ${startScore} to ${endScore}`);
+
     const redisStats = await db.zrangebyscoreAsync(dbKeys.dbStatsKey, startScore, endScore);
+
     for (let i = 0; i < redisStats.length; i++) {
       const stat = await statsSchema.validate(JSON.parse(redisStats[i]));
 
-      if (stat.zid === zid) {
+      // Only return stats for a particular zone if requested
+      if (typeof zid === 'undefined' || stat.zid == zid) {
+        log.error(`getStats(${zid}) found ${redisStats[i]}`);
         stats.push(stat);
       }
     }
+
+    log.error(`getStats(${zid}) returning ${stats.length} stats record(s)`);
 
     return (stats);
   }

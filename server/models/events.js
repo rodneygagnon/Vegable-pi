@@ -24,7 +24,7 @@ const { milli_per_hour } = require('../../config/constants');
 
 const eventSchema = Schema({
   id: String,                     // Event UUID
-  sid: Number,                    // Zone ID
+  zid: Number,                    // Zone ID
   title: String,
   start: String,                  // ISO8601
   amt: { type: Number, min: 0 },  // inches of water to apply
@@ -79,6 +79,11 @@ class Events {
         // individual events within the range requested (end-start)
         let masterRepeatEnd;
         const masterEvent = await eventSchema.validate(JSON.parse(redisEvents[i]));
+
+        // Set the color to that of the zone
+        const zone = await ZonesInstance.getZone(masterEvent.zid);
+        masterEvent.color = zone.color;
+        masterEvent.textColor = zone.textColor;
 
         // Add the masterEvent. If it is repeating, create and add the children
         // for display during the date range given
@@ -256,7 +261,7 @@ class Events {
   }
 
   async processJob(job, done) {
-    const zone = await ZonesInstance.getZone(job.data.sid);
+    const zone = await ZonesInstance.getZone(job.data.zid);
 
     // If the job.id !== job.data.id (original event.id), then we created this job to turn the
     // zone off at a specified time. If the station was turned off manually, log & do nothing.
@@ -264,7 +269,7 @@ class Events {
       // We are meant to turn the zone ON
       if (!zone.status) {
         // Switch ON the station and create a job to turn it off
-        ZonesInstance.switchZone(job.data.sid, job.data.fertilizer, async (status) => {
+        ZonesInstance.switchZone(job.data.zid, job.data.fertilizer, async (status) => {
           const irrTime = (job.data.amt / zone.iph) * milli_per_hour;
           const nextJob = await EventsQueue.add(job.data, { jobId: uuidv4(),
                                                             delay: irrTime,
@@ -280,7 +285,7 @@ class Events {
       // We are meant to turn the zone OFF
       if (zone.status) {
         // Switch OFF the station
-        ZonesInstance.switchZone(job.data.sid, job.data.fertilizer, async (status) => {
+        ZonesInstance.switchZone(job.data.zid, job.data.fertilizer, async (status) => {
           done();
         });
       } else {

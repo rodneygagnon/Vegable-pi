@@ -209,8 +209,8 @@
         </div>
 
         <div class="form-group">
-          <label for="sid" class="col-form-label">Zone</label>
-          <select class="selectpicker form-control" id="sid" name="sid" required="" placeholder="Zone">
+          <label for="zid" class="col-form-label">Zone</label>
+          <select class="selectpicker form-control" id="zid" name="zid" required="" placeholder="Zone">
             <% for(var i=0; i < zones.length; i++) { %>
               <option value="<%= zones[i].id %>"><%= zones[i].name %></option>
             <% } %>
@@ -299,120 +299,9 @@
     <script src="assets/js/bootstrap-select.js"></script>
     <script src="assets/js/theme.js"></script>
     <script src="assets/js/bootstrap-table.js"></script>
-      
-    
-    <script type="text/javascript">
-	   function initCalendar() {
-			 $calendar = $('#fullCalendar');
 
-        today = new Date();
-        y = today.getFullYear();
-        m = today.getMonth();
-        d = today.getDate();
-
-			 $calendar.fullCalendar({
-					header: {
-						left: 'title',
-						center: 'month,agendaWeek,agendaDay',
-						right: 'prev,next,today'
-					},
-          eventColor: '#666666',
-          eventTextColor: '#FFF',
-					defaultDate: today,
-					selectable: true,
-					selectHelper: true,
-					views: {
-							month: { // name of view
-									titleFormat: 'MMMM YYYY'
-									// other view-specific options here
-							},
-							week: {
-									titleFormat: " MMMM D YYYY"
-							},
-							day: {
-									titleFormat: 'D MMM, YYYY'
-							}
-					},
-					select: function(start, end) {
-            var inst = $('[data-remodal-id=editScheduleModal]').remodal();
-
-            $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Create a new Event');
-            $('[data-remodal-id=editScheduleModal] #title').val("");
-            $('[data-remodal-id=editScheduleModal] #id').val("");
-            $('[data-remodal-id=editScheduleModal] #sid').selectpicker('val', ['0']); // None
-            $('[data-remodal-id=editScheduleModal] #amt').selectpicker('val', ['1']); // Min
-            $('[data-remodal-id=editScheduleModal] #fertilize').prop("checked", false);
-            $('[data-remodal-id=editScheduleModal] #start').val(moment(start).format('MM/DD/YYYY hh:mm A'));
-            $('[data-remodal-id=editScheduleModal] #repeatDow').selectpicker('val', ['7']); // None
-            $('[data-remodal-id=editScheduleModal] #repeatEnd').val(moment(end).format('MM/DD/YYYY hh:mm A'));
-
-            inst.open();
-						$('[data-remodal-id=editScheduleModal] #delete_action').addClass("hide-form-button");
-					},
-					eventClick: function(event, jsEvent, view) {
-            var inst = $('[data-remodal-id=editScheduleModal]').remodal();
-
-            $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Update an Event');
-            $('[data-remodal-id=editScheduleModal] #title').val(event.title);
-            $('[data-remodal-id=editScheduleModal] #id').val(event.id);
-            $('[data-remodal-id=editScheduleModal] #sid').selectpicker('val', event.sid);
-            $('[data-remodal-id=editScheduleModal] #amt').selectpicker('val', event.amt);
-            $('[data-remodal-id=editScheduleModal] #fertilize').prop("checked", event.fertilize);
-            $('[data-remodal-id=editScheduleModal] #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
-            $('[data-remodal-id=editScheduleModal] #repeatDow').selectpicker('val', (typeof event.repeatDow === 'undefined') ? "" : event.repeatDow);
-            $('[data-remodal-id=editScheduleModal] #repeatEnd').val((typeof event.repeatEnd === 'undefined') ? moment(event.end).format('MM/DD/YYYY') :                   
-            moment(event.repeatEnd).format('MM/DD/YYYY'));
-
-            inst.open();
-						$('[data-remodal-id=editScheduleModal] #delete_action').removeClass("hide-form-button");
-					},
-         	eventDrop: function(event, delta, revertFunc) {
-            var event = { id: event.id, sid: event.sid, title: event.title, start: event.start, end: event.end, repeatDow: event.repeatDow, repeatEnd: repeatEnd };
-            
-            $.ajax({
-              url: `/events/update`,
-              type: 'POST',
-              data: JSON.stringify(event),
-              contentType: "application/json",
-              success: function (result) {
-              }
-            });
-          },
-					editable: true,
-					eventLimit: true, // allow "more" link when too many events
-
-					//color classes: [ event-blue | event-azure | event-green | event-orange | event-red ],
-					events: {
-					    url: '/api/events/get',
-					    type: 'GET',
-					}
-				});
-	   }
-
-      $(document).ready(function(){
-         initCalendar();
-
-         $('#starttimepicker').datetimepicker({
-            format: 'MM/DD/YYYY hh:mm A',
-            icons: {
-              time: "far fa-clock",
-              date: "far fa-calendar-alt",
-              up: "fas fa-angle-up",
-              down: "fas fa-angle-down"
-            }
-         });
-         $('#repeatendpicker').datetimepicker({
-            format: 'MM/DD/YYYY',
-            icons: {
-              time: "far fa-clock",
-              date: "far fa-calendar-alt",
-              up: "fas fa-angle-up",
-              down: "fas fa-angle-down"
-            }
-         });        
-      });
-
-	</script>
+    <!-- Vegable Javascript -->
+    <script src="assets/js/vegable/events.js"></script>
 
   </body>
 

@@ -13,6 +13,7 @@ const Unit = require('./tests/unitTests');
 const Api = require('./tests/apiTests');
 const Functional = require('./tests/functionalTests');
 const Longevity = require('./tests/longevityTests');
+const Stats = require('./tests/statsTests');
 
 /** Separating the zones to isolate testing */
 const unitTestZoneId = 3;
@@ -20,8 +21,9 @@ const functionalTestZoneId = 4;
 const longevityTestZoneId = 5;
 
 describe('Vegable Tests', async () => {
-  await Unit.runTests(unitTestZoneId);
-  await Api.runTests(app);
-  await Functional.runTests(functionalTestZoneId);
-  await Longevity.runTests(longevityTestZoneId);
+  // await Unit.runTests(unitTestZoneId);
+  // await Api.runTests(app);
+  // await Functional.runTests(functionalTestZoneId);
+  // await Longevity.runTests(longevityTestZoneId);
+  await Stats.runTests(false);
 });
