@@ -213,7 +213,7 @@
       <h4 id="remodalTitle">Edit Planting</h4>
       <p>Change the title, crop, date, zone, ...</p><br>
 
-      <form id="plantingForm" method="post" action="/plantings/update">
+      <form class="needs-validation mt-5" id="plantingForm" method="post" action="/plantings/update" novalidate>
 
         <!--  HIDDEN FIELDS -->
         <input type="hidden" id="id" name="id"/>
@@ -221,14 +221,20 @@
         <div class="row mb-4">
           <div class="col">
             <label for="title" class="col-form-label">Title</label>
-            <input type="text" class="form-control" id="title" name="title">
+            <input type="text" class="form-control" id="title" name="title" required>
+            <div class="invalid-feedback">
+              Please provide a valid title.
+            </div>
           </div>
           <div class="col">
             <label for="date" class="col-form-label">Planting Date</label>
             <div class="input-group date" id="starttimepicker" data-target-input="nearest">
-              <input id="date" name="date" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
+              <input id="date" name="date" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker" required/>
               <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
                 <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+              </div>
+              <div class="invalid-feedback">
+                Please provide a valid planting date.
               </div>
             </div>
           </div>
@@ -256,22 +262,34 @@
         <div class="row mb-4">
           <div class="col">
             <label for="count" class="col-form-label">Count</label>
-            <input type="text" class="form-control" id="count" name="count">
+            <input type="text" class="form-control" id="count" name="count" required>
+            <div class="invalid-feedback">
+              Please provide a valid count.
+            </div>
           </div>
           <div class="col">
             <label for="spacing" class="col-form-label">Spacing (in)</label>
-            <input type="text" class="form-control" id="spacing" name="spacing">
+            <input type="text" class="form-control" id="spacing" name="spacing" required>
+            <div class="invalid-feedback">
+              Please provide a valid spacing.
+            </div>
           </div>
         </div>
 
         <div class="row mb-4">
           <div class="col">
             <label for="age" class="col-form-label">Age (days, seed = 0)</label>
-            <input type="text" class="form-control" id="age" name="age">
+            <input type="text" class="form-control" id="age" name="age" required>
+            <div class="invalid-feedback">
+              Please provide a valid age of the plant at the time of planting.
+            </div>
           </div>
           <div class="col">
             <label for="mad" class="col-form-label">Maximum Allowable Depletion (%)</label>
-            <input type="text" class="form-control" id="mad" name="mad">
+            <input type="text" class="form-control" id="mad" name="mad" required>
+            <div class="invalid-feedback">
+              Please provide a valid area MAD.
+            </div>
           </div>
         </div>
 

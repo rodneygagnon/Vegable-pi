@@ -199,13 +199,16 @@
       <h4 id="remodalTitle">Create/Update Event</h4>
       <p>Set a Vegable Event.</p><br>
 
-      <form method="post" action="/events/update">
+      <form class="needs-validation mt-5" method="post" action="/events/update" novalidate>
         <!--  HIDDEN FIELDS -->
         <input type="hidden" id="id" name="id"/>
 
         <div class="form-group">
           <label for="name" class="col-form-label">Title</label>
-          <input type="text" class="form-control" id="title" name="title">
+          <input type="text" class="form-control" id="title" name="title" required>
+          <div class="invalid-feedback">
+            Please provide a valid title.
+          </div>
         </div>
 
         <div class="form-group">
@@ -241,11 +244,14 @@
         <div class="form-group">
           <label for="start" class="col-form-label">Start</label>
           <div class="input-group date" id="starttimepicker" data-target-input="nearest">
-            <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
+            <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker" required/>
             <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
                 <div class="input-group-text"><i class="fa fa-calendar"></i></div>
             </div>
-          </div>
+            <div class="invalid-feedback">
+              Please provide a start time.
+            </div>
+         </div>
         </div>
 
         <div class="form-group">

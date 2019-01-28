@@ -6,6 +6,7 @@
  */
 
 const express = require('express');
+const validator = require('validator');
 
 const { ZonesInstance } = require('../models/zones');
 const { CropsInstance } = require('../models/crops');
@@ -44,17 +45,29 @@ router.get('/', (req, res, next) => {
  */
 router.route('/update').post(async (req, res) => {
   let result;
+  let status = 200;
 
   if (req.body.action === 'delete') {
-    result = await PlantingsInstance.delPlanting(req.body);
+    if (validator.isUUID(req.body.id)) {
+      result = await PlantingsInstance.delPlanting(req.body);
+    } else {
+      log.error(`plantings/update: Invalid Planting ID (${JSON.stringify(req.body)})`);
+      status = 400;
+    }
   } else {
     result = await PlantingsInstance.setPlanting(req.body);
+    if (result === null) {
+      status = 500;
+    }
   }
 
-  // Tell the zone of a planting change
-  await ZonesInstance.updatePlantings(result.zids);
-
-  res.redirect('/plantings');
+  if (result !== null) {
+    // Tell the zone of a planting change
+    await ZonesInstance.updatePlantings(result.zids);
+    res.redirect('/plantings');
+  } else {
+    res.redirect(status, '/plantings');
+  }
 });
 
 module.exports = router;

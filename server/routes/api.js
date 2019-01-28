@@ -258,7 +258,6 @@ router.route('/plantings/set').post(async (req, res) => {
   } else {
     res.status(status).end();
   }
-
 });
 
 /*

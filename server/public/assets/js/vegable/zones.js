@@ -196,17 +196,6 @@ $().ready(function (){
         $('[data-remodal-id=editZoneModal] #colorpicker-container').setValue(row.color);
       });
 
-
-      // var zoneColor = $('[data-remodal-id=editZoneModal] .colorpickerplus-embed .colorpickerplus-container');
-      // zoneColor.colorpickerembed();
-      // zoneColor.on('changeColor', function(e){
-      //   if(e.color == null) {
-      //     $('[data-remodal-id=editZoneModal] #zoneColor').val('transparent').css('background-color', '#fff');
-      //   } else {
-      //     $('[data-remodal-id=editZoneModal] #zoneColor').val(e.color).css('background-color', e.color);
-      //   }
-      // });
-
       const times = String(row.start).split(':');
       const now = new Date();
       now.setHours(times[0]);

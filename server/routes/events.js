@@ -6,6 +6,7 @@
  */
 
 const express = require('express');
+const validator = require('validator');
 
 const { EventsInstance } = require('../models/events');
 const { ZonesInstance } = require('../models/zones');
@@ -39,14 +40,27 @@ router.get('/', (req, res, next) => {
  */
 router.route('/update').post(async (req, res) => {
   let result;
+  let status = 200;
 
   if (req.body.action === 'delete') {
-    result = await EventsInstance.delEvent(req.body);
+    if (validator.isUUID(req.body.id)) {
+      result = await EventsInstance.delEvent(req.body);
+    } else {
+      log.error(`events/update: Invalid Event ID (${JSON.stringify(req.body)})`);
+      status = 400;
+    }
   } else {
     result = await EventsInstance.setEvent(req.body);
+    if (result === null) {
+      status = 500;
+    }
   }
 
-  res.redirect('/events');
+  if (result !== null) {
+    res.redirect('/events');
+  } else {
+    res.redirect(status, '/events');
+  }
 });
 
 module.exports = router;

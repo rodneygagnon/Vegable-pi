@@ -213,7 +213,7 @@
       <h4 id="remodalTitle">Edit Zone</h4>
       <p>Change the zone name, description and flow rate.</p><br>
 
-      <form method="post" action="/zones/update">
+      <form class="needs-validation mt-5" method="post" action="/zones/update" novalidate>
         <!--  HIDDEN FIELDS -->
         <input type="hidden" id="id" name="id"/>
         <input type="hidden" id="availableWater" name="availableWater"/>
@@ -222,26 +222,35 @@
         <div class="row mb-4">
           <div class="col">
             <label for="name" class="col-form-label">Name</label>
-            <input type="text" class="form-control" id="name" name="name">
+            <input type="text" class="form-control" id="name" name="name" required>
+            <div class="invalid-feedback">
+              Please provide a zone name.
+            </div>
           </div>
           <div class="col">
             <label for="start" class="col-form-label">Schedule Start Time</label>
             <div class="input-group date" id="starttimepicker" data-target-input="nearest">
-                <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker"/>
+                <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker" required/>
                 <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
                     <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                 </div>
-            </div>
+                <div class="invalid-feedback">
+                  Please provide a valid time when irrigation should be applied.
+                </div>
+           </div>
           </div>
         </div>
         <div class="row mb-4">
           <div class="col">
             <label for="area" class="col-form-label">Area (sqft)</label>
-            <input type="text" class="form-control" id="area" name="area">
+            <input type="text" class="form-control" id="area" name="area" required>
+            <div class="invalid-feedback">
+              Please provide a valid area in square feet.
+            </div>
           </div>
           <div class="col">
             <label for="swhc" class="col-form-label">Soil Type</label>
-            <select class="selectpicker form-control" id="swhc" name="swhc" data-size="7" required="">
+            <select class="selectpicker form-control" id="swhc" name="swhc" data-size="7" required>
               <%
                 var soilTypes = [ "Coarse", "Sandy", "Medium", "Fine" ];
                 var soilWHC = [ "0.75", "1.25", "1.5", "2.0" ];
@@ -256,11 +265,14 @@
         <div class="row mb-4">
           <div class="col">
             <label for="emitterCount" class="col-form-label">Emitters</label>
-            <input type="text" class="form-control" id="emitterCount" name="emitterCount">
+            <input type="text" class="form-control" id="emitterCount" name="emitterCount" required>
+            <div class="invalid-feedback">
+              Please provide a valid emitter count.
+            </div>
           </div>
           <div class="col">
             <label for="emitterRate" class="col-form-label">Flow Rate (gpm)</label>
-            <select class="selectpicker form-control" id="emitterRate" name="emitterRate" data-size="7" required="">
+            <select class="selectpicker form-control" id="emitterRate" name="emitterRate" data-size="7" required>
               <%
                 var rateTypes = [ "0.5", "1.0", "2.0" ];
                 var rates = [ "0.5", "1", "2" ];

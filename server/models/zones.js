@@ -298,7 +298,7 @@ class Zones {
       saveZone.swhc = inputZone.swhc;
       saveZone.start = inputZone.start;
       saveZone.mad = inputZone.mad;
-      if (typeof inputZone.color !== 'undefined') {
+      if (typeof inputZone.color !== 'undefined' && inputZone.color !== '') {
         saveZone.color = inputZone.color;
       }
       if (typeof inputZone.availableWater !== 'undefined') {

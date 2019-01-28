@@ -6,6 +6,7 @@
  */
 
 const express = require('express');
+const validator = require('validator');
 
 const { ZonesInstance } = require('../models/zones');
 
@@ -33,8 +34,13 @@ router.get('/', (req, res, next) => {
  * @param {string} action - _null_ or _delete_
  */
 router.route('/update').post(async (req, res) => {
-  await ZonesInstance.setZone(req.body);
-  res.redirect('/zones');
+  if (validator.isNumeric(`${req.body.id}`)) {
+    await ZonesInstance.setZone(req.body);
+    res.redirect('/zones');
+  } else {
+    log.error(`zones/update: Invalid Zone ID (${JSON.stringify(req.body)})`);
+    res.redirect(400,'/zones');
+  }
 });
 
 /**
@@ -45,9 +51,14 @@ router.route('/update').post(async (req, res) => {
  */
 router.route('/enable/:id').post((req, res) => {
   // TODO: add ability to pass fertilize flag
-  ZonesInstance.switchZone(req.params.id, false, () => {
-    res.redirect('/zones');
-  });
+  if (validator.isNumeric(`${req.params.id}`)) {
+    ZonesInstance.switchZone(req.params.id, false, () => {
+      res.redirect('/zones');
+    });
+  } else {
+    log.error(`zones/update: Invalid Zone ID (${JSON.stringify(req.body)})`);
+    res.redirect(400,'/zones');
+  }
 });
 
 module.exports = router;
