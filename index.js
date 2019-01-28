@@ -3,31 +3,20 @@
 /**
  * Module dependencies.
  */
-const fs = require('fs')
-
 var app = require('./server/app');
 var debug = require('debug')('vegable:server');
-var https = require('https')
+var http = require('http')
 
 /**
  * Get port from environment and store in Express.
  */
-
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
- * Create HTTP server.
+ * Create HTTP server & Listen on provided port, on all network interfaces.
  */
-
- var server = https.createServer({
-    key: fs.readFileSync('./config/server.key'),
-    cert: fs.readFileSync('./config/server.cert')
-  }, app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
+const server = http.createServer(app);
 
 server.listen(port);
 server.on('error', onError);
@@ -84,7 +73,6 @@ function onError(error) {
 /**
  * Event listener for HTTP server "listening" event.
  */
-
 function onListening() {
   var addr = server.address();
   var bind = typeof addr === 'string'

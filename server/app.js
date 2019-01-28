@@ -9,6 +9,9 @@
 const express = require('express');
 const session = require('express-session');
 
+const redis   = require("redis");
+const RedisStore = require('connect-redis')(session);
+
 // Security
 const helmet = require('helmet');
 
@@ -17,7 +20,6 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 
 const path = require('path');
-const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 
 const logger = require('morgan');
@@ -66,11 +68,16 @@ app.use(logger('dev'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({ secret: 'eat-more-veggies', resave: false, saveUninitialized: false }));
+
+app.use(session({
+  secret: 'eat-more-veggies',
+  store: new RedisStore({ host: 'redis' }),
+  saveUninitialized: false,
+  resave: false
+}));
 
 // Initialize Passport and restore authentication state, if any, from the session.
 app.use(passport.initialize());
