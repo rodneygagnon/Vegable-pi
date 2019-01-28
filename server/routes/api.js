@@ -6,8 +6,11 @@
  */
 
 const express = require('express');
+const validator = require('validator');
 const url = require('url');
 const querystring = require('querystring');
+
+const { log } = require('../controllers/logger');
 
 const { SettingsInstance } = require('../models/settings');
 const { CropsInstance } = require('../models/crops');
@@ -41,9 +44,17 @@ router.route('/location/get').get((req, res) => {
  * @param {object} location - Address, City, State, Zip, ET Zone
  */
 router.route('/location/set').post((req, res) => {
-  SettingsInstance.setLocation(req.body.address, req.body.city,
-                               req.body.state, req.body.zip, req.body.etzone);
-  res.status(200).end();
+  var result;
+  if (!validator.isEmpty(req.body.address) && !validator.isEmpty(req.body.city)
+      && !validator.isEmpty(req.body.state) && validator.isPostalCode(req.body.zip, 'US')) {
+    SettingsInstance.setLocation(req.body.address, req.body.city,
+                                 req.body.state, req.body.zip,
+                                 req.body.etzone);
+    result = 200;
+  } else {
+    result = 400;
+  }
+  res.status(result).end();
 });
 
 /**
@@ -53,8 +64,14 @@ router.route('/location/set').post((req, res) => {
  * @param {Number} practice - Practice
  */
 router.route('/practice/set').post((req, res) => {
-  SettingsInstance.setPractice(req.body.practice);
-  res.status(200).end();
+  var result;
+  if (!validator.isEmpty(req.body.practice)) {
+    SettingsInstance.setPractice(req.body.practice);
+    result = 200;
+  } else {
+    result = 400;
+  }
+  res.status(result).end();
 });
 
 /*
@@ -136,7 +153,7 @@ router.route('/events/set').post(async (req, res) => {
   if (req.body.action === 'delete') {
     result = await EventsInstance.delEvent(req.body);
   } else {
-    const zone = await ZonesInstance.getZone(req.body.sid);
+    const zone = await ZonesInstance.getZone(req.body.zid);
 
     req.body.color = zone.color;
     req.body.textColor = zone.textColor;

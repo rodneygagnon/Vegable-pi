@@ -6,6 +6,9 @@
  */
 
 const express = require('express');
+const validator = require('validator');
+
+const { log } = require('../controllers/logger');
 
 const { SettingsInstance } = require('../models/settings');
 const { CropsInstance } = require('../models/crops');
@@ -39,10 +42,16 @@ router.get('/', (req, res, next) => {
  * @param {object} location - Address, City, State, Zip, ET Zone
  */
 router.route('/location/set').post((req, res) => {
-  SettingsInstance.setLocation(req.body.address, req.body.city,
-                               req.body.state, req.body.zip,
-                               req.body.etzone);
-  res.redirect('/settings');
+  if (!validator.isEmpty(req.body.address) && !validator.isEmpty(req.body.city)
+      && !validator.isEmpty(req.body.state) && validator.isPostalCode(req.body.zip, 'US')) {
+    SettingsInstance.setLocation(req.body.address, req.body.city,
+                                 req.body.state, req.body.zip,
+                                 req.body.etzone);
+    res.redirect('/settings');
+  } else {
+    log.error(`settings/location/set: Bad Request Data (${JSON.stringify(req.body)})`);
+    res.redirect(400, '/settings');
+  }
 });
 
 /**
@@ -52,8 +61,14 @@ router.route('/location/set').post((req, res) => {
  * @param {Number} practice - Practice
  */
 router.route('/practice/set').post((req, res) => {
-  SettingsInstance.setPractice(req.body.practice);
-  res.redirect('/settings');
+  var result;
+  if (!validator.isEmpty(req.body.practice)) {
+    SettingsInstance.setPractice(req.body.practice);
+    res.redirect('/settings');
+  } else {
+    log.error(`settings/practice/set: Bad Request Data (${JSON.stringify(req.body)})`);
+    res.redirect(400, '/settings');
+  }
 });
 
 /**

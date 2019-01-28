@@ -159,17 +159,23 @@
                     <form class="needs-validation mt-5" method="post" action="/settings/location/set" novalidate>
                       <div class="row mb-4">
                         <div class="col">
-                          <input class="form-control border-300 bg-light" type="text" placeholder="Your Address" id="address" name="address"  value="<%= config.address %>" required=""/>
+                          <input class="form-control border-300 bg-light" type="text" placeholder="Your Address" id="address" name="address"  value="<%= config.address %>" required/>
+                          <div class="invalid-feedback">
+                            Please provide a valid address.
+                          </div>
                         </div>
                       </div>
                       <div class="row mb-4">
                         <div class="col">
-                          <input class="form-control border-300 bg-light" type="text" placeholder="Your City" id="city" name="city" value="<%= config.city %>" required=""/>
+                          <input class="form-control border-300 bg-light" type="text" placeholder="Your City" id="city" name="city" value="<%= config.city %>" required/>
+                          <div class="invalid-feedback">
+                            Please provide a valid city.
+                          </div>
                         </div>
                       </div>
                       <div class="row mb-4">
                         <div class="col">
-                          <select class="selectpicker form-control" id="state" name="state" data-size="7" required="">
+                          <select class="selectpicker form-control" id="state" name="state" data-size="7" required>
                             <%
                               var states = [ "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
                                       "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "MA",
@@ -184,9 +190,15 @@
                               }
                             %>
                           </select>
+                          <div class="invalid-feedback">
+                            Please provide a valid state.
+                          </div>
                         </div>
                         <div class="col">
-                          <input class="form-control border-300 bg-light" type="text" placeholder="Your Zipcode" id="zip" name="zip" value="<%= config.zip %>" required=""/>
+                          <input class="form-control border-300 bg-light" type="text" placeholder="Your Zipcode" id="zip" name="zip" value="<%= config.zip %>" required/>
+                          <div class="invalid-feedback">
+                            Please provide a valid zipcode.
+                          </div>
                         </div>
                       </div>
                       <div class="row mb-4">

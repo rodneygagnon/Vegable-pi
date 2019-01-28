@@ -29,7 +29,7 @@ const runTests = async (app) => {
             address: '1 Main Street',
             city: 'Sebastopol',
             state: 'CA',
-            zip: 95472,
+            zip: '95472',
             etzone: 4
           })
           .set('Accept', 'application/json')
@@ -40,7 +40,7 @@ const runTests = async (app) => {
       it('should set practice', (done) => {
         request(app)
           .post('/api/practice/set')
-          .send({ practice: 0 })
+          .send({ practice: '0' })
           .set('Accept', 'application/json')
           .expect(200)
           .end(done);
@@ -284,7 +284,7 @@ const runTests = async (app) => {
 
     describe('Events', () => {
       const addedEvent = {
-        sid: 3,
+        zid: 3,
         title: 'Test Event',
         start: (new Date()).toString(),
         amt: 1,
