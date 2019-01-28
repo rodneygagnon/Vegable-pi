@@ -61,7 +61,7 @@ router.route('/location/set').post((req, res) => {
  * @param {Number} practice - Practice
  */
 router.route('/practice/set').post((req, res) => {
-  var result;
+  let result;
   if (!validator.isEmpty(req.body.practice)) {
     SettingsInstance.setPractice(req.body.practice);
     res.redirect('/settings');

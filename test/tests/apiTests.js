@@ -108,9 +108,16 @@ const runTests = async (app) => {
       it('should get a crop', (done) => {
         request(app)
           .get('/api/crops/get')
-          .query({ id: `${addedCrop.id}` })
+          .query({ id: `${ addedCrop.id }` })
           .expect('Content-Type', /json/)
           .expect(200, addedCrop)
+          .end(done);
+      });
+      it('should fail to get a bogus crop id', (done) => {
+        request(app)
+          .get('/api/crops/get')
+          .query({ id: `0` })
+          .expect(400)
           .end(done);
       });
       it('should delete a crop', (done) => {
@@ -121,6 +128,17 @@ const runTests = async (app) => {
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .expect(200, { id: addedCrop.id })
+          .end(done);
+      });
+      it('should fail to delete a bogus crop id', (done) => {
+        addedCrop.action = 'delete';
+        addedCrop.id = '0';
+        request(app)
+          .post('/api/crops/set')
+          .send(addedCrop)
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/)
+          .expect(400, { id: null })
           .end(done);
       });
     });
@@ -160,17 +178,17 @@ const runTests = async (app) => {
           .expect(200)
           .end(done);
       });
-      it('should set a zone', (done) => {
+      it('should fail to get a bogus zone', (done) => {
         request(app)
-          .get('/api/zones/set')
-          .send(getZone)
-          .expect(200)
+          .get('/api/zones/get')
+          .query({ id: 'zone1' })
+          .expect(400)
           .end(done);
       });
       it('should switch a zone ON', (done) => {
         request(app)
           .post('/api/zones/switch')
-          .query({ id: `${getZone.id}` })
+          .query({ id: `${ getZone.id }` })
           .expect('Content-Type', /json/)
           .expect(200, { status: true })
           .end(done);
@@ -178,9 +196,26 @@ const runTests = async (app) => {
       it('should switch a zone OFF', (done) => {
         request(app)
           .post('/api/zones/switch')
-          .query({ id: `${getZone.id}` })
+          .query({ id: `${ getZone.id }` })
           .expect('Content-Type', /json/)
           .expect(200, { status: false })
+          .end(done);
+      });
+      it('should set a zone', (done) => {
+        request(app)
+          .post('/api/zones/set')
+          .send(getZone)
+          .set('Accept', 'application/json')
+          .expect(200)
+          .end(done);
+      });
+      it('should fail to set a bogus zone', (done) => {
+        getZone.id = 'zone1';
+        request(app)
+          .post('/api/zones/set')
+          .send(getZone)
+          .set('Accept', 'application/json')
+          .expect(400)
           .end(done);
       });
     });
@@ -199,6 +234,13 @@ const runTests = async (app) => {
           .query({ zid: 3, start: yesterday.getTime(), stop: tomorrow.getTime() })
           .expect('Content-Type', /json/)
           .expect(200)
+          .end(done);
+      });
+      it('should fail to get stats for a zone between bad dates', (done) => {
+        request(app)
+          .get('/api/stats/get')
+          .query({ zid: 3, start: 'start', stop: 'stop' })
+          .expect(400)
           .end(done);
       });
       it('should clear stats for a zone', (done) => {
@@ -270,6 +312,13 @@ const runTests = async (app) => {
           .expect(200, addedPlanting)
           .end(done);
       });
+      it('should fail to get a bogus planting', (done) => {
+        request(app)
+          .get('/api/plantings/get')
+          .query({ id: '0' })
+          .expect(400)
+          .end(done);
+      });
       it('should delete a planting', (done) => {
         addedPlanting.action = 'delete';
         request(app)
@@ -278,6 +327,16 @@ const runTests = async (app) => {
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .expect(200, { id: addedPlanting.id })
+          .end(done);
+      });
+      it('should fail to delete a bogus planting', (done) => {
+        addedPlanting.action = 'delete';
+        addedPlanting.id = '0';
+        request(app)
+          .post('/api/plantings/set')
+          .send(addedPlanting)
+          .set('Accept', 'application/json')
+          .expect(400)
           .end(done);
       });
     });
@@ -320,6 +379,16 @@ const runTests = async (app) => {
           .expect(200)
           .end(done);
       });
+      it('should fail to get events from bogus dates', (done) => {
+        request(app)
+          .get('/api/events/get')
+          .query({
+            start: '0',
+            end: '0'
+          })
+          .expect(400)
+          .end(done);
+      });
       it('should update an event', (done) => {
         addedEvent.title = 'Updated Event';
         request(app)
@@ -330,6 +399,16 @@ const runTests = async (app) => {
           .expect(200, { id: addedEvent.id })
           .end(done);
       });
+      it('should fail to update an event with a bad zone id', (done) => {
+        addedEvent.zid = '999';
+        request(app)
+          .post('/api/events/set')
+          .send(addedEvent)
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .end(done);
+      });
       it('should delete an event', (done) => {
         addedEvent.action = 'delete';
         request(app)
@@ -338,6 +417,16 @@ const runTests = async (app) => {
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .expect(200, { id: addedEvent.id })
+          .end(done);
+      });
+      it('should fail to delete a bogus event', (done) => {
+        addedEvent.action = 'delete';
+        addedEvent.id = '0';
+        request(app)
+          .post('/api/events/set')
+          .send(addedEvent)
+          .set('Accept', 'application/json')
+          .expect(400)
           .end(done);
       });
     });

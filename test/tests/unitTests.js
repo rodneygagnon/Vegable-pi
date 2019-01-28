@@ -260,7 +260,7 @@ const runTests = (zoneId) => {
 
     describe('Events', () => {
       const addedEvent = {
-        sid: zoneId,
+        zid: zoneId,
         title: 'Test Event',
         amt: 1,
         fertilize: false,

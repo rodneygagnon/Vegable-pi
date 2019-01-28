@@ -52,6 +52,7 @@ router.route('/location/set').post((req, res) => {
                                  req.body.etzone);
     result = 200;
   } else {
+    log.error(`api/location/set: Bad Request Data (${JSON.stringify(req.body)})`);
     result = 400;
   }
   res.status(result).end();
@@ -69,6 +70,7 @@ router.route('/practice/set').post((req, res) => {
     SettingsInstance.setPractice(req.body.practice);
     result = 200;
   } else {
+    log.error(`api/practice/set: Bad Request Data (${JSON.stringify(req.body)})`);
     result = 400;
   }
   res.status(result).end();
@@ -92,8 +94,13 @@ router.route('/crops/get').get(async (req, res) => {
       res.status(200).json(crops);
     });
   } else {
-    const crop = await CropsInstance.getCrop(req.query.id);
-    res.status(crop != null ? 200 : 500).json(crop);
+    if (validator.isUUID(req.query.id)) {
+      const crop = await CropsInstance.getCrop(req.query.id);
+      res.status(crop != null ? 200 : 500).json(crop);
+    } else {
+      log.error(`api/crops/get: Invalid Crop ID (${JSON.stringify(req.query)})`);
+      res.status(400).end();
+    }
   }
 });
 
@@ -106,16 +113,24 @@ router.route('/crops/get').get(async (req, res) => {
  * @returns {object} result - { id: _crop id_ }
  */
 router.route('/crops/set').post(async (req, res) => {
-  let result;
+  let result = null;
+  let status = 200;
 
   if (req.body.action === 'delete') {
-    result = await CropsInstance.delCrop(req.body.id);
+    if (validator.isUUID(req.body.id)) {
+      result = await CropsInstance.delCrop(req.body.id);
+    } else {
+      log.error(`api/crops/set: Invalid Crop ID (${JSON.stringify(req.body)})`);
+      status = 400;
+    }
   } else {
     result = await CropsInstance.setCrop(req.body);
+    if (result === null) {
+      status = 500;
+    }
   }
 
-  res.status(result !== null ? 200 : 500)
-     .json({ id: result });
+  res.status(status).json({ id: result });
 });
 
  /*
@@ -134,9 +149,14 @@ router.route('/events/get').get((req, res) => {
   const parsedUrl = url.parse(req.url);
   const parsedQs = querystring.parse(parsedUrl.query);
 
-  EventsInstance.getEvents(parsedQs.start, parsedQs.end, (events) => {
-   res.status(200).json(events);
-  });
+  if (validator.isISO8601(parsedQs.start) && validator.isISO8601(parsedQs.end)) {
+    EventsInstance.getEvents(parsedQs.start, parsedQs.end, (events) => {
+     res.status(200).json(events);
+    });
+  } else {
+    log.error(`api/events/get: Invalid Dates (${JSON.stringify(parsedQs)})`);
+    res.status(400).end();
+  }
 });
 
 /**
@@ -149,19 +169,32 @@ router.route('/events/get').get((req, res) => {
  */
 router.route('/events/set').post(async (req, res) => {
   let result;
+  let status = 200;
 
   if (req.body.action === 'delete') {
-    result = await EventsInstance.delEvent(req.body);
+    if (validator.isUUID(req.body.id)) {
+      result = await EventsInstance.delEvent(req.body);
+    } else {
+      log.error(`api/events/set: Invalid Event ID (${JSON.stringify(req.body)})`);
+      status = 400;
+    }
   } else {
     const zone = await ZonesInstance.getZone(req.body.zid);
+    if (zone === null) {
+      log.error(`api/events/set: Invalid Zone ID (${JSON.stringify(req.body)})`);
+      status = 400;
+    } else {
+      req.body.color = zone.color;
+      req.body.textColor = zone.textColor;
 
-    req.body.color = zone.color;
-    req.body.textColor = zone.textColor;
-
-    result = await EventsInstance.setEvent(req.body);
+      result = await EventsInstance.setEvent(req.body);
+      if (result === null) {
+        status = 500;
+      }
+    }
   }
 
-  res.status(result !== null ? 200 : 500).json({ id: result });
+  res.status(status).json({ id: result });
 });
 
 /*
@@ -182,8 +215,13 @@ router.route('/plantings/get').get(async (req, res) => {
      res.status(200).json(plantings);
    });
   } else {
-   const planting = await PlantingsInstance.getPlanting(req.query.id);
-   res.status(planting != null ? 200 : 500).json(planting);
+    if (validator.isUUID(req.query.id)) {
+      const planting = await PlantingsInstance.getPlanting(req.query.id);
+      res.status(planting != null ? 200 : 500).json(planting);
+    } else {
+      log.error(`api/plantings/get: Invalid Planting ID (${JSON.stringify(req.query)})`);
+      res.status(400).end();
+    }
   }
 });
 
@@ -196,18 +234,31 @@ router.route('/plantings/get').get(async (req, res) => {
  * @returns {string} planting id - id of planting created, updated or deleted
  */
 router.route('/plantings/set').post(async (req, res) => {
-  let result;
+  let result = null;
+  let status = 200;
 
   if (req.body.action === 'delete') {
-    result = await PlantingsInstance.delPlanting(req.body);
+    if (validator.isUUID(req.body.id)) {
+      result = await PlantingsInstance.delPlanting(req.body);
+    } else {
+      log.error(`api/plantings/set: Invalid Planting ID (${JSON.stringify(req.body)})`);
+      status = 400;
+    }
   } else {
     result = await PlantingsInstance.setPlanting(req.body);
+    if (result === null) {
+      status = 500;
+    }
   }
 
-  // Tell the zone of a planting change
-  await ZonesInstance.updatePlantings(result.zids);
+  if (result !== null) {
+    // Tell the zone of a planting change
+    await ZonesInstance.updatePlantings(result.zids);
+    res.status(status).json({ id: result.id });
+  } else {
+    res.status(status).end();
+  }
 
-  res.status(result.zids !== null ? 200 : 500).json({ id: result.id });
 });
 
 /*
@@ -222,10 +273,10 @@ router.route('/plantings/set').post(async (req, res) => {
  * @returns {array} stats - array of stats objects
  */
 router.route('/stats/get').get(async (req, res) => {
-  if (typeof req.query === 'undefined' || typeof req.query.start === 'undefined'
-      || typeof req.query.stop === 'undefined') {
-    res.status(400);
-    res.end();
+  if (typeof req.query === 'undefined' || !validator.isNumeric(req.query.start)
+      || !validator.isNumeric(req.query.stop)) {
+    log.error(`api/stats/set: Invalid Stats Query (${JSON.stringify(req.query)})`);
+    res.status(400).end();
   } else {
     res.status(200).json(await StatsInstance.getStats(req.query.zid, req.query.start,
                                                       req.query.stop));
@@ -258,8 +309,13 @@ router.route('/zones/get').get(async (req, res) => {
   if (typeof req.query === 'undefined' || typeof req.query.id === 'undefined') {
     res.status(200).json(await ZonesInstance.getAllZones());
   } else {
-    const zone = await ZonesInstance.getZone(req.query.id);
-    res.status(zone != null ? 200 : 500).json(zone);
+    if (validator.isNumeric(req.query.id)) {
+      const zone = await ZonesInstance.getZone(req.query.id);
+      res.status(zone != null ? 200 : 500).json(zone);
+    } else {
+      log.error(`api/zones/get: Invalid Zone ID (${JSON.stringify(req.query)})`);
+      res.status(400).end();
+    }
   }
 });
 
@@ -294,8 +350,15 @@ router.route('/zones/get/control').get((req, res) => {
  * @param {object} zone - zone to set
  */
 router.route('/zones/set').post(async (req, res) => {
-  await ZonesInstance.setZone(req.body);
-  res.statusCode = 200;
+  let status;
+  if (validator.isNumeric(`${req.body.id}`)) {
+    await ZonesInstance.setZone(req.body);
+    status = 200;
+  } else {
+    log.error(`api/zones/set: Invalid Zone ID (${JSON.stringify(req.body)})`);
+    status = 400;
+  }
+  res.status(status).end();
 });
 
 /**
