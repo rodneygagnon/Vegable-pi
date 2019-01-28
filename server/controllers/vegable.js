@@ -152,7 +152,7 @@ class Vegable {
           // Create an irrigation event if the zone needs water
           if (zone.availableWater < (zone.swhc * (zone.mad / 100))) {
             eids.push(await EventsInstance.setEvent({
-                                                      sid: zone.id,
+                                                      zid: zone.id,
                                                       title: `(auto) ${zone.name} Event`,
                                                       start: nextScheduleDate.toString(),
                                                       amt: zone.swhc - zone.availableWater,

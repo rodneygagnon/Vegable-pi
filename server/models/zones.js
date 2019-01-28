@@ -284,7 +284,7 @@ class Zones {
 
   async setZone(zone) {
     try {
-      log.debug(`setZone: (${JSON.stringify(zone)})`);
+      log.trace(`setZone: (${JSON.stringify(zone)})`);
 
       const inputZone = await zonesSchema.validate(zone);
       const saveZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, inputZone.id));

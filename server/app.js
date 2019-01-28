@@ -26,6 +26,7 @@ const logger = require('morgan');
 
 // Main Application Singleton
 const { VegableInstance } = require('./controllers/vegable');
+const { milli_per_min } = require('../config/constants');
 
 // Application Routes
 const IndexRouter = require('./routes/index');
@@ -74,6 +75,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
   secret: 'eat-more-veggies',
+  cookie: { maxAge: 60 * milli_per_min },
   store: new RedisStore({ host: 'redis' }),
   saveUninitialized: false,
   resave: false
