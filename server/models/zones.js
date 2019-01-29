@@ -284,7 +284,7 @@ class Zones {
 
   async setZone(zone) {
     try {
-      log.trace(`setZone: (${JSON.stringify(zone)})`);
+      log.debug(`setZone: (${JSON.stringify(zone)})`);
 
       const inputZone = await zonesSchema.validate(zone);
       const saveZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, inputZone.id));
@@ -337,7 +337,7 @@ class Zones {
       }
       await db.hsetAsync(dbKeys.dbZonesKey, saveZone.id, JSON.stringify(saveZone));
     } catch (err) {
-      log.error(`setZone(${zone.id}): ${JSON.stringify(err)}`);
+      log.error(`setZone(${zone.id}): zone (${JSON.stringify(zone)}) err (${JSON.stringify(err)})`);
     }
   }
 

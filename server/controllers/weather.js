@@ -143,7 +143,7 @@ class Weather {
 
           var zcnt = await db.zaddAsync(dbKeys.dbForecastKey, forecast.time, JSON.stringify(forecast));
           if (zcnt < 1) {
-            log.error(`setDailyForecast: (${forecast.time}) NOT SET ${JSON.stringify(forecast)}`);
+            log.warning(`setDailyForecast: (${day}) NOT SET ${JSON.stringify(forecast)}`);
           }
         }
       } catch (err) {

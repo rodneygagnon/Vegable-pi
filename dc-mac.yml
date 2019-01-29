@@ -7,7 +7,7 @@ services:
     image: vegable/vegable-mac
     command: ["npm", "start"]
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - DEBUG=vegable:*
       - RHOST=redis
     ports:

@@ -233,7 +233,7 @@ class Events {
     // Add event to the EventsQueue. Calculate when it should be processed next.
     const now = new Date();
 
-    log.trace(`Events::scheduleJob(ENTER): (${JSON.stringify(event)})`);
+    log.debug(`Events::scheduleJob(ENTER): (${JSON.stringify(event)})`);
 
     let jobOpts = null;
     let delay;
@@ -256,7 +256,7 @@ class Events {
     }
 
     if (jobOpts) {
-      log.trace(`Events::scheduleJob(QUEUED): (${JSON.stringify(event)})`);
+      log.debug(`Events::scheduleJob(QUEUED): (${JSON.stringify(event)})`);
       const job = await EventsQueue.add(event, jobOpts);
     } else {
       log.debug(`Events::scheduleJob(skip): nothing to do, job has expired(${JSON.stringify(event)})`);
@@ -266,7 +266,7 @@ class Events {
   async processJob(job, done) {
     const zone = await ZonesInstance.getZone(job.data.zid);
 
-    log.trace(`Events::processJob(ENTER): (${JSON.stringify(job)})`);
+    log.debug(`Events::processJob(ENTER): (${JSON.stringify(job)})`);
 
     // If the job.id !== job.data.id (original event.id), then we created this job to turn the
     // zone off at a specified time. If the station was turned off manually, log & do nothing.
@@ -280,7 +280,7 @@ class Events {
                                                             delay: irrTime,
                                                             removeOnComplete: true });
 
-          log.trace(`Events::process(1) zone ${zone.id} switched ${zone.status === true ? 'ON' : 'OFF'}`);
+          log.debug(`Events::process(1) zone ${zone.id} switched ${zone.status === true ? 'ON' : 'OFF'}`);
           done();
         });
       } else {
@@ -291,7 +291,7 @@ class Events {
       // We are meant to turn the zone OFF
       if (zone.status) {
         // Switch OFF the station
-        log.trace(`Events::process(2) zone ${zone.id} switched ${zone.status === true ? 'ON' : 'OFF'}`);
+        log.debug(`Events::process(2) zone ${zone.id} switched ${zone.status === true ? 'ON' : 'OFF'}`);
         ZonesInstance.switchZone(job.data.zid, job.data.fertilizer, async (status) => {
           done();
         });

@@ -120,7 +120,7 @@ class Plantings {
       return(fertilizer);
     }
 
-    log.trace(`getFertilizerByZone: zid(${zid}) start(${start}) end(${end}) lastFert(${lastFertilized})`);
+    log.debug(`getFertilizerByZone: zid(${zid}) start(${start}) end(${end}) lastFert(${lastFertilized})`);
 
     const fertApplications = [];
     do {
@@ -148,13 +148,13 @@ class Plantings {
         const lastAgeFertilized = (lastFertilized < plantingDate ? 0 : planting.age
                     + Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime()) / (milli_per_day))));
 
-        log.trace(`getFertilizerByZone: age(${age}) lastAgeFert(${lastAgeFertilized}) stages(${initStage}:${devStage}:${midStage})`);
+        log.debug(`getFertilizerByZone: age(${age}) lastAgeFert(${lastAgeFertilized}) stages(${initStage}:${devStage}:${midStage})`);
 
         // If the crop wants fertilizer at a particular stage and
         // it hasn't been fertilized during this stage yet, record what the crop needs
         if (age <= initStage) {
           if (crop.initFreq && lastAgeFertilized === 0) {
-            log.trace(`getFertilizerByZone(INIT): n(${crop.initN}) p(${crop.initN}) k(${crop.initK})`);
+            log.debug(`getFertilizerByZone(INIT): n(${crop.initN}) p(${crop.initN}) k(${crop.initK})`);
             fertApplications.push({
               date: start,
               crops: planting.count,
@@ -165,7 +165,7 @@ class Plantings {
           }
         } else if (age <= devStage) {
           if (crop.devFreq && lastAgeFertilized < initStage) {
-            log.trace(`getFertilizerByZone(DEV): n(${crop.devN}) p(${crop.devN}) k(${crop.devK})`);
+            log.debug(`getFertilizerByZone(DEV): n(${crop.devN}) p(${crop.devN}) k(${crop.devK})`);
             fertApplications.push({
               date: start,
               crops: planting.count,
@@ -176,7 +176,7 @@ class Plantings {
           }
         } else if (age <= midStage) {
           if (crop.midFreq && lastAgeFertilized < devStage) {
-            log.trace(`getFertilizerByZone(MID): n(${crop.midN}) p(${crop.midN}) k(${crop.midK})`);
+            log.debug(`getFertilizerByZone(MID): n(${crop.midN}) p(${crop.midN}) k(${crop.midK})`);
             fertApplications.push({
               date: start,
               crops: planting.count,
@@ -187,7 +187,7 @@ class Plantings {
           }
         } else {
           if (crop.lateFreq && lastAgeFertilized < midStage) {
-            log.trace(`getFertilizerByZone(LATE): n(${crop.lateN}) p(${crop.lateN}) k(${crop.lateK})`);
+            log.debug(`getFertilizerByZone(LATE): n(${crop.lateN}) p(${crop.lateN}) k(${crop.lateK})`);
             fertApplications.push({
               date: start,
               crops: planting.count,

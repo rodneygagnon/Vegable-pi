@@ -22,11 +22,11 @@ const LocalStrategy = require('passport-local').Strategy;
 const path = require('path');
 const bodyParser = require('body-parser');
 
-const logger = require('morgan');
+const morgan = require('morgan');
 
 // Main Application Singleton
 const { VegableInstance } = require('./controllers/vegable');
-const { milli_per_min } = require('../config/constants');
+const { milli_per_hour } = require('../config/constants');
 
 // Application Routes
 const IndexRouter = require('./routes/index');
@@ -65,7 +65,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '/views'));
 
 app.use(helmet());
-app.use(logger('dev'));
+app.use(morgan('dev'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -75,7 +75,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
   secret: 'eat-more-veggies',
-  cookie: { maxAge: 60 * milli_per_min },
+  cookie: { maxAge: 24 * milli_per_hour },
   store: new RedisStore({ host: 'redis' }),
   saveUninitialized: false,
   resave: false

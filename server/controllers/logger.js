@@ -1,29 +1,41 @@
 /**
- * log4js logger
+ * Winston / Loggly logger
  *
  * @author: rgagnon
  * @copyright 2018 vegable.io
  */
 
-const log4js = require('log4js');
+const { createLogger, format, transports } = require('winston');
+const { Loggly } = require('winston-loggly-bulk');
 
-log4js.configure({
-  // appenders: {
-  //    redis: { type: '@log4js-node/redis', maxLogSize: 10485760, backups: 3, channel: 'logs' }
-  // },
-  // categories: { default: { appenders: ['redis'], level: 'debug' } }
-
-  appenders: { out: { type: 'stdout' } },
-  categories: { default: { appenders: ['out'], level: 'debug' } },
-
-  // appenders: {
-  //  file: { type: 'file', filename: '/var/log/vegable.log', maxLogSize: 10485760, backups: 3,}
-  // },
-  // categories: { default: { appenders: ['file'], level: 'debug' } }
+/**
+ * Winston/Loggly logging
+ */
+const env = process.env.NODE_ENV || 'development';
+const log = createLogger({
+  transports: [
+    new transports.Console({
+      level: env === 'development' ? 'debug' : 'info',
+      format: format.combine(
+        format.colorize(),
+        format.timestamp({
+          format: 'YYYY-MM-DD HH:mm:ss'
+        }),
+        format.printf(
+          info => `${info.timestamp} [ ${info.level} ]: ${info.message}`
+        )
+      )
+    }),
+    new Loggly({
+      level: 'info',
+      inputToken: "cc52e012-7f18-4d5a-ac03-f8f82eca256c",
+      subdomain: "vegable",
+      tags: ["Vegable"],
+      json:true
+   })
+  ]
 });
 
-const log = log4js.getLogger('app');
-
 module.exports = {
-  log,
+  log
 };
