@@ -5,10 +5,12 @@
  * @version 0.1
  */
 
+const uuidv4 = require('uuid/v4');
 const request = require('request');
 const Schema = require('schm');
 
 const { log } = require('../controllers/logger');
+const { Loggly } = require('winston-loggly-bulk');
 
 const config = require('../../config/config');
 
@@ -21,6 +23,7 @@ const mapboxGeocodeURL = 'https://api.mapbox.com/geocoding/v5/mapbox.places/';
 const mapboxAccessKeyURL = '.json?access_token=';
 
 const settingsSchema = Schema({
+  uuid: String,
   address: String,
   city: String,
   state: String,
@@ -33,7 +36,8 @@ const settingsSchema = Schema({
   mapboxKey: String,
   darkskyKey: String,
   zones: { type: Number, min: 0 },
-  cimisKey: String
+  cimisKey: String,
+  logglyKey: String
 });
 
 const defaultSettings = {
@@ -49,7 +53,8 @@ const defaultSettings = {
   mapboxKey: config.default_mapbox_key,
   darkskyKey: config.default_darksky_key,
   zones: config.zones,
-  cimisKey: config.cimis_key
+  cimisKey: config.cimis_key,
+  logglyKey: config.loggly_key
 };
 
 // Practice Types
@@ -83,12 +88,26 @@ class Settings {
     const hlen = await db.hlenAsync(dbKeys.dbConfigKey);
     if (hlen === 0) { // key does not exist, store the default options
       try {
+        // Give device a UUID
+        defaultSettings.uuid = uuidv4();
+
         const result = await db.hmsetAsync(dbKeys.dbConfigKey, defaultSettings);
         log.debug(`Initialized Settings: ${result}`);
       } catch (error) {
         log.error(error);
       }
+    } else {
+      defaultSettings.uuid = await db.hgetAsync(dbKeys.dbConfigKey, 'uuid');
     }
+
+    log.add(new Loggly({
+      level: 'info',
+      inputToken: defaultSettings.logglyKey,
+      subdomain: 'vegable',
+      tags: [defaultSettings.uuid],
+      json:true
+    }));
+
     log.debug('*** Settings Initialized!');
   }
 
