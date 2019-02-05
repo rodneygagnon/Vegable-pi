@@ -1,0 +1,231 @@
+/*------------------------------------
+  Signin Form
+------------------------------------*/
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-align: center;
+  align-items: center;
+  background-color: #f5f8fb;
+}
+
+.form-signin {
+  width: 100%;
+	padding: 25px;
+  background: #fff;
+  max-width: 480px;
+	-moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  margin: auto;
+}
+
+.form-register {
+  width: 100%;
+	padding: 25px;
+  background: #fff;
+  max-width: 640px;
+	-moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  margin: auto;
+}
+
+/*------------------------------------
+  Form
+------------------------------------*/
+.form {
+  border-radius: 0.25rem;
+}
+
+.form__input {
+  z-index: 2;
+}
+
+.form__append, .form__prepend,
+.form__prepend > .btn,
+.form__append > .btn, .form__text {
+  background-clip: padding-box;
+  transition: all 0.2s ease-in-out;
+}
+
+.form__append .btn {
+  margin-left: 1px;
+}
+
+.form__text {
+  position: relative;
+}
+
+.form__text-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+}
+
+.form--no-brd .form__input,
+.form--no-brd .form__text {
+  border-color: transparent;
+}
+
+.form--white-brd .form__input,
+.form--white-brd .form__text {
+  border-color: #fff;
+}
+
+.form--no-addon-brd .form__input:not(:first-child) {
+  border-left: none;
+}
+
+.form--no-addon-brd .form__input:not(:last-child) {
+  border-right: none;
+}
+
+/*------------------------------------
+  Form Sizes
+------------------------------------*/
+.form .form__text {
+  min-width: 3rem;
+  font-size: 0.8125rem;
+}
+
+.form--sm .form__text {
+  min-width: 2.6875rem;
+}
+
+.form--lg .form__text {
+  font-size: 1.125rem;
+  min-width: 3.875rem;
+}
+
+.form--lg .form__append > .btn,
+.form--lg .form__prepend > .btn {
+  font-size: 1.125rem;
+}
+
+/*------------------------------------
+  Form Selector
+------------------------------------*/
+.form-selector {
+  padding-left: 0;
+  margin-right: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.form-selector__input:checked ~ .form-selector__label {
+  border-color: #21c87a;
+}
+
+.form-selector__label {
+  text-align: center;
+  cursor: pointer;
+  min-width: 5rem;
+  border: 1px solid #e3e6f0;
+  border-radius: 0.25rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.form-selector__label::before, .form-selector__label::after {
+  display: none;
+}
+
+/*------------------------------------
+  Form Selector Modern
+------------------------------------*/
+.form-selector-modern {
+  width: 100%;
+  padding-left: 0;
+  margin-right: 0;
+  margin-bottom: 1rem;
+}
+
+.form-selector-modern__input:checked ~ .form-selector-modern__label {
+  border-color: #21c87a;
+}
+
+.form-selector-modern__label {
+  width: 100%;
+  cursor: pointer;
+  border: 2px solid #e3e6f0;
+  border-radius: 0.25rem;
+  padding: 1.25rem;
+  padding-left: 3rem;
+}
+
+.form-selector-modern__label::before, .form-selector-modern__label::after {
+  top: 1.5rem;
+  left: 1.25rem;
+}
+
+/*------------------------------------
+  Success State
+------------------------------------*/
+.u-has-success .form.u-focus-state {
+  box-shadow: 0 0 25px rgba(33, 200, 122, 0.1);
+}
+
+.u-has-success .form:focus,
+.u-has-success .form.u-focus-state .form__text,
+.u-has-success .form.u-focus-state .form__input,
+.u-has-success .form.u-focus-state *:focus {
+  border-color: #21c87a;
+}
+
+.u-has-success .form.u-focus-state .form__text {
+  color: #21c87a;
+}
+
+/*------------------------------------
+  Error State
+------------------------------------*/
+.u-has-error .form.u-focus-state {
+  box-shadow: 0 0 25px rgba(218, 75, 72, 0.1);
+}
+
+.u-has-error .form:focus,
+.u-has-error .form.u-focus-state .form__text,
+.u-has-error .form.u-focus-state .form__input,
+.u-has-error .form.u-focus-state *:focus {
+  border-color: #da4b48;
+}
+
+.u-has-error .form.u-focus-state .form__text {
+  color: #da4b48;
+}
+
+/*------------------------------------
+  Focus States
+------------------------------------*/
+.form {
+  transition: all 0.2s ease-in-out;
+}
+
+.form.u-focus-state {
+  box-shadow: 0 0 25px rgba(100, 111, 121, 0.1);
+}
+
+.form:focus,
+.form.u-focus-state .form__text,
+.form.u-focus-state .form__input,
+.form.u-focus-state *:focus {
+  border-color: rgba(21, 27, 38, 0.5);
+}
+
+.form.u-focus-state .form__text {
+  color: #151b26;
+}
+
+/* White Border */
+.form--white-brd.u-focus-state .form__input {
+  border-color: #fff;
+}
+

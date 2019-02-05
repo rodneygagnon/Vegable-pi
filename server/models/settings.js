@@ -24,6 +24,7 @@ const mapboxAccessKeyURL = '.json?access_token=';
 
 const settingsSchema = Schema({
   uuid: String,
+  registered: { type: Number, min: 0 }, // ISO8601 - when registered
   address: String,
   city: String,
   state: String,
@@ -165,6 +166,14 @@ class Settings {
   getDefaultEmail() { return config.default_email; }
 
   getDefaultPassword() { return config.default_password; }
+
+  // Get/Set registered
+  async getRegistered() {
+    return await this.getSetHashKey('registered', 0);
+  }
+  async setRegistered(registered) {
+    return await this.setHashKey('registered', registered);
+  }
 
   // Get/Set address
   async getAddress() {

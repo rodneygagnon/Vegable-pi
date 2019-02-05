@@ -38,8 +38,8 @@ function initTables() {
   $openZoneTable.bootstrapTable({
     url: '/api/zones/get/planting',
     icons: {
-      detailOpen: 'fas fa-chevron-right',
-      detailClose: 'fas fa-chevron-down'
+      detailOpen: 'icon icon-chevron-right',
+      detailClose: 'icon icon-chevron-down'
     },
     columns: [
       {

@@ -11,8 +11,8 @@ function initBootstrapTable() {
   $table.bootstrapTable({
     url: '/api/crops/get',
     icons: {
-      detailOpen: 'fas fa-chevron-right',
-      detailClose: 'fas fa-chevron-down'
+      detailOpen: 'icon icon-chevron-right',
+      detailClose: 'icon icon-chevron-down'
     },
     columns: [
       {

@@ -25,7 +25,7 @@ $().ready(function () {
                           (day === 1 ? 'Tomorrow' :
                             moment.unix(forecast[day].time).format('dddd')));
 
-      $(`#day${day}DateString`).replaceWith(`<h3 id="day${day}DateString" class="lead">${dateString}</h3>`);
+      $(`#day${day}DateString`).replaceWith(`<h5 id="day${day}DateString">${dateString}</h5>`);
       skycons.add(`day${day}WeatherIcon`, forecast[day].icon);
 
       // Indicator Heat Stress Conditions
@@ -44,12 +44,12 @@ $().ready(function () {
         loTempIndicator = `Low: ${forecast[day].temperatureLow.toFixed(0)}˚`;
       }
 
-      $(`#day${day}TempString`).replaceWith(`<h4 id="day${day}TempString" class="fs-0">${hiTempIndicator} ${loTempIndicator}</h4>`);
+      $(`#day${day}TempString`).replaceWith(`<h6 id="day${day}TempString">${hiTempIndicator} ${loTempIndicator}</h6>`);
 
       const precip = forecast[day].precipIntensity * 24;
       const probability = forecast[day].precipProbability * 100;
-      $(`#day${day}PrecipString`).replaceWith(`<h4 id="day${day}PrecipString" class="fs-0">Precip ${precip.toFixed(1)}&#34 ${probability.toFixed(0)}%</h4>`);
-      $(`#day${day}SummaryString`).replaceWith(`<h4 id="day${day}SummaryString" class="fs-1 lead">${forecast[day].summary}</h4>`);
+      $(`#day${day}PrecipString`).replaceWith(`<h6 id="day${day}PrecipString">Precip ${precip.toFixed(1)}&#34 ${probability.toFixed(0)}%</h6>`);
+      $(`#day${day}SummaryString`).replaceWith(`<p id="day${day}SummaryString">${forecast[day].summary}</p>`);
     }
     skycons.play();
   });
@@ -183,8 +183,8 @@ $().ready(function () {
           });
         }
 
-        $(`#irrTotal`).replaceWith(`<h3 id="irrTotal" class="mt-4">${irrTotal} Gallons</h3>`);
-        $(`#irrEvents`).replaceWith(`<h5 id="irrEvents" class="lead">Irrigated ${stats.length}x Fertilized ${fertEvents}x</h5>`);
+        $(`#irrTotal`).replaceWith(`<h4 id="irrTotal" class="mt-4">${irrTotal} Gallons</h4>`);
+        $(`#irrEvents`).replaceWith(`<h6 id="irrEvents" class="mb-4">Irrigated ${stats.length}x Fertilized ${fertEvents}x</h6>`);
 
         window.myBar.update();
       });
