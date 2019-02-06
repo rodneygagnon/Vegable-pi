@@ -139,7 +139,7 @@
     </div>
 
     <div class="text-center mb-3">
-      <p class="text-muted">Do not have an account? <a href="/signup">Sign up</a></p>
+      <p class="text-muted">Don't have an account? <a href="/signup">Sign up</a></p>
     </div>
 
     <p class="small text-center text-muted mb-0">All rights reserved. © 2019 Vegable.</p>
@@ -152,6 +152,8 @@
   <script src="assets/js/popper.min.js"></script>
   <script src="assets/js/bootstrap.js"></script>
 
+  <script src="assets/js/jquery.backstretch.min.js"></script>
+
   <script src="assets/js/form-validation/jquery.validate.js"></script>
   <script src="assets/js/form-validation/hs.core.js"></script>
   <script src="assets/js/form-validation/hs.validation.js"></script>
@@ -159,6 +161,8 @@
 
   <script>
 	 $().ready(function() {
+      $.backstretch("assets/img/backgrounds/markus-spiske-502390-unsplash.jpg");
+
       // initialization of forms
       $.HSCore.helpers.HSFocusState.init();
 

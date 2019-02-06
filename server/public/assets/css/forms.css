@@ -19,6 +19,7 @@ body {
   width: 100%;
 	padding: 25px;
   background: #fff;
+  opacity: 0.95;
   max-width: 480px;
 	-moz-border-radius: 4px;
   -webkit-border-radius: 4px;
@@ -30,6 +31,7 @@ body {
   width: 100%;
 	padding: 25px;
   background: #fff;
+  opacity: 0.95;
   max-width: 640px;
 	-moz-border-radius: 4px;
   -webkit-border-radius: 4px;
@@ -228,4 +230,3 @@ body {
 .form--white-brd.u-focus-state .form__input {
   border-color: #fff;
 }
-
