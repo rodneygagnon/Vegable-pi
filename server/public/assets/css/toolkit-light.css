@@ -76,7 +76,6 @@
   --breakpoint-xl: 1200px;
   --font-family-sans-serif: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-
 *,
 *::before,
 *::after {
@@ -8693,6 +8692,7 @@ textarea {
   color: inherit;
   text-decoration: inherit; }
 
+/*
 .datepicker {
   padding: 4px;
   border-radius: 4px;
@@ -8961,6 +8961,7 @@ textarea {
   .datepicker thead tr:first-child .cw {
     cursor: default;
     background-color: transparent; }
+*/
 
 .input-group.date .input-group-addon {
   cursor: pointer; }

@@ -83,43 +83,42 @@ function detailFormatter(index, row) {
 
 $().ready(function() {
   $table.on('click-row.bs.table', function (e, row, $element) {
-    var inst = $('[data-remodal-id=editCropModal]').remodal();
+    $('[id=editCropModal] #editCropModalLabel').text('Edit: ' + row.name);
+    $('[id=editCropModal] #id').val(row.id);
+    $('[id=editCropModal] #name').val(row.name);
+    $('[id=editCropModal] #initDay').val(row.initDay);
+    $('[id=editCropModal] #initKc').val(row.initKc);
+    $('[id=editCropModal] #initN').val(row.initN);
+    $('[id=editCropModal] #initP').val(row.initP);
+    $('[id=editCropModal] #initK').val(row.initK);
+    $('[id=editCropModal] #initFreq').val(row.initFreq);
+    $('[id=editCropModal] #devDay').val(row.devDay);
+    $('[id=editCropModal] #devKc').val(row.devKc);
+    $('[id=editCropModal] #devN').val(row.devN);
+    $('[id=editCropModal] #devP').val(row.devP);
+    $('[id=editCropModal] #devK').val(row.devK);
+    $('[id=editCropModal] #devFreq').val(row.devFreq);
+    $('[id=editCropModal] #midDay').val(row.midDay);
+    $('[id=editCropModal] #midKc').val(row.midKc);
+    $('[id=editCropModal] #midN').val(row.midN);
+    $('[id=editCropModal] #midP').val(row.midP);
+    $('[id=editCropModal] #midK').val(row.midK);
+    $('[id=editCropModal] #midFreq').val(row.midFreq);
+    $('[id=editCropModal] #lateDay').val(row.lateDay);
+    $('[id=editCropModal] #lateKc').val(row.lateKc);
+    $('[id=editCropModal] #lateN').val(row.lateN);
+    $('[id=editCropModal] #lateP').val(row.lateP);
+    $('[id=editCropModal] #lateK').val(row.lateK);
+    $('[id=editCropModal] #lateFreq').val(row.lateFreq);
 
-    $('[data-remodal-id=editCropModal] #remodalTitle').text('Edit: ' + row.name);
-    $('[data-remodal-id=editCropModal] #id').val(row.id);
-    $('[data-remodal-id=editCropModal] #name').val(row.name);
-    $('[data-remodal-id=editCropModal] #initDay').val(row.initDay);
-    $('[data-remodal-id=editCropModal] #initKc').val(row.initKc);
-    $('[data-remodal-id=editCropModal] #initN').val(row.initN);
-    $('[data-remodal-id=editCropModal] #initP').val(row.initP);
-    $('[data-remodal-id=editCropModal] #initK').val(row.initK);
-    $('[data-remodal-id=editCropModal] #initFreq').val(row.initFreq);
-    $('[data-remodal-id=editCropModal] #devDay').val(row.devDay);
-    $('[data-remodal-id=editCropModal] #devKc').val(row.devKc);
-    $('[data-remodal-id=editCropModal] #devN').val(row.devN);
-    $('[data-remodal-id=editCropModal] #devP').val(row.devP);
-    $('[data-remodal-id=editCropModal] #devK').val(row.devK);
-    $('[data-remodal-id=editCropModal] #devFreq').val(row.devFreq);
-    $('[data-remodal-id=editCropModal] #midDay').val(row.midDay);
-    $('[data-remodal-id=editCropModal] #midKc').val(row.midKc);
-    $('[data-remodal-id=editCropModal] #midN').val(row.midN);
-    $('[data-remodal-id=editCropModal] #midP').val(row.midP);
-    $('[data-remodal-id=editCropModal] #midK').val(row.midK);
-    $('[data-remodal-id=editCropModal] #midFreq').val(row.midFreq);
-    $('[data-remodal-id=editCropModal] #lateDay').val(row.lateDay);
-    $('[data-remodal-id=editCropModal] #lateKc').val(row.lateKc);
-    $('[data-remodal-id=editCropModal] #lateN').val(row.lateN);
-    $('[data-remodal-id=editCropModal] #lateP').val(row.lateP);
-    $('[data-remodal-id=editCropModal] #lateK').val(row.lateK);
-    $('[data-remodal-id=editCropModal] #lateFreq').val(row.lateFreq);
+    $('[id=editCropModal] #deleteCropButton').removeClass('d-none');
 
-    inst.open();
-    $('[data-remodal-id=editCropModal] #delete_action').removeClass('hide-form-button');
+    $('[id=editCropModal]').modal();
   });
 
-  $(document).on('closing', '.remodal', function (e) {
-    $('[data-remodal-id=editCropModal] #cropForm')[0].reset();
-    $('[data-remodal-id=editCropModal] #delete_action').addClass('hide-form-button');
+  $('#editCropModal').on('hidden.bs.modal', function (e) {
+    $('[id=editCropModal] #cropForm')[0].reset();
+    $('[id=editCropModal] #deleteCropButton').addClass('d-none');
   });
 
   initBootstrapTable();

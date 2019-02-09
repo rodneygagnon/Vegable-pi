@@ -80,28 +80,27 @@ $().ready(function () {
   });
 
   $table.on('click-row.bs.table', function (e, row, $element) {
-    var inst = $('[data-remodal-id=editPlantingModal]').remodal();
+    $('[id=editPlantingModal] #editPlantingModalLabel').text('Edit: ' + row.title);
+    $('[id=editPlantingModal] #id').val(row.id);
+    $('[id=editPlantingModal] #title').val(row.title);
+    $('[id=editPlantingModal] #zid').selectpicker('val', row.zid);
+    $('[id=editPlantingModal] #cid').selectpicker('val', (typeof row.cid === 'undefined') ? '' : row.cid);
+    $('[id=editPlantingModal] #date').val(moment(row.date).format('MM/DD/YYYY'));
+    $('[id=editPlantingModal] #count').val(row.count);
+    $('[id=editPlantingModal] #spacing').val(row.spacing);
+    $('[id=editPlantingModal] #age').val(row.age);
+    $('[id=editPlantingModal] #mad').val(row.mad);
 
-    $('[data-remodal-id=editPlantingModal] #remodalTitle').text('Edit: ' + row.title);
-    $('[data-remodal-id=editPlantingModal] #id').val(row.id);
-    $('[data-remodal-id=editPlantingModal] #title').val(row.title);
-    $('[data-remodal-id=editPlantingModal] #zid').selectpicker('val', row.zid);
-    $('[data-remodal-id=editPlantingModal] #cid').selectpicker('val', (typeof row.cid === 'undefined') ? '' : row.cid);
-    $('[data-remodal-id=editPlantingModal] #date').val(moment(row.date).format('MM/DD/YYYY'));
-    $('[data-remodal-id=editPlantingModal] #count').val(row.count);
-    $('[data-remodal-id=editPlantingModal] #spacing').val(row.spacing);
-    $('[data-remodal-id=editPlantingModal] #age').val(row.age);
-    $('[data-remodal-id=editPlantingModal] #mad').val(row.mad);
+    $('[id=editPlantingModal] #deletePlantingButton').removeClass('d-none');
 
-    inst.open();
-    $('[data-remodal-id=editPlantingModal] #delete_action').removeClass('hide-form-button');
+    $('[id=editPlantingModal]').modal();
   });
 
-  $(document).on('closing', '.remodal', function (e) {
-    $('[data-remodal-id=editPlantingModal] #plantingForm')[0].reset();
-    $('[data-remodal-id=editPlantingModal] #zid').selectpicker('val', 1);
-    $('[data-remodal-id=editPlantingModal] #cids').selectpicker('val', '');
-    $('[data-remodal-id=editPlantingModal] #delete_action').addClass('hide-form-button');
+  $('#editPlantingModal').on('hidden.bs.modal', function (e) {
+    $('[id=editPlantingModal] #plantingForm')[0].reset();
+    $('[id=editPlantingModal] #zid').selectpicker('val', 1);
+    $('[id=editPlantingModal] #cids').selectpicker('val', '');
+    $('[id=editPlantingModal] #deletePlantingButton').addClass('d-none');
   });
 
   initBootstrapTable();

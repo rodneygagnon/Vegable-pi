@@ -29,8 +29,6 @@
     <!--    Stylesheets-->
     <!-- ===============================================-->
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic" rel="stylesheet">
-    <link href="assets/lib/remodal/remodal.css" rel="stylesheet">
-    <link href="assets/lib/remodal/remodal-default-theme.css" rel="stylesheet">
     <link href="assets/css/tempusdominus-bootstrap-4.css" rel="stylesheet">
     <link href="assets/css/bootstrap-table.css" rel="stylesheet">
     <link href="assets/css/bootstrap-select.css" rel="stylesheet">
@@ -51,8 +49,6 @@
 
 
 <body>
-  
-
 
 
 <div class="with-iconav">
@@ -182,106 +178,108 @@
   <!-- ===============================================-->
   <!--    Modals-->
   <!-- ===============================================-->
-  <div class="remodal" data-remodal-id="editZoneModal" align="left" >
-    <button class="remodal-close" data-remodal-action="close"></button>
-    <h4 id="remodalTitle">Edit Zone</h4>
-    <p>Change the zone name, description and flow rate.</p><br>
-
-    <form class="needs-validation mt-3" method="post" action="/zones/update" novalidate>
-      <!--  HIDDEN FIELDS -->
-      <input type="hidden" id="id" name="id"/>
-      <input type="hidden" id="availableWater" name="availableWater"/>
-      <input type="hidden" id="textColor" name="textColor"/>
-
-      <div class="row mb-4">
-        <div class="col">
-          <label for="name" class="col-form-label">Name</label>
-          <input type="text" class="form-control" id="name" name="name" required>
-          <div class="invalid-feedback">
-            Please provide a zone name.
-          </div>
+  <div class="modal fade" id="editZoneModal" tabindex="-1" role="dialog" aria-labelledby="editZoneModalLabel" aria-hidden="true" align="left" >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editZoneModalLabel">Edit Zone</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
-        <div class="col">
-          <label for="start" class="col-form-label">Schedule Start Time</label>
-          <div class="input-group date" id="starttimepicker" data-target-input="nearest">
-              <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker" required/>
-              <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
-                  <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+
+        <form class="needs-validation mt-3" method="post" action="/zones/update" novalidate>
+          <div class="modal-body">
+            <!--  HIDDEN FIELDS -->
+            <input type="hidden" id="id" name="id"/>
+            <input type="hidden" id="availableWater" name="availableWater"/>
+            <input type="hidden" id="textColor" name="textColor"/>
+
+            <div class="row mb-4">
+              <div class="col">
+                <label for="name" class="col-form-label">Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+                <div class="invalid-feedback">
+                  Please provide a zone name.
+                </div>
               </div>
-              <div class="invalid-feedback">
-                Please provide a valid time when irrigation should be applied.
+              <div class="col">
+                <label for="start" class="col-form-label">Schedule Start Time</label>
+                <div class="input-group date" id="starttimepicker" data-target-input="nearest">
+                    <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker" required/>
+                    <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
+                        <div class="input-group-text"><i class="icon icon-clock"></i></div>
+                    </div>
+                    <div class="invalid-feedback">
+                      Please provide a valid time when irrigation should be applied.
+                    </div>
+               </div>
               </div>
-         </div>
-        </div>
-      </div>
-      <div class="row mb-4">
-        <div class="col">
-          <label for="area" class="col-form-label">Area (sqft)</label>
-          <input type="text" class="form-control" id="area" name="area" required>
-          <div class="invalid-feedback">
-            Please provide a valid area in square feet.
+            </div>
+            <div class="row mb-4">
+              <div class="col">
+                <label for="area" class="col-form-label">Area (sqft)</label>
+                <input type="text" class="form-control" id="area" name="area" required>
+                <div class="invalid-feedback">
+                  Please provide a valid area in square feet.
+                </div>
+              </div>
+              <div class="col">
+                <label for="swhc" class="col-form-label">Soil Type</label>
+                <select class="selectpicker form-control" id="swhc" name="swhc" data-size="7" required>
+                  <%
+                    var soilTypes = [ "Coarse", "Sandy", "Medium", "Fine" ];
+                    var soilWHC = [ "0.75", "1.25", "1.5", "2.0" ];
+                    for ( var i = 0; i < soilTypes.length; i++ ) {
+                      %><option value="<%=soilWHC[ i ] %>"><%=soilTypes[ i ] %></option><%
+                    }
+                  %>
+                </select>
+              </div>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col">
+                <label for="emitterCount" class="col-form-label">Emitters</label>
+                <input type="text" class="form-control" id="emitterCount" name="emitterCount" required>
+                <div class="invalid-feedback">
+                  Please provide a valid emitter count.
+                </div>
+              </div>
+              <div class="col">
+                <label for="emitterRate" class="col-form-label">Flow Rate (gpm)</label>
+                <select class="selectpicker form-control" id="emitterRate" name="emitterRate" data-size="7" required>
+                  <%
+                    var rateTypes = [ "0.5", "1.0", "2.0" ];
+                    var rates = [ "0.5", "1", "2" ];
+                    for ( var i = 0; i < rates.length; i++ ) {
+                      %><option value="<%=rates[ i ] %>"><%=rateTypes[ i ] %></option><%
+                    }
+                  %>
+                </select>
+              </div>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col">
+                <label for="color" class="col-form-label">Zone Color</label>
+                <input type="hidden" class="form-control" id="color" name="color">
+                <div id="colorpicker-container"></div>
+             </div>
+              <div class="col">
+              </div>
+            </div>
+
           </div>
-        </div>
-        <div class="col">
-          <label for="swhc" class="col-form-label">Soil Type</label>
-          <select class="selectpicker form-control" id="swhc" name="swhc" data-size="7" required>
-            <%
-              var soilTypes = [ "Coarse", "Sandy", "Medium", "Fine" ];
-              var soilWHC = [ "0.75", "1.25", "1.5", "2.0" ];
-              for ( var i = 0; i < soilTypes.length; i++ ) {
-                %><option value="<%=soilWHC[ i ] %>"><%=soilTypes[ i ] %></option><%
-              }
-            %>
-          </select>
-        </div>
-      </div>
-
-      <div class="row mb-4">
-        <div class="col">
-          <label for="emitterCount" class="col-form-label">Emitters</label>
-          <input type="text" class="form-control" id="emitterCount" name="emitterCount" required>
-          <div class="invalid-feedback">
-            Please provide a valid emitter count.
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary mr-auto">Save</button>
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
           </div>
-        </div>
-        <div class="col">
-          <label for="emitterRate" class="col-form-label">Flow Rate (gpm)</label>
-          <select class="selectpicker form-control" id="emitterRate" name="emitterRate" data-size="7" required>
-            <%
-              var rateTypes = [ "0.5", "1.0", "2.0" ];
-              var rates = [ "0.5", "1", "2" ];
-              for ( var i = 0; i < rates.length; i++ ) {
-                %><option value="<%=rates[ i ] %>"><%=rateTypes[ i ] %></option><%
-              }
-            %>
-          </select>
-        </div>
+        </form>
       </div>
-
-      <div class="row mb-4">
-        <div class="col">
-          <label for="color" class="col-form-label">Zone Color</label>
-          <input type="hidden" class="form-control" id="color" name="color">
-          <div id="colorpicker-container"></div>
-       </div>
-        <div class="col">
-        </div>
-      </div>
-
-      <div class="d-flex">
-        <div class="p-2"><button type="submit" class="btn btn-sm btn-primary">Save</button></div>
-        <div class="p-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-remodal-action="cancel">Cancel</button></div>
-      </div>
-    </form>
+    </div>
   </div>
 
-  <div class="remodal" data-remodal-id="switchModal">
-    <button class="remodal-close" data-remodal-action="close"></button>
-    <h4 id="remodalTitle">Switch Zone</h4>
-    <p></p>
-    <button class="btn btn-sm btn-primary mr-3" data-remodal-action="confirm">Awesome</button>
-  </div> 
-      
 
   <!-- ===============================================-->
   <!--    JavaScripts-->
@@ -289,7 +287,6 @@
   <script src="assets/js/jquery.min.js"></script>
   <script src="assets/js/popper.min.js"></script>
   <script src="assets/js/bootstrap.js"></script>
-  <script src="assets/lib/remodal/remodal.js"></script>
   <script src="assets/js/moment.min.js"></script>
   <script src="assets/js/tempusdominus-bootstrap-4.js"></script>
   <script src="assets/js/bootstrap-select.js"></script>

@@ -37,37 +37,35 @@ function initCalendar() {
       }
     },
     select: (start, end) => {
-      var inst = $('[data-remodal-id=editScheduleModal]').remodal();
+      $('[id=editScheduleModal] #editScheduleModalLabel').text('Create a new Event');
+      $('[id=editScheduleModal] #title').val('');
+      $('[id=editScheduleModal] #id').val('');
+      $('[id=editScheduleModal] #zid').selectpicker('val', ['0']); // None
+      $('[id=editScheduleModal] #amt').selectpicker('val', ['1']); // Min
+      $('[id=editScheduleModal] #fertilize').prop('checked', false);
+      $('[id=editScheduleModal] #start').val(moment(start).format('MM/DD/YYYY hh:mm A'));
+      $('[id=editScheduleModal] #repeatDow').selectpicker('val', ['7']); // None
+      $('[id=editScheduleModal] #repeatEnd').val(moment(end).format('MM/DD/YYYY hh:mm A'));
 
-      $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Create a new Event');
-      $('[data-remodal-id=editScheduleModal] #title').val('');
-      $('[data-remodal-id=editScheduleModal] #id').val('');
-      $('[data-remodal-id=editScheduleModal] #zid').selectpicker('val', ['0']); // None
-      $('[data-remodal-id=editScheduleModal] #amt').selectpicker('val', ['1']); // Min
-      $('[data-remodal-id=editScheduleModal] #fertilize').prop('checked', false);
-      $('[data-remodal-id=editScheduleModal] #start').val(moment(start).format('MM/DD/YYYY hh:mm A'));
-      $('[data-remodal-id=editScheduleModal] #repeatDow').selectpicker('val', ['7']); // None
-      $('[data-remodal-id=editScheduleModal] #repeatEnd').val(moment(end).format('MM/DD/YYYY hh:mm A'));
+      $('[id=editScheduleModal] #deleteScheduleButton').addClass('d-none');
 
-      inst.open();
-      $('[data-remodal-id=editScheduleModal] #delete_action').addClass('hide-form-button');
+      $('[id=editScheduleModal]').modal();
     },
     eventClick: function(event, jsEvent, view) {
-      var inst = $('[data-remodal-id=editScheduleModal]').remodal();
-
-      $('[data-remodal-id=editScheduleModal] #remodalTitle').text('Update an Event');
-      $('[data-remodal-id=editScheduleModal] #title').val(event.title);
-      $('[data-remodal-id=editScheduleModal] #id').val(event.id);
-      $('[data-remodal-id=editScheduleModal] #zid').selectpicker('val', event.zid);
-      $('[data-remodal-id=editScheduleModal] #amt').selectpicker('val', event.amt);
-      $('[data-remodal-id=editScheduleModal] #fertilize').prop("checked", event.fertilize);
-      $('[data-remodal-id=editScheduleModal] #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
-      $('[data-remodal-id=editScheduleModal] #repeatDow').selectpicker('val', (typeof event.repeatDow === 'undefined') ? "" : event.repeatDow);
-      $('[data-remodal-id=editScheduleModal] #repeatEnd').val((typeof event.repeatEnd === 'undefined') ? moment(event.end).format('MM/DD/YYYY') :
+      $('[id=editScheduleModal] #editScheduleModalLabel').text('Update an Event');
+      $('[id=editScheduleModal] #title').val(event.title);
+      $('[id=editScheduleModal] #id').val(event.id);
+      $('[id=editScheduleModal] #zid').selectpicker('val', event.zid);
+      $('[id=editScheduleModal] #amt').selectpicker('val', event.amt);
+      $('[id=editScheduleModal] #fertilize').prop("checked", event.fertilize);
+      $('[id=editScheduleModal] #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
+      $('[id=editScheduleModal] #repeatDow').selectpicker('val', (typeof event.repeatDow === 'undefined') ? "" : event.repeatDow);
+      $('[id=editScheduleModal] #repeatEnd').val((typeof event.repeatEnd === 'undefined') ? moment(event.end).format('MM/DD/YYYY') :
       moment(event.repeatEnd).format('MM/DD/YYYY'));
 
-      inst.open();
-      $('[data-remodal-id=editScheduleModal] #delete_action').removeClass('hide-form-button');
+      $('[id=editScheduleModal] #deleteScheduleButton').removeClass('d-none');
+
+      $('[id=editScheduleModal]').modal();
     },
     eventDrop: function(event, delta, revertFunc) {
       var event = {
@@ -104,19 +102,19 @@ $(document).ready(function (){
   $('#starttimepicker').datetimepicker({
     format: 'MM/DD/YYYY hh:mm A',
     icons: {
-      time: 'far fa-clock',
-      date: 'far fa-calendar-alt',
-      up: 'fas fa-angle-up',
-      down: 'fas fa-angle-down'
+      time: 'icon icon-clock',
+      date: 'icon icon-calendar',
+      up: 'icon icon-chevron-up',
+      down: 'icon icon-chevron-down'
     }
   });
   $('#repeatendpicker').datetimepicker({
     format: 'MM/DD/YYYY',
     icons: {
-      time: 'far fa-clock',
-      date: 'far fa-calendar-alt',
-      up: 'fas fa-angle-up',
-      down: 'fas fa-angle-down'
+      time: 'icon icon-clock',
+      date: 'icon icon-calendar',
+      up: 'icon icon-chevron-up',
+      down: 'icon icon-chevron-down'
     }
   });
 });

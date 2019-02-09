@@ -29,10 +29,7 @@
     <!--    Stylesheets-->
     <!-- ===============================================-->
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic" rel="stylesheet">
-    <link href="assets/lib/remodal/remodal.css" rel="stylesheet">
-    <link href="assets/lib/remodal/remodal-default-theme.css" rel="stylesheet">
     <link href="assets/css/tempusdominus-bootstrap-4.css" rel="stylesheet">
-    <link href="assets/css/bootstrap-table.css" rel="stylesheet">
     <link href="assets/css/bootstrap-select.css" rel="stylesheet">
     <link href="assets/css/fullcalendar.min.css" rel="stylesheet">
     <link href="assets/css/fullcalendar.print.min.css" media="print" rel="stylesheet">
@@ -163,98 +160,105 @@
   <!-- ===============================================-->
   <!--    Modals-->
   <!-- ===============================================-->
-  <div class="remodal" data-remodal-id="editScheduleModal" align="left" >
-    <button class="remodal-close" data-remodal-action="close"></button>
-    <h4 id="remodalTitle">Create/Update Event</h4>
-    <p>Set a Vegable Event.</p><br>
-
-    <form class="needs-validation mt-5" method="post" action="/events/update" novalidate>
-      <!--  HIDDEN FIELDS -->
-      <input type="hidden" id="id" name="id"/>
-
-      <div class="form-group">
-        <label for="name" class="col-form-label">Title</label>
-        <input type="text" class="form-control" id="title" name="title" required>
-        <div class="invalid-feedback">
-          Please provide a valid title.
+  <div class="modal fade" id="editScheduleModal" tabindex="-1" role="dialog" aria-labelledby="editScheduleModalLabel" aria-hidden="true" align="left" >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editScheduleModalLabel">Edit Event</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="zid" class="col-form-label">Zone</label>
-        <select class="selectpicker form-control" id="zid" name="zid" required="" placeholder="Zone">
-          <% for(var i=0; i < zones.length; i++) { %>
-            <option value="<%= zones[i].id %>"><%= zones[i].name %></option>
-          <% } %>
-        </select>
-      </div>
+        <form class="needs-validation mt-3" id="scheduleForm" method="post" action="/events/update" novalidate>
+          <div class="modal-body">
+            <!--  HIDDEN FIELDS -->
+            <input type="hidden" id="id" name="id"/>
 
-      <div class="form-row">
-        <div class="col-md-6 mb-3">
-          <label for="amt" class="col-form-label">Amount (inches)</label>
-          <select class="selectpicker form-control" id="amt" name="amt" data-size="7" required="">
-            <%
-              var amts = [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
-              for ( var i = 0; i < amts.length; i++ ) {
-                %><option value="<%=amts[ i ] %>"><%=amts[ i ] %></option><%
-              }
-            %>
-          </select>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="fertilize" class="col-form-label">Fertilize</label>
-          <div class="zinput zcheckbox">
-            <input id="fertilize" name="fertilize" type="checkbox" value=true>
-            <label for="fertilize">Apply fertilizer while irrigating</label>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="start" class="col-form-label">Start</label>
-        <div class="input-group date" id="starttimepicker" data-target-input="nearest">
-          <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker" required/>
-          <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
-              <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-          </div>
-          <div class="invalid-feedback">
-            Please provide a start time.
-          </div>
-       </div>
-      </div>
-
-      <div class="form-group">
-        <label for="repeatDow" class="col-form-label">Repeat</label>
-        <select multiple class="selectpicker form-control" id="repeatDow" name="repeatDow">
-            <%
-              var repeats = [ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "None" ];
-              for ( var i = 0; i < repeats.length; i++ ) {
-                var selected = ( i === repeats.length ) ? "selected" : "";
-
-                %><option value="<%= i %>" <%=selected %>><%= repeats[i] %></option><%
-              }
-            %>
-        </select>
-      </div>
-
-       <div class="form-group">
-        <label for="repeatEnd" class="col-form-label">Repeat End</label>
-        <div class="input-group date" id="repeatendpicker" data-target-input="nearest">
-            <input id="repeatEnd" name="repeatEnd" type="text" class="form-control datetimepicker-input" data-target="#repeatendpicker"/>
-            <div class="input-group-append" data-target="#repeatendpicker" data-toggle="datetimepicker">
-                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+            <div class="form-group">
+              <label for="name" class="col-form-label">Title</label>
+              <input type="text" class="form-control" id="title" name="title" required>
+              <div class="invalid-feedback">
+                Please provide a valid title.
+              </div>
             </div>
-        </div>
-      </div>
 
-      <div class="d-flex">
-        <div class="p-2"><button type="submit" class="btn btn-sm btn-primary">Save</button></div>
-        <div class="p-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-remodal-action="cancel">Cancel</button></div>
-        <div class="ml-auto p-2" id="delete_action"><button name="action" type="submit" class="btn btn-sm btn-outline-danger" value="delete">Delete</button></div>
-      </div>
+            <div class="form-group">
+              <label for="zid" class="col-form-label">Zone</label>
+              <select class="selectpicker form-control" id="zid" name="zid" required="" placeholder="Zone">
+                <% for(var i=0; i < zones.length; i++) { %>
+                  <option value="<%= zones[i].id %>"><%= zones[i].name %></option>
+                <% } %>
+              </select>
+            </div>
 
-     </form>
-   </div>
+            <div class="form-row">
+              <div class="col-md-6 mb-3">
+                <label for="amt" class="col-form-label">Amount (inches)</label>
+                <select class="selectpicker form-control" id="amt" name="amt" data-size="7" required="">
+                  <%
+                    var amts = [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+                    for ( var i = 0; i < amts.length; i++ ) {
+                      %><option value="<%=amts[ i ] %>"><%=amts[ i ] %></option><%
+                    }
+                  %>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="fertilize" class="col-form-label">Fertilize</label>
+                <div class="zinput zcheckbox">
+                  <input id="fertilize" name="fertilize" type="checkbox" value=true>
+                  <label for="fertilize">Apply fertilizer while irrigating</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="start" class="col-form-label">Start</label>
+              <div class="input-group date" id="starttimepicker" data-target-input="nearest">
+                <input id="start" name="start" type="text" class="form-control datetimepicker-input" data-target="#starttimepicker" required/>
+                <div class="input-group-append" data-target="#starttimepicker" data-toggle="datetimepicker">
+                    <div class="input-group-text"><i class="icon icon-calendar"></i></div>
+                </div>
+                <div class="invalid-feedback">
+                  Please provide a start time.
+                </div>
+             </div>
+            </div>
+
+            <div class="form-group">
+              <label for="repeatDow" class="col-form-label">Repeat</label>
+              <select multiple class="selectpicker form-control" id="repeatDow" name="repeatDow">
+                  <%
+                    var repeats = [ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "None" ];
+                    for ( var i = 0; i < repeats.length; i++ ) {
+                      var selected = ( i === repeats.length ) ? "selected" : "";
+
+                      %><option value="<%= i %>" <%=selected %>><%= repeats[i] %></option><%
+                    }
+                  %>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="repeatEnd" class="col-form-label">Repeat End</label>
+              <div class="input-group date" id="repeatendpicker" data-target-input="nearest">
+                  <input id="repeatEnd" name="repeatEnd" type="text" class="form-control datetimepicker-input" data-target="#repeatendpicker"/>
+                  <div class="input-group-append" data-target="#repeatendpicker" data-toggle="datetimepicker">
+                      <div class="input-group-text"><i class="icon icon-calendar"></i></div>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary mr-auto">Save</button>
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+            <button id="deleteScheduleButton" type="submit" class="btn btn-outline-danger d-none" name="action" value="delete">Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
 
   <!-- ===============================================-->
@@ -263,12 +267,10 @@
   <script src="assets/js/jquery.min.js"></script>
   <script src="assets/js/popper.min.js"></script>
   <script src="assets/js/bootstrap.js"></script>
-  <script src="assets/lib/remodal/remodal.js"></script>
   <script src="assets/js/moment.min.js"></script>
   <script src="assets/js/tempusdominus-bootstrap-4.js"></script>
   <script src="assets/js/fullcalendar.min.js"></script>
   <script src="assets/js/bootstrap-select.js"></script>
-  <script src="assets/js/bootstrap-table.js"></script>
   <script src="assets/js/skycons.js"></script>
   
   <!-- Vegable Javascript -->
