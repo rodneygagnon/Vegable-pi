@@ -1,5 +1,5 @@
-<a href="http://vegable.co/">
-    <img src="http://vegable.co/assets/svg/logos/logo-red-black.svg" alt="Vegable logo"
+<a href="http://vegable.org/">
+    <img src="https://vegable.squarespace.com/s/logo-red-black.svg" alt="Vegable logo"
          title="Vegable-pi - Bootstrap-Node-Express-Redis OpenSprinklerPi Stack" align="right" />
 </a>
 
@@ -7,20 +7,23 @@
 
 Vegable-pi is an OpenSprinklerPi implementation using a Bootstrap-Node-Express-Redis Stack.
 
-<a href="http://vegable.co/images/software-stack.png"><img src="http://vegable.co/images/software-stack.png" width="480"/></a>
+<a href="https://vegable.squarespace.com/s/software-stack.png"><img src="https://vegable.squarespace.com/s/software-stack.png" width="240"/></a>
 
 ### Note
 
 PLEASE REFER TO THE <a href="https://github.com/rodneygagnon/Vegable-pi/wiki">WIKI</A> FOR ALL HARDWARE/SOFTWARE NOTES AND INSTALLATION INSTRUCTIONS.
 
 ---
-<a href="http://vegable.co/images/VegableScreenshots/Login.png"><img src="http://vegable.co/images/VegableScreenshots/Login.png" width="240"/></a>
-<a href="http://vegable.co/images/VegableScreenshots/Dashboard.png"><img src="http://vegable.co/images/VegableScreenshots/Dashboard.png" width="240"/></a>
-<a href="http://vegable.co/images/VegableScreenshots/Plantings.png"><img src="http://vegable.co/images/VegableScreenshots/Plantings.png" width="240"/></a>
-<a href="http://vegable.co/images/VegableScreenshots/Zones.png"><img src="http://vegable.co/images/VegableScreenshots/Zones.png" width="240"/></a>
-<a href="http://vegable.co/images/VegableScreenshots/Schedule.png"><img src="http://vegable.co/images/VegableScreenshots/Schedule.png" width="240"/></a>
-<a href="http://vegable.co/images/VegableScreenshots/Basic-Settings.png"><img src="http://vegable.co/images/VegableScreenshots/Basic-Settings.png" width="240"/></a>
-<a href="http://vegable.co/images/VegableScreenshots/Advanced-Settings.png"><img src="http://vegable.co/images/VegableScreenshots/Advanced-Settings.png" width="240"/></a>
+<a href="https://vegable.squarespace.com/s/3a-Onboard.jpg"><img src="https://vegable.squarespace.com/s/3a-Onboard.jpg" width="240"/></a>
+<a href="https://vegable.squarespace.com/s/3b-Onboard.jpg"><img src="https://vegable.squarespace.com/s/3b-Onboard.jpg" width="240"/></a>
+<a href="https://vegable.squarespace.com/s/3c-Onboard.jpg"><img src="https://vegable.squarespace.com/s/3c-Onboard.jpg" width="240"/></a>
+<a href="https://vegable.squarespace.com/s/4a-Forecast.jpg"><img src="https://vegable.squarespace.com/s/4a-Forecast.jpg" width="240"/></a>
+<a href="https://vegable.squarespace.com/s/4b-Chart.jpg"><img src="https://vegable.squarespace.com/s/4b-Chart.jpg" width="240"/></a>
+<a href="https://vegable.squarespace.com/s/4c-Zones.jpg"><img src="https://vegable.squarespace.com/s/4c-Zones.jpg" width="240"/></a>
+<a href="https://vegable.squarespace.com/s/4d-Plantings.jpg"><img src="https://vegable.squarespace.com/s/4d-Plantings.jpg" width="240"/></a>
+<a href="https://vegable.squarespace.com/s/4e-Schedules.jpg"><img src="https://vegable.squarespace.com/s/4e-Schedules.jpg" width="240"/></a>
+<a href="https://vegable.squarespace.com/s/4f-BasicSettings.jpg"><img src="https://vegable.squarespace.com/s/4f-BasicSettings.jpg" width="240"/></a>
+<a href="https://vegable.squarespace.com/s/4g-AdvancedSettings.jpg"><img src="https://vegable.squarespace.com/s/4g-AdvancedSettings.jpg" width="240"/></a>
 ---
 
 # Questions and issues
