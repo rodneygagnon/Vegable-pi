@@ -52,8 +52,8 @@ function initTables() {
         title: 'Area (sqft)',
         sortable: true,
         formatter: function (value, row) {
-          var soilWHC = [0.75, 1.25, 1.5, 2.0];
-          var soilTypes = ['Coarse', 'Sandy', 'Medium', 'Fine'];
+          let soilWHC = [0.75, 1.25, 1.5, 2.0];
+          let soilTypes = ['Coarse', 'Sandy', 'Medium', 'Fine'];
           for (let i = 0; i < soilWHC.length; i++) {
             if (row.swhc === soilWHC[i]) return `<span>${value} (${soilTypes[i]} soil)</span>`;
           }
@@ -99,7 +99,7 @@ function initTables() {
   });
 }
 
-function cntlOperateFormatter(value, row, index) {
+function cntlOperateFormatter(value, row) {
   const runningStyle = (row.status ? 'svg-primary' : 'svg-secondary');
   return [
     '<div class="table-icons">',
@@ -114,7 +114,7 @@ function cntlOperateFormatter(value, row, index) {
   ].join('');
 }
 
-function openOperateFormatter(value, row, index) {
+function openOperateFormatter(value, row) {
   const runningStyle = (row.status ? 'svg-primary' : 'svg-secondary');
   return [
     '<div class="table-icons">',

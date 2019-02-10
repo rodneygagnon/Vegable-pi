@@ -20,7 +20,7 @@ const dbKeys = {
   dbPlantingsKey: 'plantings',
   dbWeatherKey: 'weather',
   dbForecastKey: 'forecast',
-  dbETrKey: 'etr'
+  dbETrKey: 'etr',
 };
 
 bluebird.promisifyAll(redis);
@@ -33,5 +33,5 @@ db.on('error', (err) => {
 
 module.exports = {
   db,
-  dbKeys
+  dbKeys,
 };

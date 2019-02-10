@@ -73,7 +73,7 @@ class Vegable {
       log.debug(`VegableQueue process schedule ${vegableTime} - ${crontab}`);
 
       VegableQueue.add({ task: 'Calculate zone irr/fert demand!' },
-                       { repeat: { cron: crontab }, removeOnComplete: true });
+        { repeat: { cron: crontab }, removeOnComplete: true });
     } catch (err) {
       log.error(`Failed to create VEGABLE queue: ${err}`);
     }
@@ -123,13 +123,13 @@ class Vegable {
 
           precip = await WeatherInstance.getPrecip(startProcessDate, endProcessDate);
           etc = await PlantingsInstance.getETcByZone(zone.id, startProcessDate, endProcessDate);
-          fertilizer = await PlantingsInstance.getFertilizerByZone(zone.id, startProcessDate, endProcessDate,
-                                                                   new Date(zone.fertilized));
+          fertilizer = await PlantingsInstance.getFertilizerByZone(zone.id, startProcessDate,
+            endProcessDate, new Date(zone.fertilized));
         } else {
           precip = await WeatherInstance.getPrecip(new Date(zone.adjusted), endProcessDate);
           etc = await PlantingsInstance.getETcByZone(zone.id, new Date(zone.adjusted), endProcessDate);
-          fertilizer = await PlantingsInstance.getFertilizerByZone(zone.id, new Date(zone.adjusted), endProcessDate,
-                                                                   new Date(zone.fertilized));
+          fertilizer = await PlantingsInstance.getFertilizerByZone(zone.id, new Date(zone.adjusted),
+            endProcessDate, new Date(zone.fertilized));
         }
 
         // Soil water change
@@ -152,12 +152,12 @@ class Vegable {
           // Create an irrigation event if the zone needs water
           if (zone.availableWater < (zone.swhc * (zone.mad / 100))) {
             eids.push(await EventsInstance.setEvent({
-                                                      zid: zone.id,
-                                                      title: `(auto) ${zone.name} Event`,
-                                                      start: nextScheduleDate.toString(),
-                                                      amt: zone.swhc - zone.availableWater,
-                                                      fertilizer: fertilizer
-                                                    }));
+              zid: zone.id,
+              title: `(auto) ${zone.name} Event`,
+              start: nextScheduleDate.toString(),
+              amt: zone.swhc - zone.availableWater,
+              fertilizer: fertilizer,
+            }));
           }
         }
 
@@ -185,5 +185,5 @@ const VegableInstance = new Vegable();
 Object.freeze(VegableInstance);
 
 module.exports = {
-  VegableInstance
+  VegableInstance,
 };

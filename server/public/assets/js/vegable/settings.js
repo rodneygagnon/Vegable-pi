@@ -33,8 +33,8 @@ function initBootstrapTable() {
         title: 'Total Kc',
         sortable: true,
         formatter: function (value, row) {
-          return ((row.initDay * row.initKc + row.devDay * row.devKc +
-                 row.midDay * row.midKc + row.lateDay * row.lateKc).toFixed(0));
+          return ((row.initDay * row.initKc + row.devDay * row.devKc
+                 + row.midDay * row.midKc + row.lateDay * row.lateKc).toFixed(0));
         }
       }
     ]
@@ -71,6 +71,7 @@ function detailFormatter(index, row) {
       case 'lateP':
       case 'lateK':
       case 'lateFreq':
+      default:
         html.push('<b>    ' + key + ':</b> ' + value);
         break;
     };
@@ -81,7 +82,7 @@ function detailFormatter(index, row) {
   return html.join('');
 }
 
-$().ready(function() {
+$().ready(function () {
   $table.on('click-row.bs.table', function (e, row, $element) {
     $('[id=editCropModal] #editCropModalLabel').text('Edit: ' + row.name);
     $('[id=editCropModal] #id').val(row.id);

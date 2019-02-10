@@ -45,12 +45,12 @@ const zonesSchema = Schema({
 
   // Color coding for events in the schedule
   color: String,
-  textColor: String
+  textColor: String,
 });
 
 const ZoneType = { // Master, Fertilizer, Open
   control: 0,
-  open: 1
+  open: 1,
 };
 Object.freeze(ZoneType);
 
@@ -64,7 +64,7 @@ const FertilizerZoneName = 'Fertilizer';
 const FlowRates = { // Gallons per Hour
   halfGPH: 0.5,
   oneGPH: 1.0,
-  twoGPH: 2.0
+  twoGPH: 2.0,
 };
 Object.freeze(FlowRates);
 
@@ -73,7 +73,7 @@ const SoilWHC = { // Inches
   coarse: 0.75, // Sand / Loamy-Sand
   sandy: 1.25, // Loamy-Sand / Sandy-Loam / Loam
   medium: 1.50, // Loam / Sandy-Clay-Loam (Default/Optimal)
-  fine: 2.00 // Silty-Loam / Silty-Clay-Loam / Clay-Loam / Silty-Clay
+  fine: 2.00, // Silty-Loam / Silty-Clay-Loam / Clay-Loam / Silty-Clay
 };
 Object.freeze(SoilWHC);
 
@@ -85,7 +85,7 @@ const zoneEventColors = [
   '#1E364E', // Z03
   '#3E515F', // Z04
   '#7E8C9D', // Z05
-  '#5B739D'  // Z06
+  '#5B739D', // Z06
 ];
 const zoneTextColor = '#EBF2F4';
 
@@ -129,7 +129,7 @@ class Zones {
             fertilized: 0,
             plantings: 0,
             color: zoneEventColors[0],
-            textColor: zoneTextColor
+            textColor: zoneTextColor,
           }));
         await multi.hset(dbKeys.dbZonesKey, FertilizerZoneId,
           JSON.stringify({
@@ -151,7 +151,7 @@ class Zones {
             fertilized: 0,
             plantings: 0,
             color: zoneEventColors[1],
-            textColor: zoneTextColor
+            textColor: zoneTextColor,
           }));
 
         for (let i = 3; i <= zoneCount; i++) {
@@ -174,7 +174,7 @@ class Zones {
             fertilized: 0,
             plantings: 0,
             color: zoneEventColors[i - 1],
-            textColor: zoneTextColor
+            textColor: zoneTextColor,
           };
 
           await zonesSchema.validate(zone);
@@ -268,9 +268,9 @@ class Zones {
     return zones;
   }
 
-  async getMasterZone() { return (await this.getZone(MasterZoneId)); }
+  getMasterZone() { return (this.getZone(MasterZoneId)); }
 
-  async getFertilizerZone() { return (await this.getZone(FertilizerZoneId)); }
+  getFertilizerZone() { return (this.getZone(FertilizerZoneId)); }
 
   async getZone(zid) {
     let zone = null;
@@ -316,14 +316,13 @@ class Zones {
 
       // if incoming status is defined and different than the current status,
       // switch the zone and start/save stats (TODO: fertilized stats are incorrect)
-      if (typeof inputZone.status !== 'undefined' &&
-                 saveZone.status !== inputZone.status) {
+      if (typeof inputZone.status !== 'undefined'
+          && saveZone.status !== inputZone.status) {
         if (saveZone.status) {
           // Save the stats
           const runTime = (Date.now() - saveZone.started) / milli_per_hour;
           StatsInstance.saveStats(saveZone.id, saveZone.started, Date.now(),
-                                  saveZone.gph * runTime,
-                                  (saveZone.started === saveZone.fertilized));
+            saveZone.gph * runTime, (saveZone.started === saveZone.fertilized));
           saveZone.started = 0;
         } else {
           // Start the stats
@@ -364,7 +363,7 @@ class Zones {
     try {
       switchZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, zid));
       const fertilizerObj = JSON.parse(fertilizer);
-      let fertilized = (fertilizerObj.n || fertilizerObj.p || fertilizerObj.k) ? true : false;
+      const fertilized = (fertilizerObj.n || fertilizerObj.p || fertilizerObj.k) ? true : false;
 
       if (switchZone.type === ZoneType.control) {
         if (switchZone.status) {
@@ -381,7 +380,7 @@ class Zones {
                 runTime = (Date.now() - zone.started) / milli_per_hour;
                 zone.availableWater += zone.iph * runTime;
                 StatsInstance.saveStats(zone.id, zone.started, Date.now(),
-                                        zone.gph * runTime, fertilizer);
+                  zone.gph * runTime, fertilizer);
               }
 
               if (zone.id === switchZone.id) {
@@ -411,7 +410,8 @@ class Zones {
           // Save Planting Zone Stats
           runTime = (Date.now() - switchZone.started) / milli_per_hour;
           switchZone.availableWater += switchZone.iph * runTime;
-          StatsInstance.saveStats(switchZone.id, switchZone.started, Date.now(), switchZone.gph * runTime, fertilizer);
+          StatsInstance.saveStats(switchZone.id, switchZone.started, Date.now(),
+            switchZone.gph * runTime, fertilizer);
 
           // Switch OFF a planting zone
           switchZone.status = false;
@@ -419,7 +419,6 @@ class Zones {
 
           await OSPiInstance.switchStation(switchZone.id, switchZone.status);
           await db.hsetAsync(dbKeys.dbZonesKey, switchZone.id, JSON.stringify(switchZone));
-
         } else {
           // Switch ON the planting zone
           switchZone.status = true;
@@ -436,8 +435,8 @@ class Zones {
         const activePlantingZones = await this.getZonesByTypeStatus(ZoneType.open, true);
 
         // Switch on/off Master(Fertilizer) zone(s) if no other planting zone is on
-        if ((switchZone.status && activePlantingZones.length === 1) ||
-            (!switchZone.status && activePlantingZones.length === 0)) {
+        if ((switchZone.status && activePlantingZones.length === 1)
+            || (!switchZone.status && activePlantingZones.length === 0)) {
           let controlZone;
           if (fertilized) {
             controlZone = await this.getFertilizerZone();
@@ -493,5 +492,5 @@ const ZonesInstance = new Zones();
 Object.freeze(ZonesInstance);
 
 module.exports = {
-  ZonesInstance
+  ZonesInstance,
 };

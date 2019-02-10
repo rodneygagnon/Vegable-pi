@@ -59,10 +59,10 @@ class Users {
 
     const redisUsers = await db.hvalsAsync(dbKeys.dbUsersKey);
     for (let i = 0; i < redisUsers.length; i++) {
-      users[i] = await userSchema.validate(JSON.parse(redisUsers[i]));
+      users[i] = userSchema.validate(JSON.parse(redisUsers[i]));
     }
 
-    callback(users);
+    callback(await Promise.all(users));
   }
 
   async getUser(email) {
@@ -112,10 +112,10 @@ class Users {
         log.debug(`updateUser(count): ${redisUsers.length}`);
 
         for (let i = 0; i < redisUsers.length; i++) {
-          const user = await userSchema.validate(JSON.parse(redisUsers[i]));
+          const userSchm = await userSchema.validate(JSON.parse(redisUsers[i]));
 
-          if (user.email === validUser.email) {
-            savedUser = user;
+          if (userSchm.email === validUser.email) {
+            savedUser = userSchm;
             log.debug(`updateUser(found): del old user(${JSON.stringify(savedUser)})`);
             break;
           }

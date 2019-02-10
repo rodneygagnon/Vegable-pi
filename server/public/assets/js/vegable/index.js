@@ -71,10 +71,10 @@ $().ready(function () {
       tooltips: {
         callbacks: {
           label: function(tooltipItem, data) {
-            var zoneData = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.datasetIndex];
-            var time = moment(zoneData.x).format('h:mm a');
+            const zoneData = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.datasetIndex];
+            const time = moment(zoneData.x).format('h:mm a');
 
-            var label = data.datasets[tooltipItem.datasetIndex].label;
+            let label = data.datasets[tooltipItem.datasetIndex].label;
             if (label) {
                 label += ': ';
             }
@@ -96,8 +96,8 @@ $().ready(function () {
             }
           },
           gridLines: {
-  					offsetGridLines: true
-  				}
+            offsetGridLines: true
+          }
         }],
         yAxes: [{
           scaleLabel: {
@@ -128,7 +128,7 @@ $().ready(function () {
 
     while (next <= last) {
       data.push({ x: new Date(next), y: 0 });
-      colors.push(color(zone.color).alpha(0.85).rgbString())
+      colors.push(color(zone.color).alpha(0.85).rgbString());
       next.setDate(next.getDate() + 1);
     }
 
@@ -141,7 +141,6 @@ $().ready(function () {
   $.getJSON('/api/stats/get', { start: start.getTime(), stop: end.getTime() }, (stats) => {
     if (stats.length > 0) {
       let irrTotal = 0;
-      let irrEvents = 0;
       let fertEvents = 0;
 
       const firstDate = new Date(stats[0].started);
@@ -168,7 +167,7 @@ $().ready(function () {
           irrTotal += amount;
 
           const fertilizerObj = JSON.parse(stats[i].fertilizer);
-          let fertilized = (fertilizerObj.n || fertilizerObj.p || fertilizerObj.k) ? true : false;
+          const fertilized = (fertilizerObj.n || fertilizerObj.p || fertilizerObj.k) ? true : false;
           if (fertilized) {
             fertEvents += 1;
             statsTable[stats[i].zid].zoneColors[day] = pattern.draw('diagonal', statsTable[stats[i].zid].zoneColors[day]);

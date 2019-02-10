@@ -31,7 +31,7 @@ const etrSchema = Schema({
   oct: Number,
   nov: Number,
   dec: Number,
-  tot: Number
+  tot: Number,
 });
 
 class ETr {
@@ -76,7 +76,7 @@ class ETr {
 
     const redisETrs = await db.hvalsAsync(dbKeys.dbETrKey);
     for (let i = 0; i < redisETrs.length; i++) {
-      etrs[i] = await etrSchema.validate(JSON.parse(redisETrs[i]));
+      etrs.push(etrSchema.validate(JSON.parse(redisETrs[i])));
     }
 
     // sort by name
@@ -86,7 +86,7 @@ class ETr {
       return 0;
     });
 
-    callback(etrs);
+    callback(await Promise.all(etrs));
   }
 
   async getETr(zone) {
@@ -153,5 +153,5 @@ const ETrInstance = new ETr();
 Object.freeze(ETrInstance);
 
 module.exports = {
-  ETrInstance
+  ETrInstance,
 };

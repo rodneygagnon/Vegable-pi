@@ -22,34 +22,34 @@ const { dbKeys } = require('../models/db');
 
 const weatherSchema = Schema({
   date: String, // YYYYMMDD
-  eto: Number,  // (CIMIS) evapotranspiration (inches)
-  solar: Number,  // (CIMIS) Solar Radiation (Ly/Day)
+  eto: Number, // (CIMIS) evapotranspiration (inches)
+  solar: Number, // (CIMIS) Solar Radiation (Ly/Day)
   wind: Number, // (DARKSKY) Wind Speed (mph)
   precip: Number, // (DARKSKY) Rain (inches)
   precipProb: Number, // (DARKSKY)
   tempHi: Number, // (DARKSKY) ˚F
   tempLo: Number, // (DARKSKY) ˚F
-  humidity: Number  // (DARKSKY)
+  humidity: Number, // (DARKSKY)
 });
 
 /** DARKSKY */
 const forecastSchema = Schema({
   time: Number, // UNIX time
-  summary: String,  // Description
+  summary: String, // Description
   icon: String, // Icon Name
-  sunriseTime: Number,  // UNIX time
+  sunriseTime: Number, // UNIX time
   sunsetTime: Number, // UNIX time
   moonPhase: Number,
-  precipIntensity: Number,  // Inches
+  precipIntensity: Number, // Inches
   precipProbability: Number,
   precipType: String,
-  temperatureHigh: Number,  // ˚F
-  temperatureHighTime: Number,  // UNIX time
+  temperatureHigh: Number, // ˚F
+  temperatureHighTime: Number, // UNIX time
   temperatureLow: Number, // ˚F
   temperatureLowTime: Number, // UNIX Time
   dewPoint: Number, // ˚F
   humidity: Number, // %
-  windSpeed: Number // MPH
+  windSpeed: Number, // MPH
 });
 
 // Bull/Redis Jobs Queue
@@ -86,7 +86,7 @@ class Weather {
 
       // Get the weather every morning @ 3am
       WeatherQueue.add({ task: 'Get Weather!' },
-                       { repeat: { cron: '0 3 * * *' }, removeOnComplete: true });
+        { repeat: { cron: '0 3 * * *' }, removeOnComplete: true });
     } catch (err) {
       log.error(`WeatherInit: Failed to create WEATHER queue: ${err}`);
     }
@@ -112,7 +112,6 @@ class Weather {
   async getWeatherData(targetDate, callback) {
     this.getDarkSkyConditions(targetDate, async (darkSkyData) => {
       this.getCimisConditions(targetDate, async (cimisData) => {
-
         // Add weather entry to Database
         const weatherData = {
           eto: (cimisData !== null ? cimisData.DayAsceEto.Value : 0),
@@ -122,8 +121,8 @@ class Weather {
           precipProb: (darkSkyData !== null ? darkSkyData.precipProbability : 0),
           tempHi: (darkSkyData !== null ? darkSkyData.temperatureHigh : 0),
           tempLo: (darkSkyData !== null ? darkSkyData.temperatureLow : 0),
-          humidity: (darkSkyData !== null ? darkSkyData.humidity : 0)
-        }
+          humidity: (darkSkyData !== null ? darkSkyData.humidity : 0),
+        };
 
         callback(await this.setConditions(targetDate, weatherData));
       });
@@ -133,15 +132,14 @@ class Weather {
   getForecastData(callback) {
     this.getDarkSkyForecast(async (darkSkyData) => {
       try {
-        var dailyForecast = darkSkyData.data;
+        const dailyForecast = darkSkyData.data;
 
         // Clear old forecast data
         await db.delAsync(dbKeys.dbForecastKey);
 
-        for (var day = 0; day < dailyForecast.length; day++) {
-          var forecast = await forecastSchema.validate(dailyForecast[day]);
-
-          var zcnt = await db.zaddAsync(dbKeys.dbForecastKey, forecast.time, JSON.stringify(forecast));
+        for (let day = 0; day < dailyForecast.length; day++) {
+          const forecast = await forecastSchema.validate(dailyForecast[day]);
+          const zcnt = await db.zaddAsync(dbKeys.dbForecastKey, forecast.time, JSON.stringify(forecast));
           if (zcnt < 1) {
             log.warning(`setDailyForecast: (${day}) NOT SET ${JSON.stringify(forecast)}`);
           }
@@ -181,35 +179,34 @@ class Weather {
 
     const redisWeather = await db.zrangebyscoreAsync(dbKeys.dbWeatherKey, startScore, endScore);
 
-    var weather = [];
+    const weather = [];
     for (let i = 0; i < redisWeather.length; i++) {
-      weather.push(await weatherSchema.validate(JSON.parse(redisWeather[i])));
+      weather.push(weatherSchema.validate(JSON.parse(redisWeather[i])));
     }
 
-    return (weather);
+    return (await Promise.all(weather));
   }
 
   // Get 7-Day Forecast
   async getForecast() {
-    var redisForecast = await db.zrangebyscoreAsync(dbKeys.dbForecastKey,  '-inf', '+inf');
-
-    var forecast = [];
+    const redisForecast = await db.zrangebyscoreAsync(dbKeys.dbForecastKey, '-inf', '+inf');
+    const forecast = [];
     for (let i = 0; i < redisForecast.length; i++) {
-      forecast.push(await forecastSchema.validate(JSON.parse(redisForecast[i])));
+      forecast.push(forecastSchema.validate(JSON.parse(redisForecast[i])));
     }
 
-    return (forecast);
+    return (await Promise.all(forecast));
   }
 
   // ONLY used for testing
-  async clearWeatherData(targetDate) {
-    await db.delAsync(dbKeys.dbWeatherKey);
+  clearWeatherData(targetDate) {
+    db.del(dbKeys.dbWeatherKey);
   }
 
   async getPrecip(startDate, endDate) {
-    var weather = await this.getConditions(startDate, endDate);
+    const weather = await this.getConditions(startDate, endDate);
 
-    var precip = 0;
+    let precip = 0;
     for (let i = 0; i < weather.length; i++) {
       precip += weather[i].precip;
     }
@@ -219,15 +216,15 @@ class Weather {
   // Return the ETo for a given date range.
   // Default to ETr table if we don't have CIMIS data for particular day
   async getDailyETo(startDate, endDate) {
-    var dailyETo = [];
-    var etzone = await SettingsInstance.getETZone();
-    var dailyETr = await ETrInstance.getDailyETr(etzone, new Date(startDate), new Date(endDate));
+    const dailyETo = [];
+    const etzone = await SettingsInstance.getETZone();
+    const dailyETr = await ETrInstance.getDailyETr(etzone, new Date(startDate), new Date(endDate));
 
     // For each day of the given range, push Cimis ETo or ETr if it doesn't exist
     for (let i = 0, day = startDate; day <= endDate; i++, day.setDate(day.getDate() + 1)) {
-      let cimisDate = day.getFullYear() + ('0' + (day.getMonth() + 1)).slice(-2)
-                                        + ('0' + day.getDate()).slice(-2);
-      let cimisETo = await db.zrangebyscoreAsync(dbKeys.dbWeatherKey, cimisDate, cimisDate);
+      const cimisDate = day.getFullYear() + ('0' + (day.getMonth() + 1)).slice(-2)
+                        + ('0' + day.getDate()).slice(-2);
+      const cimisETo = await db.zrangebyscoreAsync(dbKeys.dbWeatherKey, cimisDate, cimisDate);
 
       if (cimisETo === null || cimisETo === '') {
         dailyETo.push(Number(cimisETo));
@@ -240,7 +237,7 @@ class Weather {
   }
 
   async getETo(startDate, endDate) {
-    let dailyETo = await this.getDailyETo(startDate, endDate);
+    const dailyETo = await this.getDailyETo(startDate, endDate);
 
     let eto = 0;
     for (let i = 0; i < dailyETo.length; i++) {
@@ -251,13 +248,13 @@ class Weather {
 
   // Get Conditions
   async getCurrentConditions(callback) {
-    var url = darkskyWeatherURL + await SettingsInstance.getDarkSkyKey() + '/'
+    const url = darkskyWeatherURL + await SettingsInstance.getDarkSkyKey() + '/'
               + await SettingsInstance.getLong() + ',' + await SettingsInstance.getLat()
               + '?exclude=[daily,minutely,hourly,flags]';
 
     request({
       url: url,
-      json: true
+      json: true,
     }, (error, response, body) => {
       let currently = null;
       if (error || response.statusCode !== 200) {
@@ -278,7 +275,7 @@ class Weather {
 
     request({
       url: url,
-      json: true
+      json: true,
     }, (error, response, body) => {
       let darkSkyData = null;
 
@@ -300,7 +297,7 @@ class Weather {
 
     request({
       url: url,
-      json: true
+      json: true,
     }, (error, response, body) => {
       let darkSkyData = null;
 
@@ -322,7 +319,7 @@ class Weather {
 
     request({
       url: url,
-      json: true
+      json: true,
     }, (error, response, body) => {
       let cimisData = null;
 
@@ -341,5 +338,5 @@ const WeatherInstance = new Weather();
 Object.freeze(WeatherInstance);
 
 module.exports = {
-  WeatherInstance
+  WeatherInstance,
 };

@@ -9,12 +9,12 @@ const uuidv4 = require('uuid/v4');
 const request = require('request');
 const Schema = require('schm');
 
-const { log } = require('../controllers/logger');
 const { Loggly } = require('winston-loggly-bulk');
+
+const { log } = require('../controllers/logger');
 
 const config = require('../../config/config');
 
-const { CropsInstance } = require('./crops');
 const { ETrInstance } = require('./etr');
 const { db } = require('./db');
 const { dbKeys } = require('./db');
@@ -38,7 +38,7 @@ const settingsSchema = Schema({
   darkskyKey: String,
   zones: { type: Number, min: 0 },
   cimisKey: String,
-  logglyKey: String
+  logglyKey: String,
 });
 
 const defaultSettings = {
@@ -55,14 +55,14 @@ const defaultSettings = {
   darkskyKey: config.default_darksky_key,
   zones: config.zones,
   cimisKey: config.cimis_key,
-  logglyKey: config.loggly_key
+  logglyKey: config.loggly_key,
 };
 
 // Practice Types
 const Practices = {
   Sustainable: 0,
   Organic: 1,
-  Biodynamic: 2
+  Biodynamic: 2,
 };
 Object.freeze(Practices);
 
@@ -106,7 +106,7 @@ class Settings {
       inputToken: defaultSettings.logglyKey,
       subdomain: 'vegable',
       tags: [defaultSettings.uuid],
-      json:true
+      json: true,
     }));
 
     log.debug('*** Settings Initialized!');
@@ -123,7 +123,7 @@ class Settings {
   }
 
   // Get lat/long of given location
-  async getLatLong(address, city, state, zip, callback) {
+  getLatLong(address, city, state, zip, callback) {
     let latitude = 0;
     let longitude = 0;
 
@@ -133,7 +133,7 @@ class Settings {
 
     request({
       url: url,
-      json: true
+      json: true,
     }, (error, response, body) => {
       // TODO: Fleshout error handling
       if (error) {
@@ -168,83 +168,93 @@ class Settings {
   getDefaultPassword() { return config.default_password; }
 
   // Get/Set registered
-  async getRegistered() {
-    return await this.getSetHashKey('registered', 0);
+  getRegistered() {
+    return this.getSetHashKey('registered', 0);
   }
-  async setRegistered(registered) {
-    return await this.setHashKey('registered', registered);
+
+  setRegistered(registered) {
+    return this.setHashKey('registered', registered);
   }
 
   // Get/Set address
-  async getAddress() {
-    return await this.getSetHashKey('address', defaultSettings.address);
+  getAddress() {
+    return this.getSetHashKey('address', defaultSettings.address);
   }
-  async setAddress(address) {
-    return await this.setHashKey('address', address);
+
+  setAddress(address) {
+    return this.setHashKey('address', address);
   }
 
   // Get/Set city
-  async getCity() {
-    return await this.getSetHashKey('city', defaultSettings.city);
+  getCity() {
+    return this.getSetHashKey('city', defaultSettings.city);
   }
-  async setCity(city) {
-    return await this.setHashKey('city', city);
+
+  setCity(city) {
+    return this.setHashKey('city', city);
   }
 
   // Get/Set state
-  async getState() {
-    return await this.getSetHashKey('state', defaultSettings.state);
+  getState() {
+    return this.getSetHashKey('state', defaultSettings.state);
   }
-  async setState(state) {
-    return await this.setHashKey('state', state);
+
+  setState(state) {
+    return this.setHashKey('state', state);
   }
 
   // Get/Set zip
-  async getZip() {
-    return await this.getSetHashKey('zip', defaultSettings.zip);
+  getZip() {
+    return this.getSetHashKey('zip', defaultSettings.zip);
   }
-  async setZip(zip) {
-    return await this.setHashKey('zip', zip);
+
+  setZip(zip) {
+    return this.setHashKey('zip', zip);
   }
 
   // Get/Set etzone
-  async getETZone() {
-    return await this.getSetHashKey('etzone', defaultSettings.etzone);
+  getETZone() {
+    return this.getSetHashKey('etzone', defaultSettings.etzone);
   }
-  async setETZone(etzone) {
-    return await this.setHashKey('etzone', etzone);
+
+  setETZone(etzone) {
+    return this.setHashKey('etzone', etzone);
   }
 
   // Get/Set practice
-  async getPractice() {
-    return await this.getSetHashKey('practice', defaultSettings.practice);
+  getPractice() {
+    return this.getSetHashKey('practice', defaultSettings.practice);
   }
-  async setPractice(practice) {
-    return await this.setHashKey('practice', practice);
+
+  setPractice(practice) {
+    return this.setHashKey('practice', practice);
   }
 
   // Get/Set vegable_time
-  async getVegableTime() {
-    return await this.getSetHashKey('vegable_time', defaultSettings.vegable_time);
+  getVegableTime() {
+    return this.getSetHashKey('vegable_time', defaultSettings.vegable_time);
   }
-  async setVegableTime(vegable_time) {
-    return await this.setHashKey('vegable_time', vegable_time);
+
+  setVegableTime(vegableTime) {
+    return this.setHashKey('vegable_time', vegableTime);
   }
 
   // Get/Set lat
-  async getLat() {
-    return await this.getSetHashKey('lat', defaultSettings.lat);
+  getLat() {
+    return this.getSetHashKey('lat', defaultSettings.lat);
   }
-  async setLat(lat) {
-    return await this.setHashKey('lat', lat);
+
+  setLat(lat) {
+    return this.setHashKey('lat', lat);
   }
 
   // Get/Set long
-  async getLong() {
-    return await this.getSetHashKey('long', defaultSettings.long);
+  getLong() {
+    return this.getSetHashKey('long', defaultSettings.long);
   }
-  async setLong(long) {
-    return await this.setHashKey('long', long);
+
+  setLong(long) {
+    return this.setHashKey('long', long);
   }
 
   getMapBoxKey() {
@@ -273,20 +283,20 @@ class Settings {
       }
       return value;
     } catch (error) {
-        log.error(error);
+      log.error(error);
     }
     return null;
   }
 
   async setHashKey(hashKey, value) {
     try {
-        if (typeof value !== 'undefined') {
-          await db.hsetAsync(dbKeys.dbConfigKey, hashKey, value);
-        } else {
-          log.error(`setHashKey: Undefined value for ${hashKey}`);
-        }
+      if (typeof value !== 'undefined') {
+        await db.hsetAsync(dbKeys.dbConfigKey, hashKey, value);
+      } else {
+        log.error(`setHashKey: Undefined value for ${hashKey}`);
+      }
     } catch (error) {
-        log.error(error);
+      log.error(error);
     }
   }
 }
@@ -295,5 +305,5 @@ const SettingsInstance = new Settings();
 Object.freeze(SettingsInstance);
 
 module.exports = {
-  SettingsInstance
+  SettingsInstance,
 };

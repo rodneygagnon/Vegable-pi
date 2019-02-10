@@ -14,16 +14,15 @@ const { SettingsInstance } = require('../models/settings');
 const OSPiConfig = {
   Status: {
     ON: 1,
-    OFF: 0
+    OFF: 0,
   },
-
   Pins: {
     SRClock: 4,
     RainSensor: 14,
     SROutputDisable: 17,
     SRLatch: 22,
-    SRData: 27
-  }
+    SRData: 27,
+  },
 };
 
 let OSPiStationsBitMask = 0;
@@ -120,7 +119,7 @@ class OSPi {
 
     for (let i = 0; i < OSPi.zoneCount; i++) {
       const value = (OSPiStationsBitMask & (0x01 << ((OSPi.zoneCount - 1) - i)))
-                ? OSPiConfig.Status.ON : OSPiConfig.Status.OFF;
+        ? OSPiConfig.Status.ON : OSPiConfig.Status.OFF;
 
       OSPi.OSPiSRClock.writeSync(OSPiConfig.Status.OFF);
       OSPi.OSPiSRData.writeSync(value);
@@ -136,5 +135,5 @@ const OSPiInstance = new OSPi();
 Object.freeze(OSPiInstance);
 
 module.exports = {
-  OSPiInstance
+  OSPiInstance,
 };

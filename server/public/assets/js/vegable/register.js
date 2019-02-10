@@ -5,7 +5,7 @@
  * @version 0.1
  */
 
-$().ready(function (){
+$().ready(function () {
   $('#starttimepicker').datetimepicker({
     format: 'HH:mm',
     icons: {

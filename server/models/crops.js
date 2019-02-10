@@ -42,7 +42,7 @@ const cropSchema = Schema({
   lateN: Number,
   lateP: Number,
   lateK: Number,
-  lateFreq: Number
+  lateFreq: Number,
 });
 
 class Crops {
@@ -84,7 +84,7 @@ class Crops {
 
     const redisCrops = await db.hvalsAsync(dbKeys.dbCropsKey);
     for (let i = 0; i < redisCrops.length; i++) {
-      crops[i] = await cropSchema.validate(JSON.parse(redisCrops[i]));
+      crops.push(cropSchema.validate(JSON.parse(redisCrops[i])));
     }
 
     // sort by name
@@ -94,7 +94,7 @@ class Crops {
       return 0;
     });
 
-    callback(crops);
+    callback(await Promise.all(crops));
   }
 
   async getCrop(cid) {
@@ -140,5 +140,5 @@ const CropsInstance = new Crops();
 Object.freeze(CropsInstance);
 
 module.exports = {
-  CropsInstance
+  CropsInstance,
 };

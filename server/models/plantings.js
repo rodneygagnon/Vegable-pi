@@ -23,15 +23,15 @@ const { dbKeys } = require('./db');
 const { milli_per_day } = require('../../config/constants');
 
 const plantingSchema = Schema({
-  id: String,       // Planting UUID
-  zid: Number,      // Zone ID
+  id: String, // Planting UUID
+  zid: Number, // Zone ID
   title: String,
-  date: String,     // ISO8601
+  date: String, // ISO8601
   cid: String,
-  age: { type: Number, min: 0 },       // Age (days) of the crop at planting (seed = 0)
-  mad: { type: Number, min: 0 },       // Max Allowable Depletion (MAD %)
+  age: { type: Number, min: 0 }, // Age (days) of the crop at planting (seed = 0)
+  mad: { type: Number, min: 0 }, // Max Allowable Depletion (MAD %)
   count: { type: Number, default: 1 },
-  spacing: { type: Number, default: 1 } // Inches
+  spacing: { type: Number, default: 1 }, // Inches
 });
 
 class Plantings {
@@ -84,7 +84,7 @@ class Plantings {
       // of the crop at the start of this range
       const crop = await this.getCrop(planting.cid);
       if (crop === null) {
-        throw(`getETcByZone: Invalid Crop Id: ${planting.cid}`);
+        throw (`getETcByZone: Invalid Crop Id: ${planting.cid}`);
       }
 
       const plantingDate = new Date(planting.date);
@@ -99,11 +99,10 @@ class Plantings {
       // For each day on the given range, accumulate the dailyETc using the ETo and Kc
       // TODO: adjust the precision by acounting for crop density, canopy, shading, ...
       for (let day = 0; day < dailyETo.length; day++) {
-        ETc += dailyETo[day] *
-          (age <= initStage ? crop.initKc :
-            (age <= devStage ? crop.devKc :
-              (age <= midStage ? crop.midKc : crop.lateKc)));
-        age++;
+        ETc += dailyETo[day] * (age <= initStage ? crop.initKc
+          : (age <= devStage ? crop.devKc
+            : (age <= midStage ? crop.midKc : crop.lateKc)));
+        age += 1;
       }
     }
 
@@ -117,7 +116,7 @@ class Plantings {
     let fertilizer = JSON.stringify({ n: 0, p: 0, k: 0 });
 
     if (plantings.length === 0) {
-      return(fertilizer);
+      return (fertilizer);
     }
 
     log.debug(`getFertilizerByZone: zid(${zid}) start(${start}) end(${end}) lastFert(${lastFertilized})`);
@@ -160,7 +159,7 @@ class Plantings {
               crops: planting.count,
               n: crop.initN,
               p: crop.initP,
-              k: crop.initK
+              k: crop.initK,
             });
           }
         } else if (age <= devStage) {
@@ -171,7 +170,7 @@ class Plantings {
               crops: planting.count,
               n: crop.devN,
               p: crop.devP,
-              k: crop.devK
+              k: crop.devK,
             });
           }
         } else if (age <= midStage) {
@@ -182,7 +181,7 @@ class Plantings {
               crops: planting.count,
               n: crop.midN,
               p: crop.midP,
-              k: crop.midK
+              k: crop.midK,
             });
           }
         } else {
@@ -193,7 +192,7 @@ class Plantings {
               crops: planting.count,
               n: crop.lateN,
               p: crop.lateP,
-              k: crop.lateK
+              k: crop.lateK,
             });
           }
         }
@@ -222,7 +221,7 @@ class Plantings {
       fertilizer = JSON.stringify({
         n: Number((n / crops).toFixed(0)),
         p: Number((p / crops).toFixed(0)),
-        k: Number((k / crops).toFixed(0))
+        k: Number((k / crops).toFixed(0)),
       });
     }
 
@@ -230,7 +229,7 @@ class Plantings {
   }
 
   async getCrop(cid) {
-    return (await CropsInstance.getCrop(cid));
+    return CropsInstance.getCrop(cid);
   }
 
   async setPlanting(planting) {
@@ -314,5 +313,5 @@ const PlantingsInstance = new Plantings();
 Object.freeze(PlantingsInstance);
 
 module.exports = {
-  PlantingsInstance
+  PlantingsInstance,
 };

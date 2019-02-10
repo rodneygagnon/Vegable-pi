@@ -23,16 +23,16 @@ const { dbKeys } = require('./db');
 const { milli_per_hour } = require('../../config/constants');
 
 const eventSchema = Schema({
-  id: String,                     // Event UUID
-  zid: Number,                    // Zone ID
+  id: String, // Event UUID
+  zid: Number, // Zone ID
   title: String,
-  start: String,                  // ISO8601
-  amt: { type: Number, min: 0 },  // inches of water to apply
-  fertilizer: String,             // NPK fertilizer
+  start: String, // ISO8601
+  amt: { type: Number, min: 0 }, // inches of water to apply
+  fertilizer: String, // NPK fertilizer
   color: String,
   textColor: String,
   repeatDow: Array,
-  repeatEnd: String               // ISO8601
+  repeatEnd: String, // ISO8601
 });
 
 // Bull/Redis Jobs Queue
@@ -169,7 +169,6 @@ class Events {
       this.scheduleJob(validEvent);
 
       eid = validEvent.id;
-
     } catch (err) {
       log.error(`setEvent Failed to set event: ${JSON.stringify(err)}`);
     }
@@ -217,7 +216,7 @@ class Events {
       for (let i = 0; i < events.length; i++) {
         const event = JSON.parse(events[i]);
         if (event.id === eid) {
-          return(event);
+          return (event);
         }
       }
 
@@ -276,9 +275,12 @@ class Events {
         // Switch ON the station and create a job to turn it off
         ZonesInstance.switchZone(job.data.zid, job.data.fertilizer, async (status) => {
           const irrTime = (job.data.amt / zone.iph) * milli_per_hour;
-          const nextJob = await EventsQueue.add(job.data, { jobId: uuidv4(),
-                                                            delay: irrTime,
-                                                            removeOnComplete: true });
+          const nextJob = await EventsQueue.add(job.data,
+            {
+              jobId: uuidv4(),
+              delay: irrTime,
+              removeOnComplete: true,
+            });
 
           log.debug(`Events::process(1) zone ${zone.id} switched ${zone.status === true ? 'ON' : 'OFF'}`);
           done();
@@ -307,5 +309,5 @@ const EventsInstance = new Events();
 Object.freeze(EventsInstance);
 
 module.exports = {
-  EventsInstance
+  EventsInstance,
 };

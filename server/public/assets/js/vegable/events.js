@@ -9,9 +9,6 @@ function initCalendar() {
   $calendar = $('#fullCalendar');
 
   const today = new Date();
-  const y = today.getFullYear();
-  const m = today.getMonth();
-  const d = today.getDate();
 
   $calendar.fullCalendar({
     header: {
@@ -51,13 +48,13 @@ function initCalendar() {
 
       $('[id=editScheduleModal]').modal();
     },
-    eventClick: function(event, jsEvent, view) {
+    eventClick: function (event, jsEvent, view) {
       $('[id=editScheduleModal] #editScheduleModalLabel').text('Update an Event');
       $('[id=editScheduleModal] #title').val(event.title);
       $('[id=editScheduleModal] #id').val(event.id);
       $('[id=editScheduleModal] #zid').selectpicker('val', event.zid);
       $('[id=editScheduleModal] #amt').selectpicker('val', event.amt);
-      $('[id=editScheduleModal] #fertilize').prop("checked", event.fertilize);
+      $('[id=editScheduleModal] #fertilize').prop('checked', event.fertilize);
       $('[id=editScheduleModal] #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
       $('[id=editScheduleModal] #repeatDow').selectpicker('val', (typeof event.repeatDow === 'undefined') ? "" : event.repeatDow);
       $('[id=editScheduleModal] #repeatEnd').val((typeof event.repeatEnd === 'undefined') ? moment(event.end).format('MM/DD/YYYY') :
@@ -67,21 +64,21 @@ function initCalendar() {
 
       $('[id=editScheduleModal]').modal();
     },
-    eventDrop: function(event, delta, revertFunc) {
-      var event = {
+    eventDrop: function (event, delta, revertFunc) {
+      const newEvent = {
         id: event.id,
         zid: event.zid,
         title: event.title,
         start: event.start,
         end: event.end,
         repeatDow: event.repeatDow,
-        repeatEnd: repeatEnd
+        repeatEnd: event.repeatEnd
       };
 
       $.ajax({
         url: '/events/update',
         type: 'POST',
-        data: JSON.stringify(event),
+        data: JSON.stringify(newEvent),
         contentType: 'application/json',
         success: function (result) {
         }

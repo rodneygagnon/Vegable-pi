@@ -29,7 +29,7 @@ function initBootstrapTable() {
             title: 'Zone',
             sortable: true,
             formatter: function (value) {
-              var zone = value;
+              let zone = value;
               for (let i = 0; i < zones.length; i++) {
                 if (zones[i].id === value) {
                   zone = zones[i].name;
@@ -44,7 +44,7 @@ function initBootstrapTable() {
             title: 'Crop',
             sortable: true,
             formatter: function (value) {
-              var crop = value;
+              let crop = value;
               for (let i = 0; i < crops.length; i++) {
                 if (crops[i].id === value) {
                   crop = crops[i].name;
@@ -66,8 +66,7 @@ function initBootstrapTable() {
 }
 
 function dateFormatter(value) {
-  //var started = (value == 0 ? "" : new Date(value).toLocaleString());
-  var started = (value == 0 ? '' : moment(value).format('MM/DD/YYYY'));
+  const started = (value == 0 ? '' : moment(value).format('MM/DD/YYYY'));
   return `<span>${started}</span>`;
 }
 
