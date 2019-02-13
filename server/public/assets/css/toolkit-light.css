@@ -1397,6 +1397,7 @@ pre {
 .table-sm td {
   padding: 0.3rem; }
 
+/*
 .table-bordered {
   border: 1px solid #dee2e6; }
   .table-bordered th,
@@ -1405,6 +1406,7 @@ pre {
   .table-bordered thead th,
   .table-bordered thead td {
     border-bottom-width: 2px; }
+*/
 
 .table-borderless th,
 .table-borderless td,
