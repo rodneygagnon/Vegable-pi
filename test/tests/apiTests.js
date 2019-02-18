@@ -347,7 +347,7 @@ const runTests = async (app) => {
         title: 'Test Event',
         start: (new Date()).toString(),
         amt: 1,
-        fertilize: false,
+        fertilizer: JSON.stringify({ n: 0, p: 0, k: 0 }),
       };
 
       it('should create an event', (done) => {

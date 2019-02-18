@@ -5,7 +5,8 @@
  * @version 0.1
  */
 
-const expect = require('expect');
+ const expect = require('expect');
+ const moment = require('moment');
 
 /** Controllers */
 const { VegableInstance } = require('../../server/controllers/vegable');
@@ -123,7 +124,7 @@ const runTests = (testZoneId) => {
       CropsInstance.getCrops(async (cropsdb) => {
         crops = cropsdb;
 
-        for (var cropNum = 0; cropNum <= crops.length; cropNum++) {
+        for (var cropNum = 0; cropNum < crops.length; cropNum++) {
           var crop = crops[cropNum];
 
           if (!etrCrop && crop.name === 'Broccoli') {

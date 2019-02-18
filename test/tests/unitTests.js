@@ -263,7 +263,7 @@ const runTests = (zoneId) => {
         zid: zoneId,
         title: 'Test Event',
         amt: 1,
-        fertilize: false,
+        fertilizer: JSON.stringify({ n: 0, p: 0, k: 0 }),
       };
 
       // Test single events
