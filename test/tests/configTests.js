@@ -56,19 +56,20 @@ const runTests = (clear) => {
   describe('Zones', () => {
     it('should configure all planting zones', (done) => {
       const sampleZones = [
-        { name: "4x8 Raised Beds", area: 32, emitterCount: 16, emitterRate: 1, start: "04:00" },
-        { name: "3x9 Raised Beds", area: 27, emitterCount: 12, emitterRate: 1, start: "04:30" },
-        { name: "Greens Field", area: 1000, emitterCount: 80, emitterRate: 1, start: "05:00" },
-        { name: "Back Lot", area: 400, emitterCount: 32, emitterRate: 1, start: "05:30" },
-        { name: "Side Lot", area: 250, emitterCount: 25, emitterRate: 1, start: "06:00" },
-        { name: "Hothouse", area: 32, emitterCount: 16, emitterRate: 1, start: "06:30" }
+        { name: "4x8 Raised Beds", width: 4, length: 8, emitterCount: 16, emitterRate: 1, start: "04:00" },
+        { name: "3x9 Raised Beds", width: 3, length: 9, emitterCount: 12, emitterRate: 1, start: "04:30" },
+        { name: "Greens Field", width: 20, length: 50, emitterCount: 80, emitterRate: 1, start: "05:00" },
+        { name: "Back Lot", width: 10, length: 12, emitterCount: 32, emitterRate: 1, start: "05:30" },
+        { name: "Side Lot", width: 5, length: 9, emitterCount: 25, emitterRate: 1, start: "06:00" },
+        { name: "Hothouse", width: 20, length: 40, emitterCount: 48, emitterRate: 1, start: "06:30" }
       ];
 
       ZonesInstance.getPlantingZones(async (zones) => {
         for (let i = 0; i < zones.length; i++) {
           let zone = zones[i];
           zone.name = sampleZones[i].name;
-          zone.area = sampleZones[i].area;
+          zone.width = sampleZones[i].width;
+          zone.length = sampleZones[i].length;
           zone.emitterCount = sampleZones[i].emitterCount;
           zone.emitterRate = sampleZones[i].emitterRate;
           zone.start = sampleZones[i].start;
@@ -107,39 +108,39 @@ const runTests = (clear) => {
     it('should configure all plantings', async () => {
       const samplePlantings = [
         { zid: 3, title: "Heirloom Tomatoes", cid: tomatoCrop.id, age: 21,
-          date: dayBeforeYesterday.toString(), mad: 50, count: 4, spacing: 12 },
+          date: dayBeforeYesterday.toString(), mad: 50, count: 4 },
         { zid: 3, title: "Atomic Carrots", cid: carrotCrop.id, age: 0,
-          date: dayBeforeYesterday.toString(), mad: 55, count: 48, spacing: 2 },
+          date: dayBeforeYesterday.toString(), mad: 55, count: 48 },
         { zid: 3, title: "Bell Peppers", cid: pepperCrop.id, age: 14,
-          date: dayBeforeYesterday.toString(), mad: 60, count: 2, spacing: 12 },
+          date: dayBeforeYesterday.toString(), mad: 60, count: 2 },
         { zid: 3, title: "Padrone Peppers", cid: pepperCrop.id, age: 14,
-          date: dayBeforeYesterday.toString(), mad: 60, count: 2, spacing: 12 },
+          date: dayBeforeYesterday.toString(), mad: 60, count: 2 },
         { zid: 4, title: "Gem Lettuce", cid: lettuceCrop.id, age: 7,
-          date: yesterday.toString(), mad: 75, count: 12, spacing: 12 },
+          date: yesterday.toString(), mad: 75, count: 12 },
         { zid: 4, title: "Spinach", cid: spinachCrop.id, age: 7,
-          date: yesterday.toString(), mad: 70, count: 12, spacing: 12 },
+          date: yesterday.toString(), mad: 70, count: 12 },
         { zid: 4, title: "Broccoli", cid: broccoliCrop.id, age: 14,
-          date: yesterday.toString(), mad: 60, count: 2, spacing: 12 },
+          date: yesterday.toString(), mad: 60, count: 2 },
         { zid: 5, title: "Golden Beets", cid: beetCrop.id, age: 14,
-          date: today.toString(), mad: 50, count: 6, spacing: 6 },
+          date: today.toString(), mad: 50, count: 6 },
         { zid: 5, title: "Red Beets", cid: beetCrop.id, age: 14,
-          date: today.toString(), mad: 50, count: 6, spacing: 6 },
+          date: today.toString(), mad: 50, count: 6 },
         { zid: 5, title: "Italian Eggplant", cid: eggplantCrop.id, age: 14,
-          date: today.toString(), mad: 50, count: 6, spacing: 6 },
+          date: today.toString(), mad: 50, count: 6 },
         { zid: 6, title: "Armenian Cucumbers", cid: cucumberCrop.id, age: 14,
-          date: today.toString(), mad: 55, count: 1, spacing: 24 },
+          date: today.toString(), mad: 55, count: 1 },
         { zid: 6, title: "Lemon Cucumbers", cid: cucumberCrop.id, age: 14,
-          date: today.toString(), mad: 55, count: 1, spacing: 24 },
+          date: today.toString(), mad: 55, count: 1 },
         { zid: 7, title: "Honeydew", cid: melonCrop.id, age: 14,
-          date: today.toString(), mad: 60, count: 2, spacing: 24 },
+          date: today.toString(), mad: 60, count: 2 },
         { zid: 7, title: "Cantaloupe", cid: melonCrop.id, age: 12,
-          date: today.toString(), mad: 60, count: 2, spacing: 24 },
+          date: today.toString(), mad: 60, count: 2 },
         { zid: 7, title: "Watermelon", cid: melonCrop.id, age: 10,
-          date: today.toString(), mad: 60, count: 1, spacing: 24 },
+          date: today.toString(), mad: 60, count: 1 },
         { zid: 8, title: "Romaine Lettuce", cid: lettuceCrop.id, age: 14,
-          date: today.toString(), mad: 70, count: 24, spacing: 12 },
+          date: today.toString(), mad: 70, count: 24 },
         { zid: 8, title: "Summer Crisp", cid: lettuceCrop.id, age: 12,
-          date: today.toString(), mad: 70, count: 24, spacing: 12 },
+          date: today.toString(), mad: 70, count: 24 },
       ];
 
       for (let i = 0; i < samplePlantings.length; i++) {
@@ -189,7 +190,8 @@ const runTests = (clear) => {
         let end = new Date(start);
         let statsZid = 3;
         let statsZid2 = 4;
-        let statsZid3 = 6;
+        let statsZid3 = 5;
+        let statsZid4 = 6;
 
         // Save 5 days of stats for one zone.
         for (var i = 0; i < 5; i++) {
@@ -199,8 +201,14 @@ const runTests = (clear) => {
             await StatsInstance.saveStats(statsZid2, end.getTime(), end.getTime(),
                                           i + 2, JSON.stringify(fertilizerObj));
           }
-          if (i === 4) {
+          if (i === 3) {
+            await StatsInstance.saveStats(statsZid2, end.getTime(), end.getTime(),
+                                          i - 0.75, JSON.stringify(fertilizerObj));
             await StatsInstance.saveStats(statsZid3, end.getTime(), end.getTime(),
+                                          i + 0.5, JSON.stringify(nofertilizerObj));
+          }
+          if (i === 4) {
+            await StatsInstance.saveStats(statsZid4, end.getTime(), end.getTime(),
                                           i - 2, JSON.stringify(fertilizerObj));
           }
           end.setDate(end.getDate() + 1);
