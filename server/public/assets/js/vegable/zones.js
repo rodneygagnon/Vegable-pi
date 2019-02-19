@@ -170,7 +170,8 @@ $().ready(function (){
       $('[id=editZoneModal] #editZoneModalLabel').text(`Edit: ${row.name} (Port #${row.id})`);
       $('[id=editZoneModal] #id').val(row.id);
       $('[id=editZoneModal] #name').val(row.name);
-      $('[id=editZoneModal] #area').val(row.area);
+      $('[id=editZoneModal] #width').val(row.width);
+      $('[id=editZoneModal] #length').val(row.length);
       $('[id=editZoneModal] #emitterCount').val(row.emitterCount);
       $('[id=editZoneModal] #emitterRate').selectpicker('val', row.emitterRate);
       $('[id=editZoneModal] #swhc').selectpicker('val', row.swhc);

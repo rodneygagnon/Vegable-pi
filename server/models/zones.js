@@ -28,9 +28,11 @@ const zonesSchema = Schema({
   id: Number,
   name: String,
   type: Number,
+  length: { type: Number, min: 0 }, // sq ft
+  width: { type: Number, min: 0 }, // sq ft
   area: { type: Number, min: 0 }, // sq ft
   emitterCount: { type: Number, min: 0 }, // total number of emitters
-  emitterRate: { type: Number, min: 0.5 }, // total number of emitters
+  emitterRate: { type: Number, min: 0.5 }, // emitter flow rate (gph)
   gph: { type: Number, min: 0 }, // total Gallons per Hour
   iph: { type: Number, min: 0 }, // total Inches per Hour
   swhc: { type: Number, min: 0.5 }, // Soil Water Holding Capacity
@@ -113,6 +115,8 @@ class Zones {
             id: MasterZoneId,
             name: MasterZoneName,
             type: ZoneType.control,
+            length: 1,
+            width: 1,
             area: 1,
             emitterCount: 1,
             emitterRate:
@@ -136,6 +140,8 @@ class Zones {
             id: FertilizerZoneId,
             name: FertilizerZoneName,
             type: ZoneType.control,
+            length: 1,
+            width: 1,
             area: 1,
             emitterCount: 1,
             emitterRate: FlowRates.oneGPH,
@@ -159,6 +165,8 @@ class Zones {
             id: i,
             name: `Z0${i - 2}`,
             type: ZoneType.open,
+            length: 1,
+            width: 1,
             area: 1,
             emitterCount: 1,
             emitterRate: FlowRates.oneGPH,
@@ -290,7 +298,9 @@ class Zones {
       const saveZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, inputZone.id));
 
       saveZone.name = inputZone.name;
-      saveZone.area = inputZone.area;
+      saveZone.length = inputZone.length;
+      saveZone.width = inputZone.width;
+      saveZone.area = inputZone.length * inputZone.width;
       saveZone.emitterCount = inputZone.emitterCount;
       saveZone.emitterRate = inputZone.emitterRate;
       saveZone.gph = saveZone.emitterCount * saveZone.emitterRate;

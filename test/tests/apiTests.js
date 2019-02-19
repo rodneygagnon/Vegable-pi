@@ -260,7 +260,6 @@ const runTests = async (app) => {
         age: 1,
         mad: 50,
         count: 2,
-        spacing: 12
       };
 
       it('should get all crops', (done) => {

@@ -19,6 +19,7 @@ const { dbKeys } = require('./db');
 const cropSchema = Schema({
   id: String,
   name: String,
+  numSqFt: Number,
   initDay: Number,
   initKc: Number,
   initN: Number,

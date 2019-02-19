@@ -182,7 +182,7 @@ $().ready(function () {
           });
         }
 
-        $(`#irrTotal`).replaceWith(`<h4 id="irrTotal" class="mt-4">${irrTotal} Gallons</h4>`);
+        $(`#irrTotal`).replaceWith(`<h4 id="irrTotal" class="mt-4">${irrTotal.toFixed(1)} Gallons</h4>`);
         $(`#irrEvents`).replaceWith(`<h6 id="irrEvents" class="mb-4">Irrigated ${stats.length}x Fertilized ${fertEvents}x</h6>`);
 
         window.myBar.update();

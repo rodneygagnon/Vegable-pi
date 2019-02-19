@@ -218,10 +218,17 @@
             </div>
             <div class="row mb-4">
               <div class="col">
-                <label for="area" class="col-form-label">Area (sqft)</label>
-                <input type="text" class="form-control" id="area" name="area" required>
+                <label id="areaLabel" for="area" class="col-form-label">Area (W x L)</label>
+                <div class="row">
+                  <div class="col">
+                    <input type="text" class="form-control" id="width" name="width" required>
+                  </div>
+                  <div class="col">
+                    <input type="text" class="form-control" id="length" name="length" required>
+                  </div>
+                </div>
                 <div class="invalid-feedback">
-                  Please provide a valid area in square feet.
+                  Please provide a valid the area width and length (ft).
                 </div>
               </div>
               <div class="col">
@@ -247,7 +254,7 @@
                 </div>
               </div>
               <div class="col">
-                <label for="emitterRate" class="col-form-label">Flow Rate (gpm)</label>
+                <label for="emitterRate" class="col-form-label">Flow Rate (GPH)</label>
                 <select class="selectpicker form-control" id="emitterRate" name="emitterRate" data-size="7" required>
                   <%
                     var rateTypes = [ "0.5", "1.0", "2.0" ];

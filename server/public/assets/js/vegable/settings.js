@@ -47,6 +47,7 @@ function detailFormatter(index, row) {
   html.push('<p>    ');
   $.each(row, function (key, value) {
     switch (key) {
+      case 'numSqFt':
       case 'initDay':
       case 'initKc':
       case 'initN':
@@ -85,6 +86,7 @@ function detailFormatter(index, row) {
 $().ready(function () {
   $table.on('click-row.bs.table', function (e, row, $element) {
     $('[id=editCropModal] #editCropModalLabel').text('Edit: ' + row.name);
+    $('[id=editCropModal] #numSqFt').val(row.numSqFt);
     $('[id=editCropModal] #id').val(row.id);
     $('[id=editCropModal] #name').val(row.name);
     $('[id=editCropModal] #initDay').val(row.initDay);

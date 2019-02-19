@@ -40,6 +40,21 @@ function initBootstrapTable() {
             }
           },
           {
+            field: 'area',
+            title: 'Area (sqft)',
+            sortable: true,
+            formatter: function (value, row) {
+              let area = 0;
+              for (let i = 0; i < crops.length; i++) {
+                if (crops[i].id === row.cid) {
+                  area = row.count / crops[i].numSqFt;
+                  break;
+                }
+              }
+              return `<span>${area.toFixed(1)}</span>`;
+            }
+          },
+          {
             field: 'cid',
             title: 'Crop',
             sortable: true,
@@ -86,7 +101,6 @@ $().ready(function () {
     $('[id=editPlantingModal] #cid').selectpicker('val', (typeof row.cid === 'undefined') ? '' : row.cid);
     $('[id=editPlantingModal] #date').val(moment(row.date).format('MM/DD/YYYY'));
     $('[id=editPlantingModal] #count').val(row.count);
-    $('[id=editPlantingModal] #spacing').val(row.spacing);
     $('[id=editPlantingModal] #age').val(row.age);
     $('[id=editPlantingModal] #mad').val(row.mad);
 

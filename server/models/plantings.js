@@ -31,7 +31,6 @@ const plantingSchema = Schema({
   age: { type: Number, min: 0 }, // Age (days) of the crop at planting (seed = 0)
   mad: { type: Number, min: 0 }, // Max Allowable Depletion (MAD %)
   count: { type: Number, default: 1 },
-  spacing: { type: Number, default: 1 }, // Inches
 });
 
 class Plantings {
