@@ -5,7 +5,7 @@
 
 # Introduction
 
-Vegable-pi is an OpenSprinklerPi implementation using a Bootstrap-Node-Express-Redis Stack.
+Vegable-pi is an OpenSprinklerPi implementation using a React-Bootstrap-Node-Express-Redis Stack.
 
 <a href="https://vegable.squarespace.com/s/software-stack.png"><img src="https://vegable.squarespace.com/s/software-stack.png" width="240"/></a>
 
