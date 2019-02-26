@@ -59,6 +59,18 @@ router.route('/location/set').post((req, res) => {
 });
 
 /**
+ * Route to get ETr information.
+ * @name api/etrs/get
+ * @function
+ * @returns {object} etrs ...
+ */
+router.route('/etrs/get').get((req, res) => {
+  SettingsInstance.getETrs((etrs) => {
+    res.status(200).json(etrs);
+  });
+});
+
+/**
  * Route to set gardening practice.
  * @name practice/set
  * @function

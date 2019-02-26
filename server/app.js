@@ -7,6 +7,7 @@
 
 // Main Express Application
 const express = require('express');
+var cors = require('cors');
 const session = require('express-session');
 
 const redis   = require("redis");
@@ -65,6 +66,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '/views'));
 
 app.use(helmet());
+app.use(cors());
 app.use(morgan('dev'));
 
 app.use(express.json());

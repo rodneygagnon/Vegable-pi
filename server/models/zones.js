@@ -82,12 +82,12 @@ Object.freeze(SoilWHC);
 const zoneEventColors = [
   '#538D9E', // Master
   '#408093', // Fertilizer
-  '#4697AB', // Z01
-  '#04647C', // Z02
-  '#1E364E', // Z03
-  '#3E515F', // Z04
-  '#7E8C9D', // Z05
-  '#5B739D', // Z06
+  '#e91e63', // Z01
+  '#3f51b5', // Z02
+  '#03a9f4', // Z03
+  '#009688', // Z04
+  '#795548', // Z05
+  '#607d8b', // Z06
 ];
 const zoneTextColor = '#EBF2F4';
 

@@ -42,7 +42,7 @@ function initCalendar() {
       $('[id=editScheduleModal] #fertilize').prop('checked', false);
       $('[id=editScheduleModal] #start').val(moment(start).format('MM/DD/YYYY hh:mm A'));
       $('[id=editScheduleModal] #repeatDow').selectpicker('val', ['7']); // None
-      $('[id=editScheduleModal] #repeatEnd').val(moment(end).format('MM/DD/YYYY hh:mm A'));
+      $('[id=editScheduleModal] #repeatEnd').val(moment(end).format('MM/DD/YYYY'));
 
       $('[id=editScheduleModal] #deleteScheduleButton').addClass('d-none');
 
