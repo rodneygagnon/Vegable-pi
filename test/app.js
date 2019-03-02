@@ -23,7 +23,8 @@ const longevityTestZoneId = 5;
 describe('Vegable Tests', async () => {
   await Unit.runTests(unitTestZoneId);
   await Api.runTests(app);
-  await Functional.runTests(functionalTestZoneId);
+  await Functional.runTests(functionalTestZoneId, true); // with fertilizer
+  await Functional.runTests(functionalTestZoneId, false); // without fertilizer
   await Longevity.runTests(longevityTestZoneId);
   await Config.runTests(false);
 });

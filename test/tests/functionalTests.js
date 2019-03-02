@@ -63,7 +63,7 @@ const testFertilization = (zone, planting, crop, processDate) => {
 }
 
 
-const runTests = (testZoneId) => {
+const runTests = (testZoneId, hasFertilizer) => {
   const startETr = new Date(2018, 0, 16); // Jan 15
   const endETr = new Date(2018, 1, 15);  // Feb 15
   let etrCrop = null;
@@ -143,11 +143,18 @@ const runTests = (testZoneId) => {
             testPlanting2.age = testCrop2.initDay + crop.devDay - 3; // ensure we span stages (dev & mid)
           }
 
-          if (testCrop1 && testCrop2) {
+          if (etrCrop && testCrop1 && testCrop2) {
             console.log(`Test Crop 1: (${JSON.stringify(testCrop1)})`);
             console.log(`Test Crop 2: (${JSON.stringify(testCrop2)})`);
             break;
           }
+        }
+
+        if (!hasFertilizer) {
+          // turn off fertilization for test zone
+          testZone = await ZonesInstance.getZone(testZoneId);
+          testZone.fertilize = false;
+          await ZonesInstance.setZone(testZone);
         }
         done();
       });
@@ -294,7 +301,7 @@ const runTests = (testZoneId) => {
           expect(fertilizing).toBe(shouldFertilize);
 
           fertilizerZone = await ZonesInstance.getFertilizerZone();
-          expect(fertilizerZone.status).toBe(fertilizing);
+          expect(fertilizerZone.status).toBe(hasFertilizer === true ? fertilizing : false);
 
           console.log(`**** Waiting ${(eventEnded/milli_per_sec).toFixed(0)} seconds for event to end ...`);
 
@@ -392,7 +399,7 @@ const runTests = (testZoneId) => {
           expect(fertilizing).toBe(shouldFertilize);
 
           fertilizerZone = await ZonesInstance.getFertilizerZone();
-          expect(fertilizerZone.status).toBe(fertilizing);
+          expect(fertilizerZone.status).toBe(hasFertilizer === true ? fertilizing : false);
 
           console.log(`**** Waiting ${(eventEnded/milli_per_sec).toFixed(0)} seconds for event to end ...`);
 
@@ -521,7 +528,7 @@ const runTests = (testZoneId) => {
           expect(fertilizing).toBe(shouldFertilize);
 
           fertilizerZone = await ZonesInstance.getFertilizerZone();
-          expect(fertilizerZone.status).toBe(fertilizing);
+          expect(fertilizerZone.status).toBe(hasFertilizer === true ? fertilizing : false);
 
           console.log(`**** Waiting ${(eventEnded / milli_per_sec).toFixed(0)} seconds for event to end ...`);
 
@@ -635,7 +642,7 @@ const runTests = (testZoneId) => {
           expect(fertilizing).toBe(shouldFertilize);
 
           fertilizerZone = await ZonesInstance.getFertilizerZone();
-          expect(fertilizerZone.status).toBe(fertilizing);
+          expect(fertilizerZone.status).toBe(hasFertilizer === true ? fertilizing : false);
 
           console.log(`**** Waiting ${(eventEnded / milli_per_sec).toFixed(0)} seconds for event to end ...`);
 
@@ -747,7 +754,7 @@ const runTests = (testZoneId) => {
           expect(fertilizing).toBe(shouldFertilize);
 
           fertilizerZone = await ZonesInstance.getFertilizerZone();
-          expect(fertilizerZone.status).toBe(fertilizing);
+          expect(fertilizerZone.status).toBe(hasFertilizer === true ? fertilizing : false);
 
           console.log(`**** Waiting ${(eventEnded / milli_per_sec).toFixed(0)} seconds for event to end ...`);
 
@@ -798,6 +805,8 @@ const runTests = (testZoneId) => {
           zone.start = origZoneStart;
           zone.emitterCount = origEmitterCount;
           zone.emitterRate = origEmitterRate;
+          zone.auto = true;
+          zone.fertilize = true;
           zone.width = origWidth;
           zone.length = origLength;
           zone.availableWater = 0;
@@ -809,6 +818,8 @@ const runTests = (testZoneId) => {
           expect(zone.start).toBe(origZoneStart);
           expect(zone.emitterCount).toBe(origEmitterCount);
           expect(zone.emitterRate).toBe(origEmitterRate);
+          expect(zone.auto).toBe(true);
+          expect(zone.fertilize).toBe(true);
           expect(zone.width).toBe(origWidth);
           expect(zone.length).toBe(origLength);
           expect(zone.availableWater).toBe(0);
