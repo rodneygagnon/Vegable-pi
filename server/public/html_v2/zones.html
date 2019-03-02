@@ -269,11 +269,20 @@
 
             <div class="row mb-4">
               <div class="col">
+                <label for="operation" class="col-form-label">Automatic Operation</label>
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" id="auto" name="auto">
+                  <label class="custom-control-label" for="auto"> Irrigate based on plantings</label>
+                </div>
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" id="fertilize" name="fertilize">
+                  <label class="custom-control-label" for="fertilize"> Apply fertilizer while irrigating</label>
+                </div>
+              </div>
+              <div class="col">
                 <label for="color" class="col-form-label">Zone Color</label>
                 <input type="hidden" class="form-control" id="color" name="color">
                 <div id="colorpicker-container"></div>
-             </div>
-              <div class="col">
               </div>
             </div>
 

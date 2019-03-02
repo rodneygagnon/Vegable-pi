@@ -174,6 +174,8 @@ $().ready(function (){
       $('[id=editZoneModal] #length').val(row.length);
       $('[id=editZoneModal] #emitterCount').val(row.emitterCount);
       $('[id=editZoneModal] #emitterRate').selectpicker('val', row.emitterRate);
+      $('[id=editZoneModal] #auto').prop('checked', row.auto);
+      $('[id=editZoneModal] #fertilize').prop('checked', row.fertilize);
       $('[id=editZoneModal] #swhc').selectpicker('val', row.swhc);
 
       $('[id=editZoneModal] #colorpicker-container').colorpicker({

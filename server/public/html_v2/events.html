@@ -193,7 +193,7 @@
             </div>
 
             <div class="form-row">
-              <div class="col-md-6 mb-3">
+              <div class="col">
                 <label for="amt" class="col-form-label">Amount (inches)</label>
                 <select class="selectpicker form-control" id="amt" name="amt" data-size="7" required="">
                   <%
@@ -204,11 +204,11 @@
                   %>
                 </select>
               </div>
-              <div class="col-md-6 mb-3">
-                <label for="fertilize" class="col-form-label">Fertilize</label>
-                <div class="zinput zcheckbox">
-                  <input id="fertilize" name="fertilize" type="checkbox" value=true>
-                  <label for="fertilize">Apply fertilizer while irrigating</label>
+              <div class="col">
+                <label for="fertilize" class="col-form-label">Fertilizer</label>
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" id="fertilizer" name="fertilizer">
+                  <label class="custom-control-label" for="auto"> Apply fertilizer while irrigating</label>
                 </div>
               </div>
             </div>

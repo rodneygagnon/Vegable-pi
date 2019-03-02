@@ -146,6 +146,20 @@ class Events {
     let eid = null;
 
     try {
+      // ** TEMPORARY HACK **
+      // We should be passing fertilizer object string, not just boolean
+      // For now, if defined add appropriate fertilizer string.
+      // Real fix should be to sync UI with Model=
+      if (typeof event.fertilizer === 'undefined') {
+        event.fertilizer = JSON.stringify({ n: 0, p: 0, k: 0, });
+      } else {
+        // If it is a boolean, convert to fertilizer Object
+        if (event.fertilizer === 'on') {
+          event.fertilizer = JSON.stringify({ n: 1, p: 1, k: 1, });
+        }
+      }
+      // ** TEMPORARY HACK **
+
       const validEvent = await eventSchema.validate(event);
       const validStart = (new Date(validEvent.start)).getTime() / 1000;
 

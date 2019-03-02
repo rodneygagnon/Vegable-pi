@@ -33,6 +33,8 @@ const zonesSchema = Schema({
   area: { type: Number, min: 0 }, // sq ft
   emitterCount: { type: Number, min: 0 }, // total number of emitters
   emitterRate: { type: Number, min: 0.5 }, // emitter flow rate (gph)
+  auto: Boolean,
+  fertilize: Boolean,
   gph: { type: Number, min: 0 }, // total Gallons per Hour
   iph: { type: Number, min: 0 }, // total Inches per Hour
   swhc: { type: Number, min: 0.5 }, // Soil Water Holding Capacity
@@ -61,6 +63,12 @@ const MasterZoneName = 'Master';
 
 const FertilizerZoneId = 2;
 const FertilizerZoneName = 'Fertilizer';
+
+const noFertilizerObj = {
+  n: Number((0).toFixed(0)),
+  p: Number((0).toFixed(0)),
+  k: Number((0).toFixed(0))
+};
 
 // Irrigation Types and Rates and Types
 const FlowRates = { // Gallons per Hour
@@ -119,8 +127,9 @@ class Zones {
             width: 1,
             area: 1,
             emitterCount: 1,
-            emitterRate:
-            FlowRates.oneGPH,
+            emitterRate: FlowRates.oneGPH,
+            auto: true,
+            fertilize: true,
             gph: (1 * FlowRates.oneGPH),
             iph: (((1 * FlowRates.oneGPH) * app_rate_drip_conversion) / 1),
             swhc: SoilWHC.medium,
@@ -145,6 +154,8 @@ class Zones {
             area: 1,
             emitterCount: 1,
             emitterRate: FlowRates.oneGPH,
+            auto: true,
+            fertilize: true,
             gph: (1 * FlowRates.oneGPH),
             iph: (((1 * FlowRates.oneGPH) * app_rate_drip_conversion) / 1),
             swhc: SoilWHC.medium,
@@ -170,6 +181,8 @@ class Zones {
             area: 1,
             emitterCount: 1,
             emitterRate: FlowRates.oneGPH,
+            auto: true,
+            fertilize: true,
             gph: (1 * FlowRates.oneGPH),
             iph: (((1 * FlowRates.oneGPH) * app_rate_drip_conversion) / 1),
             swhc: SoilWHC.medium,
@@ -308,6 +321,19 @@ class Zones {
       saveZone.swhc = inputZone.swhc;
       saveZone.start = inputZone.start;
       saveZone.mad = inputZone.mad;
+
+      if (typeof inputZone.auto !== 'undefined') {
+        saveZone.auto = inputZone.auto;
+      } else {
+        saveZone.auto = false;
+      }
+
+      if (typeof inputZone.fertilize !== 'undefined') {
+        saveZone.fertilize = inputZone.fertilize;
+      } else {
+        saveZone.fertilize = false;
+      }
+
       if (typeof inputZone.color !== 'undefined' && inputZone.color !== '') {
         saveZone.color = inputZone.color;
       }
@@ -372,13 +398,19 @@ class Zones {
     let runTime;
     try {
       switchZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, zid));
-      const fertilizerObj = JSON.parse(fertilizer);
+
+      let fertilizerObj;
+      if (switchZone.fertilize) {
+        fertilizerObj = JSON.parse(fertilizer);
+      } else {
+        fertilizerObj = noFertilizerObj;
+      }
+
       const fertilized = (fertilizerObj.n || fertilizerObj.p || fertilizerObj.k) ? true : false;
 
       if (switchZone.type === ZoneType.control) {
         if (switchZone.status) {
           // zone is on. if master, turn everything off. other
-          // TODO: we need to properly record zone fertilizer stats
           if (switchZone.id === MasterZoneId) {
             // turn everything OFF
             const allActiveZones = await this.getZonesByStatus(true);

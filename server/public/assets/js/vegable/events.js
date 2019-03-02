@@ -39,7 +39,7 @@ function initCalendar() {
       $('[id=editScheduleModal] #id').val('');
       $('[id=editScheduleModal] #zid').selectpicker('val', ['0']); // None
       $('[id=editScheduleModal] #amt').selectpicker('val', ['1']); // Min
-      $('[id=editScheduleModal] #fertilize').prop('checked', false);
+      $('[id=editScheduleModal] #fertilizer').prop('checked', false);
       $('[id=editScheduleModal] #start').val(moment(start).format('MM/DD/YYYY hh:mm A'));
       $('[id=editScheduleModal] #repeatDow').selectpicker('val', ['7']); // None
       $('[id=editScheduleModal] #repeatEnd').val(moment(end).format('MM/DD/YYYY'));
@@ -54,7 +54,14 @@ function initCalendar() {
       $('[id=editScheduleModal] #id').val(event.id);
       $('[id=editScheduleModal] #zid').selectpicker('val', event.zid);
       $('[id=editScheduleModal] #amt').selectpicker('val', event.amt);
-      $('[id=editScheduleModal] #fertilize').prop('checked', event.fertilize);
+
+      let fertilize = false;
+      if (typeof event.fertilizer !== 'undefined') {
+        let fertilizerObj = JSON.parse(event.fertilizer);
+        fertilize = (fertilizerObj.n || fertilizerObj.p || fertilizerObj.k) ? true : false;
+      }
+      $('[id=editScheduleModal] #fertilizer').prop('checked', fertilize);
+
       $('[id=editScheduleModal] #start').val(moment(event.start).format('MM/DD/YYYY hh:mm A'));
       $('[id=editScheduleModal] #repeatDow').selectpicker('val', (typeof event.repeatDow === 'undefined') ? "" : event.repeatDow);
       $('[id=editScheduleModal] #repeatEnd').val((typeof event.repeatEnd === 'undefined') ? moment(event.end).format('MM/DD/YYYY') :
@@ -65,12 +72,14 @@ function initCalendar() {
       $('[id=editScheduleModal]').modal();
     },
     eventDrop: function (event, delta, revertFunc) {
+
       const newEvent = {
         id: event.id,
         zid: event.zid,
         title: event.title,
         start: event.start,
-        end: event.end,
+        amt: event.amt,
+        fertilizer: event.fertilizer,
         repeatDow: event.repeatDow,
         repeatEnd: event.repeatEnd
       };
