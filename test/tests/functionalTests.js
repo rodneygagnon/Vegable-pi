@@ -260,6 +260,21 @@ const runTests = (testZoneId, hasFertilizer) => {
         await ZonesInstance.setZone(testZone);
       });
 
+      it(`should set zone ${testZoneId} to MANUAL`, async () => {
+        testZone.auto = false;
+        await ZonesInstance.setZone(testZone);
+      });
+
+      it(`should NOT schedule an event for zone ${testZoneId}`, async () => {
+        eids = await VegableInstance.scheduleEvents(new Date(nextProcessDate), new Date(nextScheduleDate));
+        expect(eids.length).toBe(0);
+      });
+
+      it(`should set zone ${testZoneId} back to AUTO`, async () => {
+        testZone.auto = true;
+        await ZonesInstance.setZone(testZone);
+      });
+
       it(`should schedule an event for zone ${testZoneId}`, async () => {
         // Make sure the zone's start time was set properly
         expect((await ZonesInstance.getZone(testZone.id)).start).toBe(testZone.start);

@@ -110,6 +110,12 @@ class Vegable {
 
       for (i = 0; i < zones.length; i++) {
         const zone = zones[i];
+
+        // Ignore zone if set to manual
+        if (!zone.auto) {
+          continue;
+        }
+
         let precip;
         let etc;
         let fertilizer;
