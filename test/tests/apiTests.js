@@ -178,30 +178,27 @@ const runTests = async (app) => {
           .expect(200)
           .end(done);
       });
-      it('should fail to get a bogus zone', (done) => {
+      it('should set a zone', (done) => {
+        getZone.auto = false;
+        getZone.fertilize = false;
+        request(app)
+          .post('/api/zones/set')
+          .send(getZone)
+          .set('Accept', 'application/json')
+          .expect(200)
+          .end(done);
+      });
+      it('should get a changed zone', (done) => {
         request(app)
           .get('/api/zones/get')
-          .query({ id: 'zone1' })
-          .expect(400)
-          .end(done);
-      });
-      it('should switch a zone ON', (done) => {
-        request(app)
-          .post('/api/zones/switch')
           .query({ id: `${ getZone.id }` })
           .expect('Content-Type', /json/)
-          .expect(200, { status: true })
+          .expect(200, getZone)
           .end(done);
       });
-      it('should switch a zone OFF', (done) => {
-        request(app)
-          .post('/api/zones/switch')
-          .query({ id: `${ getZone.id }` })
-          .expect('Content-Type', /json/)
-          .expect(200, { status: false })
-          .end(done);
-      });
-      it('should set a zone', (done) => {
+      it('should reset a zone', (done) => {
+        getZone.auto = true;
+        getZone.fertilize = true;
         request(app)
           .post('/api/zones/set')
           .send(getZone)
@@ -216,6 +213,29 @@ const runTests = async (app) => {
           .send(getZone)
           .set('Accept', 'application/json')
           .expect(400)
+          .end(done);
+      });
+      it('should fail to get a bogus zone', (done) => {
+        request(app)
+          .get('/api/zones/get')
+          .query({ id: 'zone1' })
+          .expect(400)
+          .end(done);
+      });
+      it('should switch a zone ON', (done) => {
+        request(app)
+          .post('/api/zones/switch')
+          .query({ id: 3 })
+          .expect('Content-Type', /json/)
+          .expect(200, { status: true })
+          .end(done);
+      });
+      it('should switch a zone OFF', (done) => {
+        request(app)
+          .post('/api/zones/switch')
+          .query({ id: 3 })
+          .expect('Content-Type', /json/)
+          .expect(200, { status: false })
           .end(done);
       });
     });

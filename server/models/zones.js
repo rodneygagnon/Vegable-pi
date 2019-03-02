@@ -399,6 +399,12 @@ class Zones {
     try {
       switchZone = JSON.parse(await db.hgetAsync(dbKeys.dbZonesKey, zid));
 
+      if (switchZone === null) {
+        log.error(`switchZone: Unkown Zone ID (${zid})`);
+        callback(false);
+        return;
+      }
+
       let fertilizerObj;
       if (switchZone.fertilize) {
         fertilizerObj = JSON.parse(fertilizer);
@@ -496,7 +502,7 @@ class Zones {
         }
       }
     } catch (err) {
-      log.error(`switchZone: Failed to switch zone: ${err}`);
+      log.error(`switchZone: Failed to switch zone(${zid}): ${err}`);
     }
     callback(switchZone.status);
   }

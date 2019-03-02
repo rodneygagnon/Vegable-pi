@@ -363,8 +363,16 @@ const runTests = (zoneId) => {
         expect(zone.id).toBe(zones[0].id);
       });
       it('should set a zone', async () => {
+        zone.auto = false;
+        zone.fertilize = false;
         await ZonesInstance.setZone(zone);
-        // TODO: add setZone test for success/failure
+        zone = await ZonesInstance.getZone(zones[0].id);
+        expect(zone.id).toBe(zones[0].id);
+        expect(zone.auto).toBe(false);
+        expect(zone.fertilize).toBe(false);
+        zone.auto = true;
+        zone.fertilize = true;
+        await ZonesInstance.setZone(zone);
       });
       it('should switch a zone ON (w/out fertilizer)', (done) => {
         ZonesInstance.switchZone(zoneId, JSON.stringify(noFertilizerObj), async (status) => {
