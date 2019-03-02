@@ -40,7 +40,8 @@ const runTests = async function (testZoneId) {
 
   let origEmitterCount;
   let origEmitterRate;
-  let origArea;
+  let origWidth;
+  let origLength;
   let origZoneStart;
 
   const testCrop = {
@@ -160,11 +161,13 @@ const runTests = async function (testZoneId) {
     // First we need to set the zone's irrigation capacity to shorten tests to reasonable durations
     testZone = await ZonesInstance.getZone(testZoneId);
 
-    origArea = testZone.area;
+    origWidth = testZone.width;
+    origLength = testZone.length;
     origEmitterCount = testZone.emitterCount;
     origEmitterRate = testZone.emitterRate;
 
-    testZone.area = 1;
+    testZone.width = 1;
+    testZone.length = 1;
     testZone.emitterCount = 40;
     testZone.emitterRate = 2;
 
@@ -410,7 +413,8 @@ const runTests = async function (testZoneId) {
           zone.start = origZoneStart;
           zone.emitterCount = origEmitterCount;
           zone.emitterRate = origEmitterRate;
-          zone.area = origArea;
+          zone.width = origWidth;
+          zone.length = origLength;
           zone.availableWater = 0;
           zone.adjusted = 0;
           zone.fertilized = 0;
@@ -420,7 +424,8 @@ const runTests = async function (testZoneId) {
           expect(zone.start).toBe(origZoneStart);
           expect(zone.emitterCount).toBe(origEmitterCount);
           expect(zone.emitterRate).toBe(origEmitterRate);
-          expect(zone.area).toBe(origArea);
+          expect(zone.width).toBe(origWidth);
+          expect(zone.length).toBe(origLength);
           expect(zone.availableWater).toBe(0);
           expect(zone.adjusted).toBe(0);
           expect(zone.fertilized).toBe(0);
