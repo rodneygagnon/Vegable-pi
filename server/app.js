@@ -7,8 +7,11 @@
 
 // Main Express Application
 const express = require('express');
-var cors = require('cors');
+const cors = require('cors');
 const session = require('express-session');
+const dotenv = require('dotenv');
+
+dotenv.load();
 
 const redis   = require("redis");
 const RedisStore = require('connect-redis')(session);
@@ -18,10 +21,12 @@ const helmet = require('helmet');
 
 // Sign in authentication
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
+const Auth0Strategy = require('passport-auth0');
 
 const path = require('path');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const flash = require('connect-flash');
 
 const morgan = require('morgan');
 
@@ -30,6 +35,7 @@ const { VegableInstance } = require('./controllers/vegable');
 const { milli_per_hour } = require('../config/constants');
 
 // Application Routes
+const AuthRouter = require('./routes/auth');
 const IndexRouter = require('./routes/index');
 const ApiRouter = require('./routes/api');
 const SettingsRouter = require('./routes/settings');
@@ -40,26 +46,27 @@ const ZonesRouter = require('./routes/zones');
 const app = express();
 
 // Initialize a local authentication strategy for now.
-// TODO: Add strategies for Facebook, Twitter, ... and/or OpenId, www.okta.com
-passport.use(new LocalStrategy(
-  ((username, password, callback) => {
-    VegableInstance.validateUser(username, password, (err, user) => {
-      if (err) { return callback(err); }
-      if (!user) { return callback(null, false, { message: 'Incorrect username or password.' }); }
-      return callback(null, user);
-    });
-  }),
-));
+var strategy = new Auth0Strategy({
+   domain:       process.env.AUTH0_DOMAIN,
+   clientID:     process.env.AUTH0_CLIENT_ID,
+   clientSecret: process.env.AUTH0_CLIENT_SECRET,
+   callbackURL:  '/callback'
+  },
+  function(accessToken, refreshToken, extraParams, profile, done) {
+    // accessToken is the token to call Auth0 API (not needed in the most cases)
+    // extraParams.id_token has the JSON Web Token
+    // profile has all the information from the user
+    return done(null, profile);
+  }
+);
+passport.use(strategy);
 
 passport.serializeUser((user, callback) => {
   callback(null, user);
 });
 
 passport.deserializeUser((user, callback) => {
-  VegableInstance.getUser(user.email, (err, user) => {
-    if (err) { return callback(err); }
-    callback(null, user);
-  });
+  callback(null, user);
 });
 
 app.set('view engine', 'ejs');
@@ -75,6 +82,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(cookieParser());
+
 app.use(session({
   secret: 'eat-more-veggies',
   cookie: { maxAge: 24 * milli_per_hour },
@@ -87,13 +96,25 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-/* Sign in */
-app.post('/signin',
-  passport.authenticate('local', { failureRedirect: '/signin' }),
-  (req, res) => {
-    res.redirect('/');
-  });
+app.use(flash());
 
+// Handle auth failure error messages
+app.use(function (req, res, next) {
+  if (req && req.query && req.query.error) {
+    req.flash('error', req.query.error);
+  }
+  if (req && req.query && req.query.error_description) {
+    req.flash('error_description', req.query.error_description);
+  }
+  next();
+});
+
+app.use(function (req, res, next) {
+  res.locals.user = req.user;
+  next();
+});
+
+app.use('/', AuthRouter);
 app.use('/', IndexRouter);
 app.use('/api', ApiRouter);
 app.use('/settings', SettingsRouter);

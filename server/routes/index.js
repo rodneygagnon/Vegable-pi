@@ -28,49 +28,10 @@ router.get('/', async (req, res, next) => {
   } else {
     // Make sure the user is logged in
     if (typeof req.user === 'undefined') {
-      res.redirect('/signin');
+      res.redirect('/login');
     } else {
       res.render('index', { title: 'Vegable', user: req.user });
     }
-  }
-});
-
-/**
- * Route to render Sign In view
- * @name signin
- * @function
- */
-router.get('/signin', async (req, res, next) => {
-  if (await SettingsInstance.getRegistered() == 0) {
-    res.redirect('/register');
-  } else {
-    res.render('signin');
-  }
-});
-
-/**
- * Route to render Sign Up view
- * @name signup
- * @function
- */
-router.get('/signup', async (req, res, next) => {
-  if (await SettingsInstance.getRegistered() == 0) {
-    res.redirect('/register');
-  } else {
-    res.render('signup');
-  }
-});
-
-/**
- * Route to render Recover view
- * @name recover
- * @function
- */
-router.get('/recover', async (req, res, next) => {
-  if (await SettingsInstance.getRegistered() == 0) {
-    res.redirect('/register');
-  } else {
-    res.render('recover');
   }
 });
 
@@ -80,21 +41,7 @@ router.get('/recover', async (req, res, next) => {
  * @function
  */
 router.get('/signout', (req, res, next) => {
-  req.logout();
-  res.redirect('/signin');
-});
-
-/**
- * Route to handle user registration and redirect to Sign In view
- * @name signup
- * @function
- * @param {object} user - user
- */
-router.post('/signup', (req, res, next) => {
-  UsersInstance.updateUser(req.body, '' /* action */, (result) => {
-    // TODO: check result of new user registration before redirecting
-    res.redirect('/signin');
-  });
+  res.redirect('/logout');
 });
 
 /**

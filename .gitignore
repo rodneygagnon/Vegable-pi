@@ -6,6 +6,7 @@
 */.DS_Store
 
 # Ignore files with private data (for now)
+.env
 config.js
 server.cert
 server.key

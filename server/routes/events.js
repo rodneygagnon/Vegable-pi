@@ -23,7 +23,7 @@ const router = express.Router();
 router.get('/', (req, res, next) => {
   // Make sure the user is logged in
   if (typeof req.user === 'undefined') {
-    res.redirect('/signin');
+    res.redirect('/login');
   } else {
     ZonesInstance.getPlantingZones((zones) => {
       res.render('events', { title: 'Vegable', zones: zones });

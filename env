@@ -1,0 +1,17 @@
+// Port for Express to listen
+PORT=3001
+HTTPS_PORT=3005
+
+// Timezone
+TZ='America/Los_Angeles'
+
+// Vegable Environment Settings
+VEGABLE_STATIONS=8
+
+// CIMIS Api Key
+CIMIS_KEY=__CIMIS_KEY__
+
+// Auth0
+AUTH0_CLIENT_ID=__CLIENT_ID__
+AUTH0_DOMAIN=__DOMAIN__
+AUTH0_CLIENT_SECRET=__CLIENT_SECRET__
