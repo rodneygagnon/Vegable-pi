@@ -1,11 +1,11 @@
-var express = require('express');
-var router = express.Router();
-var passport = require('passport');
+
+const express = require('express');
+const passport = require('passport');
+
+const router = express.Router();
 
 // Perform the login, after login Auth0 will redirect to callback
-router.get('/login', passport.authenticate('auth0', {
-  scope: 'openid email profile'
-}), (req, res) => {
+router.get('/login', passport.authenticate('auth0', { scope: 'openid email profile' }), (req, res) => {
   res.redirect('/');
 });
 
@@ -23,7 +23,7 @@ router.get('/callback', (req, res, next) => {
       if (err) {
         return next(err);
       }
-      const returnTo = req.session.returnTo;
+      const { returnTo } = req.session;
       delete req.session.returnTo;
 
       res.redirect(returnTo || '/');

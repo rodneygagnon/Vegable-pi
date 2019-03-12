@@ -5,8 +5,7 @@
  * @version 0.1
  */
 
- const expect = require('expect');
- const moment = require('moment');
+const expect = require('expect');
 
 /** Controllers */
 const { VegableInstance } = require('../../server/controllers/vegable');
@@ -20,9 +19,9 @@ const { ZonesInstance } = require('../../server/models/zones');
 const { EventsInstance } = require('../../server/models/events');
 
 /** Constants */
-const { milli_per_sec } = require('../../config/constants');
-const { milli_per_hour } = require('../../config/constants');
-const { milli_per_day } = require('../../config/constants');
+const { MilliPerSec } = require('../../config/constants');
+const { MilliPerHour } = require('../../config/constants');
+const { MilliPerDay } = require('../../config/constants');
 
 const sum = (total, num) => {
   return total + num;
@@ -33,9 +32,9 @@ const testFertilization = (zone, planting, crop, processDate) => {
   const lastFertilized = new Date(zone.fertilized);
   const plantingDate = new Date(planting.date);
   const age = planting.age +
-              Math.round(Math.abs((processDate.getTime() - plantingDate.getTime())/(milli_per_day)));
+              Math.round(Math.abs((processDate.getTime() - plantingDate.getTime()) / (MilliPerDay)));
   const lastAgeFertilized = (lastFertilized < plantingDate ? 0 : planting.age +
-              Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime())/(milli_per_day))));
+              Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime()) / (MilliPerDay))));
   const initStage = crop.initDay;
   const devStage = initStage + crop.devDay;
   const midStage = devStage + crop.midDay;
@@ -65,15 +64,15 @@ const testFertilization = (zone, planting, crop, processDate) => {
 
 const runTests = (testZoneId, hasFertilizer) => {
   const startETr = new Date(2018, 0, 16); // Jan 15
-  const endETr = new Date(2018, 1, 15);  // Feb 15
+  const endETr = new Date(2018, 1, 15); // Feb 15
   let etrCrop = null;
   const etrPlanting = {
-        zid: testZoneId,
-        title: "ETr Planting",
-        date: startETr.toString(),
-        mad: 50,
-        count: 2,
-      };
+    zid: testZoneId,
+    title: 'ETr Planting',
+    date: startETr.toString(),
+    mad: 50,
+    count: 2,
+  };
   const expectedETr = ((1.86 / 31) * 16) /* jan 16-31 */
                     + ((2.24 / 28) * 15); /* feb 1-15 */
   let dailyETo;
@@ -98,7 +97,7 @@ const runTests = (testZoneId, hasFertilizer) => {
   let testCrop1 = null;
   const testPlanting1 = {
     zid: testZoneId,
-    title: "Test Planting 1",
+    title: 'Test Planting 1',
     date: yesterday.toString(),
     mad: 50,
     count: 2,
@@ -106,15 +105,16 @@ const runTests = (testZoneId, hasFertilizer) => {
   let testCrop2 = null;
   const testPlanting2 = {
     zid: testZoneId,
-    title: "Test Planting 2",
+    title: 'Test Planting 2',
     date: yesterday.toString(),
     mad: 25,
     count: 2,
   };
 
   describe('Functional Tests', () => {
-    var eids, event, madDays, newMadDays;
-    var nextProcessDate, nextScheduleDate;
+    let eids; let event; let madDays; let newMadDays;
+    let nextProcessDate;
+    let nextScheduleDate;
 
     // Create the conditions that we will use throughout the functional tests
     before ((done) => {
@@ -122,8 +122,8 @@ const runTests = (testZoneId, hasFertilizer) => {
       CropsInstance.getCrops(async (cropsdb) => {
         crops = cropsdb;
 
-        for (var cropNum = 0; cropNum < crops.length; cropNum++) {
-          var crop = crops[cropNum];
+        for (let cropNum = 0; cropNum < crops.length; cropNum++) {
+          const crop = crops[cropNum];
 
           if (!etrCrop && crop.name === 'Broccoli') {
             etrCrop = crop;
@@ -178,18 +178,18 @@ const runTests = (testZoneId, hasFertilizer) => {
       });
 
       it(`should get daily ETc for all plantings in zone ${testZoneId} from ${startETr} to ${endETr}`, async () => {
-        var expectedETc = 0;
-        var age = etrPlanting.age;
-        var initStage = etrCrop.initDay;
-        var devStage = initStage + etrCrop.devDay;
-        var midStage = devStage + etrCrop.midDay;
+        let expectedETc = 0;
+        let { age } = etrPlanting;
+        const initStage = etrCrop.initDay;
+        const devStage = initStage + etrCrop.devDay;
+        const midStage = devStage + etrCrop.midDay;
 
-        for (var day = 0; day < dailyETo.length; day++) {
+        for (let day = 0; day < dailyETo.length; day++) {
           expectedETc += dailyETo[day] *
                           (age <= initStage ? etrCrop.initKc :
                             (age <= devStage ? etrCrop.devKc :
                               (age <= midStage ? etrCrop.midKc : etrCrop.lateKc)));
-          age++;
+          age += 1;
         }
 
         const dailyETc = await PlantingsInstance.getETcByZone(testZoneId, new Date(startETr), new Date(endETr));
@@ -197,8 +197,8 @@ const runTests = (testZoneId, hasFertilizer) => {
       });
 
       it(`should get NPK demand for all plantings in zone ${testZoneId} from ${startETr} to ${endETr}`, async () => {
-        const fertilizer = await PlantingsInstance.getFertilizerByZone(testZoneId, new Date(startETr), new Date(endETr),
-                                                                     new Date(testZone.fertilized));
+        const fertilizer = await PlantingsInstance.getFertilizerByZone(
+          testZoneId, new Date(startETr), new Date(endETr), new Date(testZone.fertilized));
        console.log(`ETrCrop: (${JSON.stringify(etrCrop)})`);
        console.log(`Fertilizer: (${fertilizer})`);
       });
@@ -212,7 +212,6 @@ const runTests = (testZoneId, hasFertilizer) => {
         testZone = await ZonesInstance.getZone(testZoneId);
         expect(testZone.plantings).toBe(0);
       });
-
     });
 
     describe('Verify zone recharge after initial planting', () => {
@@ -230,7 +229,7 @@ const runTests = (testZoneId, hasFertilizer) => {
         nextProcessDate = new Date(today);
 
         // Set the next schedule date to now + 5 seconds
-        nextScheduleDate = new Date(Date.now() + (5 * milli_per_sec));
+        nextScheduleDate = new Date(Date.now() + (5 * MilliPerSec));
 
         // First we need to set the zone's irrigation capacity to shorten tests to reasonable durations
         testZone = await ZonesInstance.getZone(testZoneId);
@@ -295,13 +294,13 @@ const runTests = (testZoneId, hasFertilizer) => {
       });
 
       it(`should have started the event and zone ${testZoneId} should be running`, function (done) {
-        var eventStarted = nextScheduleDate.getTime() - Date.now() + milli_per_sec;
-        var eventEnded = (testZone.swhc / testZone.iph) * milli_per_hour;
+        var eventStarted = nextScheduleDate.getTime() - Date.now() + MilliPerSec;
+        var eventEnded = (testZone.swhc / testZone.iph) * MilliPerHour;
 
         // Make sure the test doesn't timeout
-        this.timeout(eventStarted + eventEnded + (5 * milli_per_sec));
+        this.timeout(eventStarted + eventEnded + (5 * MilliPerSec));
 
-        console.log(`**** Waiting ${(eventStarted/milli_per_sec).toFixed(0)} seconds for event to start ...`);
+        console.log(`**** Waiting ${(eventStarted/MilliPerSec).toFixed(0)} seconds for event to start ...`);
 
         setTimeout(async () => {
           testZone = await ZonesInstance.getZone(testZoneId);
@@ -318,7 +317,7 @@ const runTests = (testZoneId, hasFertilizer) => {
           fertilizerZone = await ZonesInstance.getFertilizerZone();
           expect(fertilizerZone.status).toBe(hasFertilizer === true ? fertilizing : false);
 
-          console.log(`**** Waiting ${(eventEnded/milli_per_sec).toFixed(0)} seconds for event to end ...`);
+          console.log(`**** Waiting ${(eventEnded/MilliPerSec).toFixed(0)} seconds for event to end ...`);
 
           setTimeout(async () => {
             testZone = await ZonesInstance.getZone(testZoneId);
@@ -357,12 +356,12 @@ const runTests = (testZoneId, hasFertilizer) => {
         var firstProcessDate = new Date(nextProcessDate);
 
         // Make sure the test doesn't timeout
-        this.timeout(5 * milli_per_sec);
+        this.timeout(5 * MilliPerSec);
 
         while (testZone.availableWater > (testZone.swhc * (testZone.mad / 100))) {
           // Set the next process and schedule (+5 seconds) dates
           nextProcessDate.setDate(nextProcessDate.getDate() + 1);
-          nextScheduleDate = new Date(Date.now() + (5 * milli_per_sec));
+          nextScheduleDate = new Date(Date.now() + (5 * MilliPerSec));
 
           // check fertilize before we schedule events because the zone will change
           shouldFertilize = await testFertilization(testZone, testPlanting1, testCrop1, nextProcessDate);
@@ -380,7 +379,7 @@ const runTests = (testZoneId, hasFertilizer) => {
           adjusted = testZone.adjusted;
         }
 
-        madDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime())/(milli_per_day)));
+        madDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime())/(MilliPerDay)));
         console.log(`It took ${madDays} days to reach ${testZone.availableWater} inches (${testZone.mad}% of ${testZone.swhc} inches)`);
 
         // We should have reached a threshold and
@@ -392,13 +391,13 @@ const runTests = (testZoneId, hasFertilizer) => {
       });
 
       it(`should have started the event and zone ${testZoneId} should be running`, function (done) {
-        var eventStarted = nextScheduleDate.getTime() - Date.now() + milli_per_sec;
-        var eventEnded = ((testZone.swhc - testZone.availableWater) / testZone.iph) * milli_per_hour;
+        var eventStarted = nextScheduleDate.getTime() - Date.now() + MilliPerSec;
+        var eventEnded = ((testZone.swhc - testZone.availableWater) / testZone.iph) * MilliPerHour;
 
         // Make sure the test doesn't timeout
-        this.timeout(eventStarted + eventEnded + (5 * milli_per_sec));
+        this.timeout(eventStarted + eventEnded + (5 * MilliPerSec));
 
-        console.log(`**** Waiting ${(eventStarted/milli_per_sec).toFixed(0)} seconds for event to start ...`);
+        console.log(`**** Waiting ${(eventStarted/MilliPerSec).toFixed(0)} seconds for event to start ...`);
 
         setTimeout(async () => {
           testZone = await ZonesInstance.getZone(testZoneId);
@@ -416,7 +415,7 @@ const runTests = (testZoneId, hasFertilizer) => {
           fertilizerZone = await ZonesInstance.getFertilizerZone();
           expect(fertilizerZone.status).toBe(hasFertilizer === true ? fertilizing : false);
 
-          console.log(`**** Waiting ${(eventEnded/milli_per_sec).toFixed(0)} seconds for event to end ...`);
+          console.log(`**** Waiting ${(eventEnded/MilliPerSec).toFixed(0)} seconds for event to end ...`);
 
           setTimeout(async () => {
             testZone = await ZonesInstance.getZone(testZoneId);
@@ -485,12 +484,12 @@ const runTests = (testZoneId, hasFertilizer) => {
         var firstProcessDate = new Date(nextProcessDate);
 
         // Make sure the test doesn't timeout
-        this.timeout(5 * milli_per_sec);
+        this.timeout(5 * MilliPerSec);
 
         while (testZone.availableWater > (testZone.swhc * (testZone.mad / 100))) {
           // Set the next process and schedule (+5 seconds) dates
           nextProcessDate.setDate(nextProcessDate.getDate() + 1);
-          nextScheduleDate = new Date(Date.now() + (5 * milli_per_sec));
+          nextScheduleDate = new Date(Date.now() + (5 * MilliPerSec));
 
           // check fertilize before we schedule events because the zone will change
           shouldFertilize = await testFertilization(testZone, testPlanting1, testCrop1, nextProcessDate);
@@ -508,7 +507,7 @@ const runTests = (testZoneId, hasFertilizer) => {
           adjusted = testZone.adjusted;
         }
 
-        newMadDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime()) / (milli_per_day)));
+        newMadDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime()) / (MilliPerDay)));
         console.log(`It took ${newMadDays} days to reach ${testZone.availableWater} inches (${testZone.mad}% of ${testZone.swhc} inches)`);
 
         // We should have reached a threshold at a different time
@@ -521,13 +520,13 @@ const runTests = (testZoneId, hasFertilizer) => {
       });
 
       it(`should have started the event and zone ${testZoneId} should be running`, function (done) {
-        var eventStarted = nextScheduleDate.getTime() - Date.now() + milli_per_sec;
-        var eventEnded = ((testZone.swhc - testZone.availableWater) / testZone.iph) * milli_per_hour;
+        var eventStarted = nextScheduleDate.getTime() - Date.now() + MilliPerSec;
+        var eventEnded = ((testZone.swhc - testZone.availableWater) / testZone.iph) * MilliPerHour;
 
         // Make sure the test doesn't timeout
-        this.timeout(eventStarted + eventEnded + (5 * milli_per_sec));
+        this.timeout(eventStarted + eventEnded + (5 * MilliPerSec));
 
-        console.log(`**** Waiting ${(eventStarted / milli_per_sec).toFixed(0)} seconds for event to start ...`);
+        console.log(`**** Waiting ${(eventStarted / MilliPerSec).toFixed(0)} seconds for event to start ...`);
 
         setTimeout(async () => {
           testZone = await ZonesInstance.getZone(testZoneId);
@@ -545,7 +544,7 @@ const runTests = (testZoneId, hasFertilizer) => {
           fertilizerZone = await ZonesInstance.getFertilizerZone();
           expect(fertilizerZone.status).toBe(hasFertilizer === true ? fertilizing : false);
 
-          console.log(`**** Waiting ${(eventEnded / milli_per_sec).toFixed(0)} seconds for event to end ...`);
+          console.log(`**** Waiting ${(eventEnded / MilliPerSec).toFixed(0)} seconds for event to end ...`);
 
           setTimeout(async () => {
             testZone = await ZonesInstance.getZone(testZoneId);
@@ -598,12 +597,12 @@ const runTests = (testZoneId, hasFertilizer) => {
         var firstProcessDate = new Date(nextProcessDate);
 
         // Make sure the test doesn't timeout
-        this.timeout(5 * milli_per_sec);
+        this.timeout(5 * MilliPerSec);
 
         while (testZone.availableWater > (testZone.swhc * (testZone.mad / 100))) {
           // Set the next process and schedule (+5 seconds) dates
           nextProcessDate.setDate(nextProcessDate.getDate() + 1);
-          nextScheduleDate = new Date(Date.now() + (5 * milli_per_sec));
+          nextScheduleDate = new Date(Date.now() + (5 * MilliPerSec));
 
           // check fertilize before we schedule events because the zone will change
           shouldFertilize = (await testFertilization(testZone, testPlanting1, testCrop1, nextProcessDate)
@@ -622,7 +621,7 @@ const runTests = (testZoneId, hasFertilizer) => {
           adjusted = testZone.adjusted;
         }
 
-        newMadDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime())/(milli_per_day)));
+        newMadDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime())/(MilliPerDay)));
         console.log(`It took ${newMadDays} days to reach ${testZone.availableWater} inches (${testZone.mad}% of ${testZone.swhc} inches)`);
 
         // We should have reached a threshold at a different time
@@ -635,13 +634,13 @@ const runTests = (testZoneId, hasFertilizer) => {
       });
 
       it(`should have started the event and zone ${testZoneId} should be running`, function (done) {
-        var eventStarted = nextScheduleDate.getTime() - Date.now() + milli_per_sec;
-        var eventEnded = ((testZone.swhc - testZone.availableWater) / testZone.iph) * milli_per_hour;
+        var eventStarted = nextScheduleDate.getTime() - Date.now() + MilliPerSec;
+        var eventEnded = ((testZone.swhc - testZone.availableWater) / testZone.iph) * MilliPerHour;
 
         // Make sure the test doesn't timeout
-        this.timeout(eventStarted + eventEnded + (5 * milli_per_sec));
+        this.timeout(eventStarted + eventEnded + (5 * MilliPerSec));
 
-        console.log(`**** Waiting ${(eventStarted / milli_per_sec).toFixed(0)} seconds for event to start ...`);
+        console.log(`**** Waiting ${(eventStarted / MilliPerSec).toFixed(0)} seconds for event to start ...`);
 
         setTimeout(async () => {
           testZone = await ZonesInstance.getZone(testZoneId);
@@ -659,7 +658,7 @@ const runTests = (testZoneId, hasFertilizer) => {
           fertilizerZone = await ZonesInstance.getFertilizerZone();
           expect(fertilizerZone.status).toBe(hasFertilizer === true ? fertilizing : false);
 
-          console.log(`**** Waiting ${(eventEnded / milli_per_sec).toFixed(0)} seconds for event to end ...`);
+          console.log(`**** Waiting ${(eventEnded / MilliPerSec).toFixed(0)} seconds for event to end ...`);
 
           setTimeout(async () => {
             testZone = await ZonesInstance.getZone(testZoneId);
@@ -711,12 +710,12 @@ const runTests = (testZoneId, hasFertilizer) => {
         var firstProcessDate = new Date(nextProcessDate);
 
         // Make sure the test doesn't timeout
-        this.timeout(5 * milli_per_sec);
+        this.timeout(5 * MilliPerSec);
 
         while (testZone.availableWater > (testZone.swhc * (testZone.mad / 100))) {
           // Set the next process and schedule (+5 seconds) dates
           nextProcessDate.setDate(nextProcessDate.getDate() + 1);
-          nextScheduleDate = new Date(Date.now() + (5 * milli_per_sec));
+          nextScheduleDate = new Date(Date.now() + (5 * MilliPerSec));
 
           // check fertilize before we schedule events because the zone will change
           shouldFertilize = await testFertilization(testZone, testPlanting1, testCrop1, nextProcessDate);
@@ -734,7 +733,7 @@ const runTests = (testZoneId, hasFertilizer) => {
           adjusted = testZone.adjusted;
         }
 
-        madDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime()) / (milli_per_day)));
+        madDays = Math.round(Math.abs((firstProcessDate.getTime() - nextProcessDate.getTime()) / (MilliPerDay)));
         console.log(`It took ${madDays} days to reach ${testZone.availableWater} inches (${testZone.mad}% of ${testZone.swhc} inches)`);
 
         // We should have reached a threshold at a different time
@@ -747,13 +746,13 @@ const runTests = (testZoneId, hasFertilizer) => {
       });
 
       it(`should have started the event and zone ${testZoneId} should be running`, function (done) {
-        var eventStarted = nextScheduleDate.getTime() - Date.now() + milli_per_sec;
-        var eventEnded = ((testZone.swhc - testZone.availableWater) / testZone.iph) * milli_per_hour;
+        var eventStarted = nextScheduleDate.getTime() - Date.now() + MilliPerSec;
+        var eventEnded = ((testZone.swhc - testZone.availableWater) / testZone.iph) * MilliPerHour;
 
         // Make sure the test doesn't timeout
-        this.timeout(eventStarted + eventEnded + (5 * milli_per_sec));
+        this.timeout(eventStarted + eventEnded + (5 * MilliPerSec));
 
-        console.log(`**** Waiting ${(eventStarted / milli_per_sec).toFixed(0)} seconds for event to start ...`);
+        console.log(`**** Waiting ${(eventStarted / MilliPerSec).toFixed(0)} seconds for event to start ...`);
 
         setTimeout(async () => {
           testZone = await ZonesInstance.getZone(testZoneId);
@@ -771,7 +770,7 @@ const runTests = (testZoneId, hasFertilizer) => {
           fertilizerZone = await ZonesInstance.getFertilizerZone();
           expect(fertilizerZone.status).toBe(hasFertilizer === true ? fertilizing : false);
 
-          console.log(`**** Waiting ${(eventEnded / milli_per_sec).toFixed(0)} seconds for event to end ...`);
+          console.log(`**** Waiting ${(eventEnded / MilliPerSec).toFixed(0)} seconds for event to end ...`);
 
           setTimeout(async () => {
             testZone = await ZonesInstance.getZone(testZoneId);
@@ -851,5 +850,5 @@ const runTests = (testZoneId, hasFertilizer) => {
 };
 
 module.exports = {
-  runTests
+  runTests,
 };

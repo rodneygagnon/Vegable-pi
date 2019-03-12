@@ -39,12 +39,12 @@ const runTests = (zoneId) => {
   const fertilizerObj = {
     n: Number((1.1).toFixed(0)),
     p: Number((2.2).toFixed(0)),
-    k: Number((3.3).toFixed(0))
+    k: Number((3.3).toFixed(0)),
   };
   const noFertilizerObj = {
     n: Number((0).toFixed(0)),
     p: Number((0).toFixed(0)),
-    k: Number((0).toFixed(0))
+    k: Number((0).toFixed(0)),
   };
 
   describe('Unit Tests', () => {
@@ -55,7 +55,7 @@ const runTests = (zoneId) => {
       let zip;
       let etzone;
       let practice;
-      let vegable_time;
+      let vegableTime;
       let lat;
       let long;
       it('should get address', async () => {
@@ -101,11 +101,11 @@ const runTests = (zoneId) => {
         await SettingsInstance.setPractice(practice);
       });
       it('should get vegable time', async () => {
-        vegable_time = await SettingsInstance.getVegableTime();
-        expect(vegable_time).toBeDefined();
+        vegableTime = await SettingsInstance.getVegableTime();
+        expect(vegableTime).toBeDefined();
       });
       it('should set vegable time', async () => {
-        await SettingsInstance.setVegableTime(vegable_time);
+        await SettingsInstance.setVegableTime(vegableTime);
       });
       it('should get lat', async () => {
         lat = await SettingsInstance.getLat();
@@ -566,5 +566,5 @@ const runTests = (zoneId) => {
 };
 
 module.exports = {
-  runTests
+  runTests,
 };

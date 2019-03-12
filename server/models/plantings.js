@@ -20,7 +20,7 @@ const { db } = require('./db');
 const { dbKeys } = require('./db');
 
 /** Constants */
-const { milli_per_day } = require('../../config/constants');
+const { MilliPerDay } = require('../../config/constants');
 
 const plantingSchema = Schema({
   id: String, // Planting UUID
@@ -88,7 +88,7 @@ class Plantings {
 
       const plantingDate = new Date(planting.date);
       let age = planting.age
-                  + Math.round(Math.abs((start.getTime() - plantingDate.getTime()) / (milli_per_day)));
+                  + Math.round(Math.abs((start.getTime() - plantingDate.getTime()) / (MilliPerDay)));
 
       // Caclulate this crop stages in order to extract the appropriate Kc
       const initStage = crop.initDay;
@@ -142,9 +142,9 @@ class Plantings {
         const midStage = devStage + crop.midDay;
 
         const age = planting.age
-                    + Math.round(Math.abs((start.getTime() - plantingDate.getTime()) / (milli_per_day)));
+                    + Math.round(Math.abs((start.getTime() - plantingDate.getTime()) / (MilliPerDay)));
         const lastAgeFertilized = (lastFertilized < plantingDate ? 0 : planting.age
-                    + Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime()) / (milli_per_day))));
+                    + Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime()) / (MilliPerDay))));
 
         log.debug(`getFertilizerByZone: age(${age}) lastAgeFert(${lastAgeFertilized}) stages(${initStage}:${devStage}:${midStage})`);
 

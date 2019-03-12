@@ -10,11 +10,9 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const dotenv = require('dotenv');
+const RedisStore = require('connect-redis')(session);
 
 dotenv.load();
-
-const redis   = require("redis");
-const RedisStore = require('connect-redis')(session);
 
 // Security
 const helmet = require('helmet');
@@ -32,7 +30,7 @@ const morgan = require('morgan');
 
 // Main Application Singleton
 const { VegableInstance } = require('./controllers/vegable');
-const { milli_per_hour } = require('../config/constants');
+const { MilliPerHour } = require('../config/constants');
 
 // Application Routes
 const AuthRouter = require('./routes/auth');
@@ -46,19 +44,18 @@ const ZonesRouter = require('./routes/zones');
 const app = express();
 
 // Initialize a local authentication strategy for now.
-var strategy = new Auth0Strategy({
-   domain:       process.env.AUTH0_DOMAIN,
-   clientID:     process.env.AUTH0_CLIENT_ID,
-   clientSecret: process.env.AUTH0_CLIENT_SECRET,
-   callbackURL:  '/callback'
-  },
-  function(accessToken, refreshToken, extraParams, profile, done) {
-    // accessToken is the token to call Auth0 API (not needed in the most cases)
-    // extraParams.id_token has the JSON Web Token
-    // profile has all the information from the user
-    return done(null, profile);
-  }
-);
+const strategy = new Auth0Strategy({
+  domain: process.env.AUTH0_DOMAIN,
+  clientID: process.env.AUTH0_CLIENT_ID,
+  clientSecret: process.env.AUTH0_CLIENT_SECRET,
+  callbackURL: '/callback',
+},
+(accessToken, refreshToken, extraParams, profile, done) => {
+  // accessToken is the token to call Auth0 API (not needed in the most cases)
+  // extraParams.id_token has the JSON Web Token
+  // profile has all the information from the user
+  return done(null, profile);
+});
 passport.use(strategy);
 
 passport.serializeUser((user, callback) => {
@@ -86,10 +83,10 @@ app.use(cookieParser());
 
 app.use(session({
   secret: 'eat-more-veggies',
-  cookie: { maxAge: 24 * milli_per_hour },
+  cookie: { maxAge: 24 * MilliPerHour },
   store: new RedisStore({ host: 'redis' }),
   saveUninitialized: false,
-  resave: false
+  resave: false,
 }));
 
 // Initialize Passport and restore authentication state, if any, from the session.
@@ -99,7 +96,7 @@ app.use(passport.session());
 app.use(flash());
 
 // Handle auth failure error messages
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
   if (req && req.query && req.query.error) {
     req.flash('error', req.query.error);
   }
@@ -109,7 +106,7 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
   res.locals.user = req.user;
   next();
 });

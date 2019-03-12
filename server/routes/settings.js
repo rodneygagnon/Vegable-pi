@@ -22,14 +22,14 @@ const router = express.Router();
  * @returns {object} config - location configuration
  * @returns {object} etrs - reference evapotranspiration zones
  */
-router.get('/', (req, res, next) => {
+router.get('/', (req, res) => {
   // Make sure the user is logged in
   if (typeof req.user === 'undefined') {
     res.redirect('/login');
   } else {
     SettingsInstance.getSettings((config) => {
       SettingsInstance.getETrs((etrs) => {
-        res.render('settings', { title: 'Vegable', config: config, etrs: etrs });
+        res.render('settings', { title: 'Vegable', config, etrs });
       });
     });
   }
@@ -45,8 +45,8 @@ router.route('/location/set').post((req, res) => {
   if (!validator.isEmpty(req.body.address) && !validator.isEmpty(req.body.city)
       && !validator.isEmpty(req.body.state) && validator.isPostalCode(req.body.zip, 'US')) {
     SettingsInstance.setLocation(req.body.address, req.body.city,
-                                 req.body.state, req.body.zip,
-                                 req.body.etzone);
+      req.body.state, req.body.zip,
+      req.body.etzone);
     res.redirect('/settings');
   } else {
     log.error(`settings/location/set: Bad Request Data (${JSON.stringify(req.body)})`);
@@ -61,7 +61,6 @@ router.route('/location/set').post((req, res) => {
  * @param {Number} practice - Practice
  */
 router.route('/practice/set').post((req, res) => {
-  let result;
   if (!validator.isEmpty(req.body.practice)) {
     SettingsInstance.setPractice(req.body.practice);
     res.redirect('/settings');
@@ -79,15 +78,13 @@ router.route('/practice/set').post((req, res) => {
  * @param {string} action - _null_ or _delete_
  */
 router.route('/crops/update').post(async (req, res) => {
-  let result;
-
   if (req.body.action === 'delete') {
-    result = await CropsInstance.delCrop(req.body.id);
+    await CropsInstance.delCrop(req.body.id);
   } else {
-    result = await CropsInstance.setCrop(req.body);
+    await CropsInstance.setCrop(req.body);
   }
 
   res.redirect('/settings');
- });
+});
 
 module.exports = router;

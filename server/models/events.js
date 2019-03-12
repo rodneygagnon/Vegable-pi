@@ -20,7 +20,7 @@ const { db } = require('./db');
 const { dbKeys } = require('./db');
 
 /** Constants */
-const { milli_per_hour } = require('../../config/constants');
+const { MilliPerHour } = require('../../config/constants');
 
 const eventSchema = Schema({
   id: String, // Event UUID
@@ -288,7 +288,7 @@ class Events {
       if (!zone.status) {
         // Switch ON the station and create a job to turn it off
         ZonesInstance.switchZone(job.data.zid, job.data.fertilizer, async (status) => {
-          const irrTime = (job.data.amt / zone.iph) * milli_per_hour;
+          const irrTime = (job.data.amt / zone.iph) * MilliPerHour;
           const nextJob = await EventsQueue.add(job.data,
             {
               jobId: uuidv4(),

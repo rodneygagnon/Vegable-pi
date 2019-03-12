@@ -21,8 +21,8 @@ const { db } = require('./db');
 const { dbKeys } = require('./db');
 
 /** Constants */
-const { milli_per_hour } = require('../../config/constants');
-const { app_rate_drip_conversion } = require('../../config/constants');
+const { MilliPerHour } = require('../../config/constants');
+const { AppRateDripConversion } = require('../../config/constants');
 
 const zonesSchema = Schema({
   id: Number,
@@ -67,7 +67,7 @@ const FertilizerZoneName = 'Fertilizer';
 const noFertilizerObj = {
   n: Number((0).toFixed(0)),
   p: Number((0).toFixed(0)),
-  k: Number((0).toFixed(0))
+  k: Number((0).toFixed(0)),
 };
 
 // Irrigation Types and Rates and Types
@@ -131,7 +131,7 @@ class Zones {
             auto: true,
             fertilize: true,
             gph: (1 * FlowRates.oneGPH),
-            iph: (((1 * FlowRates.oneGPH) * app_rate_drip_conversion) / 1),
+            iph: (((1 * FlowRates.oneGPH) * AppRateDripConversion) / 1),
             swhc: SoilWHC.medium,
             availableWater: 0,
             mad: 0,
@@ -157,7 +157,7 @@ class Zones {
             auto: true,
             fertilize: true,
             gph: (1 * FlowRates.oneGPH),
-            iph: (((1 * FlowRates.oneGPH) * app_rate_drip_conversion) / 1),
+            iph: (((1 * FlowRates.oneGPH) * AppRateDripConversion) / 1),
             swhc: SoilWHC.medium,
             availableWater: 0,
             mad: 0,
@@ -184,7 +184,7 @@ class Zones {
             auto: true,
             fertilize: true,
             gph: (1 * FlowRates.oneGPH),
-            iph: (((1 * FlowRates.oneGPH) * app_rate_drip_conversion) / 1),
+            iph: (((1 * FlowRates.oneGPH) * AppRateDripConversion) / 1),
             swhc: SoilWHC.medium,
             mad: 100,
             availableWater: 0,
@@ -317,7 +317,7 @@ class Zones {
       saveZone.emitterCount = inputZone.emitterCount;
       saveZone.emitterRate = inputZone.emitterRate;
       saveZone.gph = saveZone.emitterCount * saveZone.emitterRate;
-      saveZone.iph = (saveZone.gph * app_rate_drip_conversion) / saveZone.area;
+      saveZone.iph = (saveZone.gph * AppRateDripConversion) / saveZone.area;
       saveZone.swhc = inputZone.swhc;
       saveZone.start = inputZone.start;
       saveZone.mad = inputZone.mad;
@@ -356,7 +356,7 @@ class Zones {
           && saveZone.status !== inputZone.status) {
         if (saveZone.status) {
           // Save the stats
-          const runTime = (Date.now() - saveZone.started) / milli_per_hour;
+          const runTime = (Date.now() - saveZone.started) / MilliPerHour;
           StatsInstance.saveStats(saveZone.id, saveZone.started, Date.now(),
             saveZone.gph * runTime, (saveZone.started === saveZone.fertilized));
           saveZone.started = 0;
@@ -425,7 +425,7 @@ class Zones {
 
               // Save Planting Zone Stats
               if (zone.type === ZoneType.open) {
-                runTime = (Date.now() - zone.started) / milli_per_hour;
+                runTime = (Date.now() - zone.started) / MilliPerHour;
                 zone.availableWater += zone.iph * runTime;
                 StatsInstance.saveStats(zone.id, zone.started, Date.now(),
                   zone.gph * runTime, fertilizer);
@@ -456,7 +456,7 @@ class Zones {
       } else {
         if (switchZone.status) {
           // Save Planting Zone Stats
-          runTime = (Date.now() - switchZone.started) / milli_per_hour;
+          runTime = (Date.now() - switchZone.started) / MilliPerHour;
           switchZone.availableWater += switchZone.iph * runTime;
           StatsInstance.saveStats(switchZone.id, switchZone.started, Date.now(),
             switchZone.gph * runTime, fertilizer);

@@ -18,9 +18,9 @@ const { ZonesInstance } = require('../../server/models/zones');
 const { EventsInstance } = require('../../server/models/events');
 
 /** Constants */
-const { milli_per_sec } = require('../../config/constants');
-const { milli_per_hour } = require('../../config/constants');
-const { milli_per_day } = require('../../config/constants');
+const { MilliPerSec } = require('../../config/constants');
+const { MilliPerHour } = require('../../config/constants');
+const { MilliPerDay } = require('../../config/constants');
 
 const runTests = async function (testZoneId) {
   const today = new Date();
@@ -69,7 +69,7 @@ const runTests = async function (testZoneId) {
     lateN: 0,
     lateP: 0,
     lateK: 0,
-    lateFreq: 0
+    lateFreq: 0,
   };
   const testPlanting = {
     zid: testZoneId,
@@ -79,7 +79,7 @@ const runTests = async function (testZoneId) {
     age: 0,
     mad: 50,
     count: 2,
-    spacing: 12
+    spacing: 12,
   };
 
   let fertilizing = false;
@@ -93,9 +93,9 @@ const runTests = async function (testZoneId) {
     const lastFertilized = new Date(zone.fertilized);
     const plantingDate = new Date(planting.date);
     const age = planting.age
-                + Math.round(Math.abs((processDate.getTime() - plantingDate.getTime()) / (milli_per_day)));
+                + Math.round(Math.abs((processDate.getTime() - plantingDate.getTime()) / (MilliPerDay)));
     const lastAgeFertilized = (lastFertilized < plantingDate ? 0 : planting.age
-                + Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime()) / (milli_per_day))));
+                + Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime()) / (MilliPerDay))));
     const initStage = crop.initDay;
     const devStage = initStage + crop.devDay;
     const midStage = devStage + crop.midDay;
@@ -136,7 +136,7 @@ const runTests = async function (testZoneId) {
     if (fertilized) {
       const plantingDate = new Date(planting.date);
       const age = planting.age
-                  + Math.round(Math.abs((processDate.getTime() - plantingDate.getTime()) / (milli_per_day)));
+                  + Math.round(Math.abs((processDate.getTime() - plantingDate.getTime()) / (MilliPerDay)));
 
       const initStage = crop.initDay;
       const devStage = initStage + crop.devDay;
@@ -193,7 +193,7 @@ const runTests = async function (testZoneId) {
   const firstProcessDate = new Date(today);
 
   // Set the next schedule date to now + 5 seconds
-  let nextScheduleDate = new Date(Date.now() + (5 * milli_per_sec));
+  let nextScheduleDate = new Date(Date.now() + (5 * MilliPerSec));
 
   describe('Longevity Tests', () => {
     describe('Verify zone recharge after initial planting', () => {
@@ -233,13 +233,13 @@ const runTests = async function (testZoneId) {
       });
 
       it(`should have started the event and zone ${testZoneId} should be running`, function (done) {
-        const eventStarted = nextScheduleDate.getTime() - Date.now() + milli_per_sec;
-        const eventEnded = (testZone.swhc / testZone.iph) * milli_per_hour;
+        const eventStarted = nextScheduleDate.getTime() - Date.now() + MilliPerSec;
+        const eventEnded = (testZone.swhc / testZone.iph) * MilliPerHour;
 
         // Make sure the test doesn't timeout
-        this.timeout(eventStarted + eventEnded + (5 * milli_per_sec));
+        this.timeout(eventStarted + eventEnded + (5 * MilliPerSec));
 
-        console.log(`**** Waiting ${(eventStarted / milli_per_sec).toFixed(0)} seconds for event to start ...`);
+        console.log(`**** Waiting ${(eventStarted / MilliPerSec).toFixed(0)} seconds for event to start ...`);
 
         setTimeout(async () => {
           testZone = await ZonesInstance.getZone(testZoneId);
@@ -254,7 +254,7 @@ const runTests = async function (testZoneId) {
           fertilizerZone = await ZonesInstance.getFertilizerZone();
           expect(fertilizerZone.status).toBe(fertilizing);
 
-          console.log(`**** Waiting ${(eventEnded / milli_per_sec).toFixed(0)} seconds for event to end ...`);
+          console.log(`**** Waiting ${(eventEnded / MilliPerSec).toFixed(0)} seconds for event to end ...`);
 
           setTimeout(async () => {
             testZone = await ZonesInstance.getZone(testZoneId);
@@ -292,7 +292,7 @@ const runTests = async function (testZoneId) {
         it('should deplete the soil and adjust the zone', async () => {
           let adjusted = testZone.adjusted;
 
-          nextScheduleDate = new Date(Date.now() + (5 * milli_per_sec));
+          nextScheduleDate = new Date(Date.now() + (5 * MilliPerSec));
 
           testZone.start = `${('0' + nextScheduleDate.getHours()).slice(-2)}:${('0' + nextScheduleDate.getMinutes()).slice(-2)}`;
           await ZonesInstance.setZone(testZone);
@@ -316,9 +316,9 @@ const runTests = async function (testZoneId) {
 
         it('should create and start a recharge event if available water fell below MAD', function (done) {
           if (testZone.availableWater <= (testZone.swhc * (testZone.mad / 100))) {
-            madDays = Math.round(Math.abs((nextProcessDate.getTime() - processDate.getTime()) / (milli_per_day)));
+            madDays = Math.round(Math.abs((nextProcessDate.getTime() - processDate.getTime()) / (MilliPerDay)));
             console.log(`*** It took ${madDays} days to reach ${testZone.availableWater.toFixed(2)} inches (${testZone.mad}% of ${testZone.swhc} inches)`);
-            console.log(`*** Your ${testCrop.name} is ${((processDate.getTime() - firstProcessDate.getTime()) / milli_per_day).toFixed(0)} days old!`);
+            console.log(`*** Your ${testCrop.name} is ${((processDate.getTime() - firstProcessDate.getTime()) / MilliPerDay).toFixed(0)} days old!`);
 
             nextProcessDate = processDate;
 
@@ -327,13 +327,13 @@ const runTests = async function (testZoneId) {
 
             events.push(...eids);
 
-            const eventStarted = nextScheduleDate.getTime() - Date.now() + milli_per_sec;
-            const eventEnded = ((testZone.swhc - testZone.availableWater) / testZone.iph) * milli_per_hour;
+            const eventStarted = nextScheduleDate.getTime() - Date.now() + MilliPerSec;
+            const eventEnded = ((testZone.swhc - testZone.availableWater) / testZone.iph) * MilliPerHour;
 
             // Make sure the test doesn't timeout
-            this.timeout(eventStarted + eventEnded + (5 * milli_per_sec));
+            this.timeout(eventStarted + eventEnded + (5 * MilliPerSec));
 
-            console.log(`**** Waiting ${(eventStarted / milli_per_sec).toFixed(0)} seconds for event to start ...`);
+            console.log(`**** Waiting ${(eventStarted / MilliPerSec).toFixed(0)} seconds for event to start ...`);
 
             setTimeout(async () => {
               // record expected fertilization
@@ -351,7 +351,7 @@ const runTests = async function (testZoneId) {
               fertilizerZone = await ZonesInstance.getFertilizerZone();
               expect(fertilizerZone.status).toBe(fertilizing);
 
-              console.log(`**** Waiting ${(eventEnded / milli_per_sec).toFixed(0)} seconds for event to end ...`);
+              console.log(`**** Waiting ${(eventEnded / MilliPerSec).toFixed(0)} seconds for event to end ...`);
 
               setTimeout(async () => {
                 testZone = await ZonesInstance.getZone(testZoneId);
@@ -394,7 +394,7 @@ const runTests = async function (testZoneId) {
           totalK += fertilizerObj.k;
         }
 
-        console.log(`**** Results: Irrigated ${stats.length}x Gallons ${totalGals.toFixed(1)} Time ${(totalTime / milli_per_hour).toFixed(2)}hrs`);
+        console.log(`**** Results: Irrigated ${stats.length}x Gallons ${totalGals.toFixed(1)} Time ${(totalTime / MilliPerHour).toFixed(2)}hrs`);
         console.log(`              Fertilized ${fertCount}x Fertilizer ${(totalN / fertCount).toFixed(0)}:${(totalP / fertCount).toFixed(0)}:${(totalK / fertCount).toFixed(0)}`);
         console.log(`              Fertilizer Stages (exp/act): ${initFertExpect}/${initFertActual}x ${devFertExpect}/${devFertActual}x ${midFertExpect}/${midFertActual}x ${lateFertExpect}/${lateFertActual}x`);
       });
@@ -455,5 +455,5 @@ const runTests = async function (testZoneId) {
 };
 
 module.exports = {
-  runTests
+  runTests,
 };

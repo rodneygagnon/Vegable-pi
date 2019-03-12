@@ -23,16 +23,16 @@ const router = express.Router();
  * @returns {object} user - user
  */
 router.get('/', async (req, res, next) => {
-  if (await SettingsInstance.getRegistered() == 0) {
-    res.redirect('/register');
-  } else {
+  // if (await SettingsInstance.getRegistered() == 0) {
+  //   res.redirect('/register');
+  // } else {
     // Make sure the user is logged in
     if (typeof req.user === 'undefined') {
       res.redirect('/login');
     } else {
       res.render('index', { title: 'Vegable', user: req.user });
     }
-  }
+  // }
 });
 
 /**

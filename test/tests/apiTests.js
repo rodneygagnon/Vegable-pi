@@ -4,11 +4,7 @@
  * @copyright 2018 vegable.io
  * @version 0.1
  */
-
-'use strict';
-
 const request = require('supertest');
-const expect = require('expect');
 const moment = require('moment');
 
 const runTests = async (app) => {
@@ -30,7 +26,7 @@ const runTests = async (app) => {
             city: 'Sebastopol',
             state: 'CA',
             zip: '95472',
-            etzone: 4
+            etzone: 4,
           })
           .set('Accept', 'application/json')
           .expect(200)
@@ -73,7 +69,7 @@ const runTests = async (app) => {
         lateN: 9,
         lateP: 10,
         lateK: 11,
-        lateFreq: 12
+        lateFreq: 12,
       };
 
       it('should get all crops', (done) => {
@@ -471,5 +467,5 @@ const runTests = async (app) => {
 };
 
 module.exports = {
-  runTests
+  runTests,
 };

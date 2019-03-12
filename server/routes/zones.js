@@ -8,6 +8,8 @@
 const express = require('express');
 const validator = require('validator');
 
+const { log } = require('../controllers/logger');
+
 const { ZonesInstance } = require('../models/zones');
 
 const router = express.Router();
@@ -17,7 +19,7 @@ const router = express.Router();
  * @name zones
  * @function
  */
-router.get('/', (req, res, next) => {
+router.get('/', (req, res) => {
   // Make sure the user is logged in
   if (typeof req.user === 'undefined') {
     res.redirect('/login');
@@ -39,7 +41,7 @@ router.route('/update').post(async (req, res) => {
     res.redirect('/zones');
   } else {
     log.error(`zones/update: Invalid Zone ID (${JSON.stringify(req.body)})`);
-    res.redirect(400,'/zones');
+    res.redirect(400, '/zones');
   }
 });
 
@@ -57,7 +59,7 @@ router.route('/enable/:id').post((req, res) => {
     });
   } else {
     log.error(`zones/update: Invalid Zone ID (${JSON.stringify(req.body)})`);
-    res.redirect(400,'/zones');
+    res.redirect(400, '/zones');
   }
 });
 

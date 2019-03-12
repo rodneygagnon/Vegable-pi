@@ -184,7 +184,7 @@ class Weather {
       weather.push(weatherSchema.validate(JSON.parse(redisWeather[i])));
     }
 
-    return (await Promise.all(weather));
+    return (Promise.all(weather));
   }
 
   // Get 7-Day Forecast
@@ -195,7 +195,7 @@ class Weather {
       forecast.push(forecastSchema.validate(JSON.parse(redisForecast[i])));
     }
 
-    return (await Promise.all(forecast));
+    return (Promise.all(forecast));
   }
 
   // ONLY used for testing

@@ -8,6 +8,8 @@
 const express = require('express');
 const validator = require('validator');
 
+const { log } = require('../controllers/logger');
+
 const { ZonesInstance } = require('../models/zones');
 const { CropsInstance } = require('../models/crops');
 const { PlantingsInstance } = require('../models/plantings');
@@ -22,15 +24,14 @@ const router = express.Router();
  * @returns {array} zones - list of zones
  * @returns {array} crops - list of crops
  */
-router.get('/', (req, res, next) => {
+router.get('/', (req, res) => {
   // Make sure the user is logged in
   if (typeof req.user === 'undefined') {
     res.redirect('/login');
   } else {
-    let zones = [];
     ZonesInstance.getPlantingZones((zones) => {
       CropsInstance.getCrops((crops) => {
-        res.render('plantings', { title: 'Vegable', zones: zones, crops: crops });
+        res.render('plantings', { title: 'Vegable', zones, crops });
       });
     });
   }

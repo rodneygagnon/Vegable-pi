@@ -8,6 +8,8 @@
 const express = require('express');
 const validator = require('validator');
 
+const { log } = require('../controllers/logger');
+
 const { EventsInstance } = require('../models/events');
 const { ZonesInstance } = require('../models/zones');
 
@@ -20,13 +22,13 @@ const router = express.Router();
  * @param {object} user - user
  * @returns {array} zones - list of zones
  */
-router.get('/', (req, res, next) => {
+router.get('/', (req, res) => {
   // Make sure the user is logged in
   if (typeof req.user === 'undefined') {
     res.redirect('/login');
   } else {
     ZonesInstance.getPlantingZones((zones) => {
-      res.render('events', { title: 'Vegable', zones: zones });
+      res.render('events', { title: 'Vegable', zones });
     });
   }
 });

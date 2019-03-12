@@ -44,12 +44,12 @@ router.route('/location/get').get((req, res) => {
  * @param {object} location - Address, City, State, Zip, ET Zone
  */
 router.route('/location/set').post((req, res) => {
-  var result;
+  let result;
   if (!validator.isEmpty(req.body.address) && !validator.isEmpty(req.body.city)
       && !validator.isEmpty(req.body.state) && validator.isPostalCode(req.body.zip, 'US')) {
     SettingsInstance.setLocation(req.body.address, req.body.city,
-                                 req.body.state, req.body.zip,
-                                 req.body.etzone);
+      req.body.state, req.body.zip,
+      req.body.etzone);
     result = 200;
   } else {
     log.error(`api/location/set: Bad Request Data (${JSON.stringify(req.body)})`);
@@ -77,7 +77,7 @@ router.route('/etrs/get').get((req, res) => {
  * @param {Number} practice - Practice
  */
 router.route('/practice/set').post((req, res) => {
-  var result;
+  let result;
   if (!validator.isEmpty(req.body.practice)) {
     SettingsInstance.setPractice(req.body.practice);
     result = 200;
@@ -145,9 +145,9 @@ router.route('/crops/set').post(async (req, res) => {
   res.status(status).json({ id: result });
 });
 
- /*
-  * Events APIs
-  */
+/*
+ * Events APIs
+ */
 
 /**
  * Route to get events within a given date range
@@ -163,7 +163,7 @@ router.route('/events/get').get((req, res) => {
 
   if (validator.isISO8601(parsedQs.start) && validator.isISO8601(parsedQs.end)) {
     EventsInstance.getEvents(parsedQs.start, parsedQs.end, (events) => {
-     res.status(200).json(events);
+      res.status(200).json(events);
     });
   } else {
     log.error(`api/events/get: Invalid Dates (${JSON.stringify(parsedQs)})`);
@@ -222,10 +222,10 @@ router.route('/events/set').post(async (req, res) => {
  */
 router.route('/plantings/get').get(async (req, res) => {
   if (typeof req.query === 'undefined' || typeof req.query.id === 'undefined') {
-   // Get all plantings
-   PlantingsInstance.getAllPlantings((plantings) => {
-     res.status(200).json(plantings);
-   });
+    // Get all plantings
+    PlantingsInstance.getAllPlantings((plantings) => {
+      res.status(200).json(plantings);
+    });
   } else {
     if (validator.isUUID(req.query.id)) {
       const planting = await PlantingsInstance.getPlanting(req.query.id);
@@ -289,8 +289,9 @@ router.route('/stats/get').get(async (req, res) => {
     log.error(`api/stats/set: Invalid Stats Query (${JSON.stringify(req.query)})`);
     res.status(400).end();
   } else {
-    res.status(200).json(await StatsInstance.getStats(req.query.zid, req.query.start,
-                                                      req.query.stop));
+    res.status(200).json(
+      await StatsInstance.getStats(req.query.zid, req.query.start, req.query.stop),
+    );
   }
 });
 
@@ -381,7 +382,7 @@ router.route('/zones/set').post(async (req, res) => {
 router.route('/zones/switch').post((req, res) => {
   // TODO: add ability to pass fertilizer
   ZonesInstance.switchZone(req.query.id, JSON.stringify({ n: 0, p: 0, k: 0 }), (status) => {
-    res.status(200).json({ status: status });
+    res.status(200).json({ status });
   });
 });
 
