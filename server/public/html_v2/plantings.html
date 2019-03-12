@@ -48,7 +48,7 @@
 
 
 <body>
-  
+
 
 
 
@@ -118,7 +118,7 @@
             </svg>
           </a>
         </li>
-       
+
         <hr class="visible-xs mt-3">
         <li class="nav-header"></li>
         <li class="nav-item">
@@ -130,7 +130,7 @@
             </svg>
           </a>
         </li>
-        
+
       </ul>
     </div>
   </nav>
@@ -155,7 +155,7 @@
     </div>
 
     <hr class="mt-5 mb-4">
-    
+
     <div class="table-responsive">
       <div id="toolbar" class="btn-group">
         <a rel="tooltip" title="Add Planting" href="javascript:void(0)" data-toggle="modal" data-target="#editPlantingModal">
@@ -223,10 +223,11 @@
                 </select>
               </div>
               <div class="col">
-                <label for="sid" class="col-form-label">Zone</label>
+                <label for="sid" class="col-form-label">Zone (SqFt Available)</label>
                 <select class="selectpicker form-control" id="zid" name="zid" required="" placeholder="Zone">
-                  <% for(var i=0; i < zones.length; i++) { %>
-                    <option value="<%= zones[i].id %>"><%= zones[i].name %></option>
+                  <% for(var i=0; i < zones.length; i++) {
+                       let label = `${zones[i].name} (${(zones[i].area - zones[i].plantedArea).toFixed(1)})`;
+                       %><option value="<%= zones[i].id %>"><%= label %></option>
                   <% } %>
                 </select>
               </div>
@@ -282,7 +283,7 @@
   <script src="assets/js/bootstrap-select.js"></script>
   <script src="assets/js/bootstrap-table.js"></script>
   <script src="assets/js/skycons.js"></script>
- 
+
   <!-- Vegable Javascript -->
   <script src="assets/js/vegable/plantings.js"></script>
 
@@ -292,4 +293,3 @@
     </script>
   </body>
 </html>
-
