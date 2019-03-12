@@ -46,6 +46,7 @@ const zonesSchema = Schema({
   availableWater: { type: Number, min: 0 }, // Available Water (inches)
   mad: { type: Number, min: 0 }, // Max Allowable Depletion (MAD %)
   plantings: { type: Number, min: 0 },
+  plantedArea: { type: Number, min: 0 },
 
   // Color coding for events in the schedule
   color: String,
@@ -141,6 +142,7 @@ class Zones {
             adjusted: 0,
             fertilized: 0,
             plantings: 0,
+            plantedArea: 0,
             color: zoneEventColors[0],
             textColor: zoneTextColor,
           }));
@@ -167,6 +169,7 @@ class Zones {
             adjusted: 0,
             fertilized: 0,
             plantings: 0,
+            plantedArea: 0,
             color: zoneEventColors[1],
             textColor: zoneTextColor,
           }));
@@ -194,6 +197,7 @@ class Zones {
             adjusted: 0,
             fertilized: 0,
             plantings: 0,
+            plantedArea: 0,
             color: zoneEventColors[i - 1],
             textColor: zoneTextColor,
           };
@@ -348,6 +352,9 @@ class Zones {
       }
       if (typeof inputZone.plantings !== 'undefined') {
         saveZone.plantings = inputZone.plantings;
+      }
+      if (typeof inputZone.plantedArea !== 'undefined') {
+        saveZone.plantedArea = inputZone.plantedArea;
       }
 
       // if incoming status is defined and different than the current status,
@@ -514,14 +521,17 @@ class Zones {
         const zone = await this.getZone(zids[i]);
 
         if (zone === 'undefined' || zone === null) {
-          throw (`Invalid zone id (${zids[i]})`);
+          log.error(`updatePlantings: Invalid zone id (${zids[i]})`);
+          return;
         }
 
+        zone.plantedArea = 0;
         zone.mad = 0;
 
         const plantings = await PlantingsInstance.getPlantingsByZone(zids[i]);
         if (plantings.length) {
           for (let j = 0; j < plantings.length; j++) {
+            zone.plantedArea += plantings[j].area;
             zone.mad += plantings[j].mad;
           }
           zone.mad /= plantings.length;

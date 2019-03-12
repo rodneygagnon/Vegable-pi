@@ -31,6 +31,7 @@ const plantingSchema = Schema({
   age: { type: Number, min: 0 }, // Age (days) of the crop at planting (seed = 0)
   mad: { type: Number, min: 0 }, // Max Allowable Depletion (MAD %)
   count: { type: Number, default: 1 },
+  area: { type: Number, default: 0 },
 });
 
 class Plantings {
@@ -237,6 +238,11 @@ class Plantings {
 
     try {
       const validPlanting = await plantingSchema.validate(planting);
+      const crop = await this.getCrop(validPlanting.cid);
+
+      if (crop) {
+        validPlanting.area = validPlanting.count / crop.numSqFt;
+      }
 
       zids.push(validPlanting.zid);
 

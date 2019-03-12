@@ -72,11 +72,11 @@ function initTables() {
         title: 'Plantings',
         align: 'center',
         sortable: true,
-        formatter: function (value) {
+        formatter: function (value, row) {
           if (typeof value === 'undefined' || value === 0) {
             return '<span></span>';
           } else {
-            return `<a href="/plantings" class="badge badge-success">  ${value}  </a>`;
+            return `<span><a href="/plantings" class="badge badge-success">  ${value}  </a>  (${row.plantedArea.toFixed(1)} sqft)`;
           }
         }
       },
