@@ -22,7 +22,7 @@ const { MilliPerSec } = require('../../config/constants');
 const { MilliPerHour } = require('../../config/constants');
 const { MilliPerDay } = require('../../config/constants');
 
-const runTests = async function (testZoneId) {
+const runTests = async (testZoneId) => {
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
@@ -46,6 +46,7 @@ const runTests = async function (testZoneId) {
 
   const testCrop = {
     name: 'Test Crop',
+    numSqFt: 1,
     initDay: 35,
     initKc: 0.70,
     initN: 5,
@@ -79,7 +80,7 @@ const runTests = async function (testZoneId) {
     age: 0,
     mad: 50,
     count: 2,
-    spacing: 12,
+    area: 2 / testCrop.numSqFt,
   };
 
   let fertilizing = false;
@@ -92,10 +93,10 @@ const runTests = async function (testZoneId) {
     // Check if fertilizer zone should be on
     const lastFertilized = new Date(zone.fertilized);
     const plantingDate = new Date(planting.date);
-    const age = planting.age
-                + Math.round(Math.abs((processDate.getTime() - plantingDate.getTime()) / (MilliPerDay)));
-    const lastAgeFertilized = (lastFertilized < plantingDate ? 0 : planting.age
-                + Math.round(Math.abs((lastFertilized.getTime() - plantingDate.getTime()) / (MilliPerDay))));
+    const age = planting.age + Math.round(Math.abs((processDate.getTime()
+                                          - plantingDate.getTime()) / (MilliPerDay)));
+    const lastAgeFertilized = (lastFertilized < plantingDate ? 0 : planting.age + Math.round(Math.abs((lastFertilized.getTime()
+                                          - plantingDate.getTime()) / (MilliPerDay))));
     const initStage = crop.initDay;
     const devStage = initStage + crop.devDay;
     const midStage = devStage + crop.midDay;
@@ -290,14 +291,15 @@ const runTests = async function (testZoneId) {
 
       processDates.forEach((processDate) => {
         it('should deplete the soil and adjust the zone', async () => {
-          let adjusted = testZone.adjusted;
+          let { adjusted } = testZone;
 
           nextScheduleDate = new Date(Date.now() + (5 * MilliPerSec));
 
           testZone.start = `${('0' + nextScheduleDate.getHours()).slice(-2)}:${('0' + nextScheduleDate.getMinutes()).slice(-2)}`;
           await ZonesInstance.setZone(testZone);
 
-          eids = await VegableInstance.scheduleEvents(new Date(processDate), new Date(nextScheduleDate));
+          eids = await VegableInstance.scheduleEvents(new Date(processDate),
+            new Date(nextScheduleDate));
 
           testZone = await ZonesInstance.getZone(testZoneId);
 
@@ -310,7 +312,8 @@ const runTests = async function (testZoneId) {
             event = await EventsInstance.findEvent(eids[0]);
             expect(event).toBeDefined();
 
-            fertilizing = await actualFertilization(JSON.parse(event.fertilizer), testPlanting, testCrop, firstProcessDate);
+            fertilizing = await actualFertilization(JSON.parse(event.fertilizer),
+              testPlanting, testCrop, firstProcessDate);
           }
         });
 

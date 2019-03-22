@@ -162,7 +162,7 @@ class Vegable {
               title: `(auto) ${zone.name} Event`,
               start: nextScheduleDate.toString(),
               amt: zone.swhc - zone.availableWater,
-              fertilizer: fertilizer,
+              fertilizer,
             }));
           }
         }

@@ -131,21 +131,23 @@ class Weather {
 
   getForecastData(callback) {
     this.getDarkSkyForecast(async (darkSkyData) => {
-      try {
+      if (darkSkyData) {
         const dailyForecast = darkSkyData.data;
+        try {
+          // Clear old forecast data
+          await db.delAsync(dbKeys.dbForecastKey);
 
-        // Clear old forecast data
-        await db.delAsync(dbKeys.dbForecastKey);
-
-        for (let day = 0; day < dailyForecast.length; day++) {
-          const forecast = await forecastSchema.validate(dailyForecast[day]);
-          const zcnt = await db.zaddAsync(dbKeys.dbForecastKey, forecast.time, JSON.stringify(forecast));
-          if (zcnt < 1) {
-            log.warning(`setDailyForecast: (${day}) NOT SET ${JSON.stringify(forecast)}`);
+          for (let day = 0; day < dailyForecast.length; day++) {
+            const forecast = await forecastSchema.validate(dailyForecast[day]);
+            const zcnt = await db.zaddAsync(dbKeys.dbForecastKey, forecast.time,
+              JSON.stringify(forecast));
+            if (zcnt < 1) {
+              log.warning(`setDailyForecast: (${day}) NOT SET ${JSON.stringify(forecast)}`);
+            }
           }
+        } catch (err) {
+          log.error(`setDailyForecast: error setting daily forecast (${err})`);
         }
-      } catch (err) {
-        log.error(`setDailyForecast: error setting daily forecast (${err})`);
       }
       callback();
     });
@@ -253,7 +255,7 @@ class Weather {
               + '?exclude=[daily,minutely,hourly,flags]';
 
     request({
-      url: url,
+      url,
       json: true,
     }, (error, response, body) => {
       let currently = null;
@@ -274,7 +276,7 @@ class Weather {
               + Math.round(targetDate.getTime() / 1000) + '?exclude=[currently,hourly]';
 
     request({
-      url: url,
+      url,
       json: true,
     }, (error, response, body) => {
       let darkSkyData = null;
@@ -296,7 +298,7 @@ class Weather {
               + '?exclude=[currently,minutely,hourly,flags]';
 
     request({
-      url: url,
+      url,
       json: true,
     }, (error, response, body) => {
       let darkSkyData = null;
@@ -318,7 +320,7 @@ class Weather {
               + '&startDate=' + dateString + '&endDate=' + dateString;
 
     request({
-      url: url,
+      url,
       json: true,
     }, (error, response, body) => {
       let cimisData = null;

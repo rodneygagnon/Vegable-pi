@@ -5,14 +5,13 @@
  * @version 0.1
  */
 
-'use strict';
-
 const app = require('../server/app');
 
 const Unit = require('./tests/unitTests');
 const Api = require('./tests/apiTests');
 const Functional = require('./tests/functionalTests');
 const Longevity = require('./tests/longevityTests');
+const Simulation = require('./tests/simTests');
 const Config = require('./tests/configTests');
 
 /** Separating the zones to isolate testing */
@@ -26,5 +25,6 @@ describe('Vegable Tests', async () => {
   await Functional.runTests(functionalTestZoneId, true); // with fertilizer
   await Functional.runTests(functionalTestZoneId, false); // without fertilizer
   await Longevity.runTests(longevityTestZoneId);
+  await Simulation.runTests();
   await Config.runTests(false);
 });

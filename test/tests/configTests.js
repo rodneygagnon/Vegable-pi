@@ -1,5 +1,5 @@
 /**
- * @file Unit Test Suite
+ * @file Config Test Suite
  * @author Rodney Gagnon <rodney@vegable.co>
  * @copyright 2018 vegable.io
  * @version 0.1

@@ -221,9 +221,11 @@ class Events {
   async findEvent(eid) {
     const eventCnt = await db.zcountAsync(dbKeys.dbEventsKey, '-inf', '+inf');
 
+    const pageCnt = 20;
     let cnt = 0;
     let start = 0;
-    let end = 20; // get 'end' per page
+    let end = pageCnt - 1; // get 'end' per page
+
     while (cnt < eventCnt) {
       const events = await db.zrangeAsync(dbKeys.dbEventsKey, start, end);
 
@@ -234,11 +236,12 @@ class Events {
         }
       }
 
-      start = end;
-      end += end;
+      start = end + 1;
+      end += pageCnt - 1;
       cnt += events.length;
     }
 
+    log.error(`findEvent: (${eid}) not found!`);
     return (null);
   }
 
@@ -296,7 +299,7 @@ class Events {
               removeOnComplete: true,
             });
 
-          log.debug(`Events::process(1) zone ${zone.id} switched ${zone.status === true ? 'ON' : 'OFF'}`);
+          log.debug(`Events::process(1) zone ${zone.id} switched ${status === true ? 'ON' : 'OFF'}`);
           done();
         });
       } else {
@@ -307,8 +310,8 @@ class Events {
       // We are meant to turn the zone OFF
       if (zone.status) {
         // Switch OFF the station
-        log.debug(`Events::process(2) zone ${zone.id} switched ${zone.status === true ? 'ON' : 'OFF'}`);
         ZonesInstance.switchZone(job.data.zid, job.data.fertilizer, async (status) => {
+          log.debug(`Events::process(2) zone ${zone.id} switched ${status === true ? 'ON' : 'OFF'}`);
           done();
         });
       } else {
