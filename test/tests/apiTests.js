@@ -285,6 +285,7 @@ const runTests = async (app) => {
           .expect((res) => {
             crops = res.body;
             addedPlanting.cid = crops[0].id;
+            addedPlanting.area = addedPlanting.count / crops[0].numSqFt;
           })
           .expect(200)
           .end(done);
