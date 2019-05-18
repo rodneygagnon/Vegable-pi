@@ -5,6 +5,8 @@
 .DS_Store
 */.DS_Store
 
+.idea
+
 # Ignore files with private data (for now)
 .env
 config.js
