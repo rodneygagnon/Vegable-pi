@@ -5,6 +5,8 @@
  * @copyright 2018 vegable.io
  */
 
+/* test comment */
+
 const bluebird = require('bluebird');
 const redis = require('redis');
 
